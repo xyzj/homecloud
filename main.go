@@ -50,11 +50,6 @@ func parseArguments() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	lib.EnableDebug = *enableDebug
 
-	if *web < 1000 || *web > 65534 {
-		println("http port number can only in the range of 1000-65534.")
-		os.Exit(21)
-	}
-
 	if *conf == "" {
 		println("no config file set.")
 		os.Exit(21)

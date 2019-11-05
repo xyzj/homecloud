@@ -17,9 +17,9 @@ def build(outname,  goos, goarch):
     r.close()
     if goos == "windows":
         if goarch == "386":
-            outpath = "../dist_x86"
+            outpath = "dist_x86"
         else:
-            outpath = "../dist_win"
+            outpath = "dist_win"
     else:
         outpath = "dist_linux"
     outname = outpath + "/"+outname
@@ -41,9 +41,9 @@ def build_service(outname, goos, goarch):
     r.close()
     if goos == "windows":
         if goarch == "386":
-            outpath = "../dist_x86"
+            outpath = "dist_x86"
         else:
-            outpath = "../dist_win"
+            outpath = "dist_win"
     else:
         outpath = "dist_linux"
     outname = outpath + "/"+outname
