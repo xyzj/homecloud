@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -46,14 +47,24 @@ func NewHTTPService(port int) {
 
 	// 渲染模板
 	r.HTMLRender = multiRender()
-	
+
 	r.GET("/", remoteIP)
+	r.POST("/", remoteIP)
+	r.GET("/givemenewuuid4", newUUID4)
 	r.GET("/m/:name", movies)
 	g1 := r.Group("/vps")
 	g1.GET("v4info", vps4info)
 	g2 := r.Group("/wt")
 	g2.GET("/", ipCache)
 	g2.GET("/:name", wt)
+	g3 := r.Group("/soho")
+	g3.GET("/", func(c *gin.Context) {
+		c.String(200, "180.167.245.233")
+	})
+	g3.GET("/kod", func(c *gin.Context) {
+		c.Redirect(http.StatusTemporaryRedirect, "http://180.167.245.233:20080")
+	})
+
 	r.NoMethod(ginmiddleware.Page404)
 	r.NoRoute(ginmiddleware.Page404)
 

@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 	"github.com/xyzj/gopsu"
 )
@@ -18,27 +20,22 @@ import (
 
 // login 登录
 func movies(c *gin.Context) {
-	r := c.Param("name")
 	urlConf.Reload()
-	switch r {
-	case "all":
-	default:
-		if ipCached == "" {
-			b, err := ioutil.ReadFile(".ipcache")
-			if err != nil {
-				c.String(200, err.Error())
-				return
-			}
-			ipCached = strings.TrimSpace((string(b)))
-		}
-		n, err := urlConf.GetItem(r)
+	if ipCached == "" {
+		b, err := ioutil.ReadFile(".ipcache")
 		if err != nil {
 			c.String(200, err.Error())
 			return
 		}
-		s := fmt.Sprintf("http://%s:6895/index.php?share/"+n, ipCached)
-		c.Redirect(http.StatusTemporaryRedirect, s)
+		ipCached = strings.TrimSpace((string(b)))
 	}
+	n, err := urlConf.GetItem(c.Param("name"))
+	if err != nil {
+		c.String(200, err.Error())
+		return
+	}
+	s := fmt.Sprintf("http://%s:6895/index.php?share/"+n, ipCached)
+	c.Redirect(http.StatusTemporaryRedirect, s)
 }
 
 func vps4info(c *gin.Context) {
@@ -100,14 +97,9 @@ func wt(c *gin.Context) {
 func remoteIP(c *gin.Context) {
 	switch c.Request.Method {
 	case "GET":
-		c.String(200, strings.Split(c.Request.RemoteAddr, ":")[0])
+		c.String(200, c.ClientIP())
 	case "POST":
-		ioutil.WriteFile(".ipcache", []byte(strings.Split(c.Request.RemoteAddr, ":")[0]), 0644)
-		// f, ex := os.OpenFile(".ipcache", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-		// defer f.Close()
-		// if ex == nil {
-		// 	f.WriteString(strings.Split(c.Request.RemoteAddr, ":")[0])
-		// }
+		ioutil.WriteFile(".ipcache", []byte(c.ClientIP()), 0644)
 		c.String(200, "success")
 	}
 }
@@ -115,4 +107,46 @@ func remoteIP(c *gin.Context) {
 func ipCache(c *gin.Context) {
 	b, _ := ioutil.ReadFile(".ipcache")
 	c.String(200, string(b))
+}
+
+func newUUID4(c *gin.Context) {
+	var s string
+	d, _ := uuid.NewRandom()
+	c.Set("newuuid4", d.String())
+	var i = 1
+	a, err := ioutil.ReadFile("/root/conf/v2rays.json")
+	if err == nil {
+		b := gjson.ParseBytes(a)
+		e := b.Get("inbounds.#.settings.clients.0.id")
+		e.ForEach(func(key, value gjson.Result) bool {
+			c.Set("uuid"+strconv.Itoa(i), value.String())
+			s += "\n" + value.String() + "\n"
+			i++
+			return true
+		})
+	}
+	a, err = ioutil.ReadFile("/root/conf/v2rayfwd.json")
+	if err == nil {
+		b := gjson.ParseBytes(a)
+		e := b.Get("inbounds.#.settings.clients.0.id")
+		e.ForEach(func(key, value gjson.Result) bool {
+			c.Set("uuid"+strconv.Itoa(i), value.String())
+			s += "\n" + value.String() + "\n"
+			i++
+			return true
+		})
+		e = b.Get("outbounds.#.settings.vnext.0.users.0.id")
+		e.ForEach(func(key, value gjson.Result) bool {
+			c.Set("uuid"+strconv.Itoa(i), value.String())
+			s += "\n" + value.String() + "\n"
+			i++
+			return true
+		})
+	}
+	switch c.Request.Method {
+	case "GET":
+		c.HTML(200, "uuidinfo", c.Keys)
+	case "POST":
+		c.String(200, s)
+	}
 }
