@@ -29,7 +29,7 @@ func movies(c *gin.Context) {
 				c.String(200, err.Error())
 				return
 			}
-			ipCached = string(b)
+			ipCached = strings.TrimSpace((string(b))
 		}
 		n, err := urlConf.GetItem(r)
 		if err != nil {
