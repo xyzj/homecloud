@@ -3,7 +3,7 @@
 if [ ! "$1" = "localonly" ]; then
     export https_proxy=http://192.168.1.9:6871
 
-    # go get golang.org/x/tools/cmd/godoc
+    go get golang.org/x/tools/cmd/godoc
     echo "go get gjson/sjson"
     go get -u github.com/tidwall/gjson
     go get -u github.com/tidwall/sjson
@@ -15,10 +15,9 @@ if [ ! "$1" = "localonly" ]; then
     echo "go get rabbitmq"
     go get -u github.com/streadway/amqp
     echo "go get proto"
-    go get -u github.com/golang/protobuf/proto
-    go get -u github.com/golang/protobuf/protoc-gen-go
+    # go get -u github.com/golang/protobuf/proto
+    # go get -u github.com/golang/protobuf/protoc-gen-go
     go get -u github.com/gogo/protobuf/proto
-    go get -u github.com/gogo/protobuf/gogoproto
     go get -u github.com/gogo/protobuf/protoc-gen-gogofaster
     echo "go get grpc"
     go get -u google.golang.org/grpc
@@ -39,11 +38,11 @@ if [ ! "$1" = "localonly" ]; then
     go get -u github.com/mojocn/base64Captcha
 
     echo "go get others"
+    go get -u goftp.io/server
     go get -u github.com/robfig/cron
     go get -u github.com/tealeg/xlsx
     go get -u github.com/google/uuid
     go get -u github.com/golang/snappy
-    go get -u github.com/pierrec/lz4
     go get -u github.com/pkg/errors
     go get -u github.com/xyzj/gopsu
     

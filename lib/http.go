@@ -2,6 +2,7 @@ package lib
 
 import (
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -80,5 +81,6 @@ func NewHTTPService(port int) {
 		if err != nil {
 			println("Failed start HTTP(S) server at :" + strconv.Itoa(port) + "|" + err.Error())
 		}
+		os.Exit(1)
 	}()
 }
