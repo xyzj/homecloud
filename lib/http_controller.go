@@ -99,6 +99,7 @@ func remoteIP(c *gin.Context) {
 	case "GET":
 		c.String(200, c.ClientIP())
 	case "POST":
+		ipCached = c.ClientIP()
 		ioutil.WriteFile(".ipcache", []byte(c.ClientIP()), 0644)
 		c.String(200, "success")
 	}
@@ -106,6 +107,7 @@ func remoteIP(c *gin.Context) {
 
 func ipCache(c *gin.Context) {
 	b, _ := ioutil.ReadFile(".ipcache")
+	ipCached = string(b)
 	c.String(200, string(b))
 }
 
