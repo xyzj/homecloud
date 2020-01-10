@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -44,15 +45,20 @@ func NewHTTPService(port int) {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.New()
-	r.Use(gin.Recovery())
+	r.Use(ginmiddleware.Recovery())
 
 	// 渲染模板
 	r.HTMLRender = multiRender()
+
+	r.Static("/static", ".")
 
 	r.GET("/", remoteIP)
 	r.POST("/", remoteIP)
 	r.GET("/givemenewuuid4", newUUID4)
 	r.GET("/m/:name", movies)
+	r.GET("/share/:name", func(c *gin.Context) {
+		c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("http://%s:6895%s", ipCached, strings.ReplaceAll(c.Request.URL.String(), "/share", "")))
+	})
 	g1 := r.Group("/vps")
 	g1.GET("v4info", vps4info)
 	g2 := r.Group("/wt")
