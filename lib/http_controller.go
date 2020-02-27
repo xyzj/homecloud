@@ -198,11 +198,12 @@ func certNamesilo(c *gin.Context) {
 	case "run": // 创建新证书
 		cmd.Args = strings.Split("--dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a run", " ")
 		go func() {
-			_, err := cmd.CombinedOutput()
+			out, err := cmd.CombinedOutput()
 			if err != nil {
 				ioutil.WriteFile("legoerr.log", []byte(err.Error()), 0664)
 				return
 			}
+			ioutil.WriteFile("namesilo_renew.log", out, 0664)
 			if runtime.GOOS == "linux" {
 				if gopsu.IsExist(linuxSSLCopy) {
 					cmd = exec.Command(linuxSSLCopy)
@@ -225,6 +226,7 @@ func certNamesilo(c *gin.Context) {
 				ioutil.WriteFile("legoerr.log", []byte(err.Error()), 0664)
 				return
 			}
+			ioutil.WriteFile("namesilo_renew.log", out, 0664)
 			if strings.Contains(string(out), "no renew") {
 				return
 			}
