@@ -27,7 +27,7 @@ def build(outname,  goos, goarch):
         outname, mainver, time.ctime(time.time()), gover, pf, goos, goarch)
     # print(buildcmd)
     os.system(buildcmd)
-    os.system("upx {0}".format(outname))
+    os.system("upx --best {0}".format(outname))
 
 
 def build_service(outname, goos, goarch):
@@ -51,7 +51,7 @@ def build_service(outname, goos, goarch):
         outname, mainver, time.ctime(time.time()), gover, pf, goos, goarch)
     # print(buildcmd)
     os.system(buildcmd)
-    os.system("upx dist_win/{0}".format(outname))
+    os.system("upx --best dist_win/{0}".format(outname))
 
 
 if __name__ == "__main__":
