@@ -79,14 +79,14 @@ func NewHTTPService(port int) {
 	g3.GET("/kod", func(c *gin.Context) {
 		c.Redirect(http.StatusTemporaryRedirect, "http://180.167.245.233:20080")
 	})
-	g3.GET("zd", func(c *gin.Context) {
+	g3.GET("/zd", func(c *gin.Context) {
 		c.Redirect(http.StatusTemporaryRedirect, "http://180.167.245.233:5990")
 	})
 	// 证书管理
-	g4 := r.Group("cert", ginmiddleware.ReadParams())
-	g4.GET("download", certDownload)
-	g4.GET("namesilo", certNamesilo)
-	g4.GET("dnspod", certDNSPod)
+	g4 := r.Group("/cert", ginmiddleware.ReadParams())
+	g4.GET("/download", certDownload)
+	g4.GET("/namesilo/:do", certNamesilo)
+	g4.GET("/dnspod/:do", certDNSPod)
 
 	r.HandleMethodNotAllowed = true
 	r.NoMethod(ginmiddleware.Page405)

@@ -193,10 +193,12 @@ func certNamesilo(c *gin.Context) {
 	cmd.Env = append(cmd.Env, "NAMESILO_PROPAGATION_TIMEOUT=1500")
 	cmd.Env = append(cmd.Env, "NAMESILO_TTL=3600")
 	cmd.Env = append(cmd.Env, "NAMESILO_POLLING_INTERVAL=10")
+	cmd.Dir = filepath.Join(".")
 
+	// c.String(200, c.Param("do")+"\n")
 	switch c.Param("do") {
 	case "run": // 创建新证书
-		cmd.Args = strings.Split("--dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a run", " ")
+		cmd.Args = strings.Split(filepath.Join(".", "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a run", " ")
 		go func() {
 			out, err := cmd.CombinedOutput()
 			if err != nil {
@@ -219,14 +221,16 @@ func certNamesilo(c *gin.Context) {
 		}()
 		c.String(200, "Done, you can try to download cert and key file 20 minutes later")
 	case "renew": // 更新证书
-		cmd.Args = strings.Split("--dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a renew --reuse-key", " ")
+		cmd.Args = strings.Split(filepath.Join(".", "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a renew --reuse-key", " ")
 		go func() {
 			out, err := cmd.CombinedOutput()
 			if err != nil {
 				ioutil.WriteFile("legoerr.log", []byte(err.Error()), 0664)
 				return
+				// c.String(200, err.Error())
 			}
 			ioutil.WriteFile("namesilo_renew.log", out, 0664)
+			// c.String(200, string(out))
 			if strings.Contains(string(out), "no renew") {
 				return
 			}
@@ -242,7 +246,6 @@ func certNamesilo(c *gin.Context) {
 					cmd.Run()
 				}
 			}
-
 		}()
 		c.String(200, "Done, you can try to download cert and key file 20 minutes later")
 	default:
