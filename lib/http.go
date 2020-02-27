@@ -31,6 +31,10 @@ func statusCheck(c *gin.Context) {
 	}
 }
 
+func test(c *gin.Context) {
+	gopsu.ZIPFiles("aaa.zip", []string{".ipcache", "build.py", "hcloud.conf"}, "ca")
+}
+
 // multiRender 预置模板
 func multiRender() multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
@@ -54,16 +58,20 @@ func NewHTTPService(port int) {
 
 	r.GET("/", remoteIP)
 	r.POST("/", remoteIP)
+	r.GET("/test", test)
 	r.GET("/givemenewuuid4", newUUID4)
 	r.GET("/m/:name", movies)
 	r.GET("/share/:name", func(c *gin.Context) {
 		c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("http://%s:6895%s", ipCached, strings.ReplaceAll(c.Request.URL.String(), "/share", "")))
 	})
+	// vps相关
 	g1 := r.Group("/vps")
 	g1.GET("v4info", vps4info)
+	// homecloud服务
 	g2 := r.Group("/wt")
 	g2.GET("/", ipCache)
 	g2.GET("/:name", wt)
+	// 公司跳转
 	g3 := r.Group("/soho")
 	g3.GET("/", func(c *gin.Context) {
 		c.String(200, "180.167.245.233")
@@ -71,8 +79,17 @@ func NewHTTPService(port int) {
 	g3.GET("/kod", func(c *gin.Context) {
 		c.Redirect(http.StatusTemporaryRedirect, "http://180.167.245.233:20080")
 	})
+	g3.GET("zd", func(c *gin.Context) {
+		c.Redirect(http.StatusTemporaryRedirect, "http://180.167.245.233:5990")
+	})
+	// 证书管理
+	g4 := r.Group("cert", ginmiddleware.ReadParams())
+	g4.GET("download", certDownload)
+	g4.GET("namesilo", certNamesilo)
+	g4.GET("dnspod", certDNSPod)
 
-	r.NoMethod(ginmiddleware.Page404)
+	r.HandleMethodNotAllowed = true
+	r.NoMethod(ginmiddleware.Page405)
 	r.NoRoute(ginmiddleware.Page404)
 
 	// 在微线程中启动服务
@@ -82,7 +99,7 @@ func NewHTTPService(port int) {
 		if EnableDebug { // 调试模式下使用http
 			err = ginmiddleware.ListenAndServe(port, r)
 		} else { // 生产模式下使用https,若设置了clientca，则会验证客户端证书
-			err = ginmiddleware.ListenAndServeTLS(port, r, filepath.Join(gopsu.DefaultConfDir, "ca", "cert.pem"), filepath.Join(gopsu.DefaultConfDir, "ca", "key.pem"), "")
+			err = ginmiddleware.ListenAndServeTLS(port, r, filepath.Join(".", "ca", "xyzjdays.xyz.crt"), filepath.Join(".", "ca", "xyzjdays.xyz.key"), "")
 		}
 		if err != nil {
 			println("Failed start HTTP(S) server at :" + strconv.Itoa(port) + "|" + err.Error())

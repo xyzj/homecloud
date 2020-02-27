@@ -1,6 +1,8 @@
 package lib
 
 import (
+	"path/filepath"
+
 	"github.com/xyzj/gopsu"
 )
 
@@ -16,8 +18,10 @@ var (
 	// Version 版本信息
 	Version string
 
-	ipCached string
-	urlConf  *gopsu.ConfData
+	ipCached       string
+	urlConf        *gopsu.ConfData
+	linuxSSLCopy   = filepath.Join(".", "sslcopy.sh")
+	windowsSSLCopy = filepath.Join(".", "sslcopy.bat")
 )
 
 // LoadExtConfigure 载入除标准配置外的自定义配置内容（可选）
