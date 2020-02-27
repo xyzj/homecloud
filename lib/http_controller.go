@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"bytes"
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
@@ -157,6 +158,28 @@ func newUUID4(c *gin.Context) {
 	}
 }
 
+func certSign(c *gin.Context) {
+	name := c.Param("name")
+	crtdst := filepath.Join("ca", name+".crt")
+	keydst := filepath.Join("ca", name+".key")
+	if gopsu.IsExist(crtdst) && gopsu.IsExist(keydst) {
+		var b bytes.Buffer
+		a, err := ioutil.ReadFile(crtdst)
+		if err != nil {
+			c.String(200, "load cert file sign error:"+err.Error())
+		}
+		b.Write(a)
+		a, err = ioutil.ReadFile(crtdst)
+		if err != nil {
+			c.String(200, "load key file sign error:"+err.Error())
+		}
+		b.Write(a)
+		c.String(200, gopsu.GetMD5(b.String()))
+	} else {
+		c.String(200, "no certificate files found")
+	}
+}
+
 func certDownload(c *gin.Context) {
 	name := c.Param("name")
 	crtsrc := filepath.Join(".lego", "certificates", "_."+name+".crt")
@@ -219,7 +242,7 @@ func certNamesilo(c *gin.Context) {
 				}
 			}
 		}()
-		c.String(200, "Done, you can try to download cert and key file 20 minutes later")
+		c.String(200, "Processing, you can try to download cert and key file 20 minutes later")
 	case "renew": // 更新证书
 		cmd.Args = strings.Split(filepath.Join(".", "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a renew --reuse-key", " ")
 		go func() {
@@ -247,7 +270,7 @@ func certNamesilo(c *gin.Context) {
 				}
 			}
 		}()
-		c.String(200, "Done, you can try to download cert and key file 20 minutes later")
+		c.String(200, "Processing, you can try to download cert and key file 20 minutes later")
 	default:
 		c.String(200, "Don't understand")
 	}

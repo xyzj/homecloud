@@ -84,7 +84,8 @@ func NewHTTPService(port int) {
 	})
 	// 证书管理
 	g4 := r.Group("/cert", ginmiddleware.ReadParams())
-	g4.GET("/download", certDownload)
+	g4.GET("/sign/:name", certSign)
+	g4.GET("/download/:name", certDownload)
 	g4.GET("/namesilo/:do", certNamesilo)
 	g4.GET("/dnspod/:do", certDNSPod)
 
