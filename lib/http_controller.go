@@ -198,7 +198,7 @@ func certDownload(c *gin.Context) {
 			c.String(200, err.Error())
 			return
 		}
-		err = gopsu.ZIPFiles(name+".zip", []string{crtdst, keydst}, "ca")
+		err = gopsu.ZIPFiles(name+".zip", []string{crtdst, keydst}, "")
 		if err != nil {
 			c.String(200, err.Error())
 			return
