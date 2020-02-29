@@ -289,7 +289,7 @@ func certDNSPod(c *gin.Context) {
 	case "run": // 创建新证书
 		errcount := 0
 		for _, v := range domainList {
-			if !strings.Contains(v, ".") || !strings.HasPrefix("*") {
+			if !strings.Contains(v, ".") || !strings.HasPrefix(v, "*") {
 				continue
 			}
 			cmd.Args = strings.Split("./lego --dns dnspod --domains "+v+" --email minamoto.xu@outlook.com -a run", " ")
