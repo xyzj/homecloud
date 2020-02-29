@@ -320,7 +320,7 @@ func certDNSPod(c *gin.Context) {
 	case "renew": // 更新证书
 		errcount := 0
 		for _, v := range []string{"*.shwlst.com"} {
-			if !strings.Contains(v, ".") || !strings.HasPrefix("*") {
+			if !strings.Contains(v, ".") || !strings.HasPrefix(v, "*") {
 				continue
 			}
 			cmd.Args = strings.Split("./lego --dns dnspod --domains "+v+" --email minamoto.xu@outlook.com -a renew", " ")
