@@ -220,7 +220,8 @@ func certNamesilo(c *gin.Context) {
 
 	switch c.Param("do") {
 	case "run": // 创建新证书
-		cmd.Args = strings.Split("./lego --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a run", " ")
+		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a run", " ")
+		c.Writer.WriteString(cmd.String() + "\n")
 		go func() {
 			out, err := cmd.CombinedOutput()
 			if err != nil {
@@ -243,7 +244,8 @@ func certNamesilo(c *gin.Context) {
 		}()
 		c.String(200, "Processing, you can try to download cert and key file 20 minutes later")
 	case "renew": // 更新证书
-		cmd.Args = strings.Split("./lego --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a renew", " ")
+		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a renew", " ")
+		c.Writer.WriteString(cmd.String() + "\n")
 		go func() {
 			out, err := cmd.CombinedOutput()
 			if err != nil {
@@ -292,7 +294,8 @@ func certDNSPod(c *gin.Context) {
 			if !strings.Contains(v, ".") || !strings.HasPrefix(v, "*") {
 				continue
 			}
-			cmd.Args = strings.Split("./lego --dns dnspod --domains "+v+" --email minamoto.xu@outlook.com -a run", " ")
+			cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns dnspod --domains "+v+" --email minamoto.xu@outlook.com -a run", " ")
+			c.Writer.WriteString(cmd.String() + "\n")
 			out, err := cmd.CombinedOutput()
 			if err != nil {
 				c.String(200, err.Error())
@@ -302,7 +305,7 @@ func certDNSPod(c *gin.Context) {
 			c.String(200, string(out))
 		}
 		if errcount >= len(domainList) {
-			return
+			goto DONERUN
 		}
 		if runtime.GOOS == "linux" {
 			if gopsu.IsExist(linuxSSLCopy) {
@@ -316,6 +319,7 @@ func certDNSPod(c *gin.Context) {
 				cmd.Run()
 			}
 		}
+	DONERUN:
 		c.String(200, "\nDone, you can download cert files new")
 	case "renew": // 更新证书
 		errcount := 0
@@ -323,7 +327,8 @@ func certDNSPod(c *gin.Context) {
 			if !strings.Contains(v, ".") || !strings.HasPrefix(v, "*") {
 				continue
 			}
-			cmd.Args = strings.Split("./lego --dns dnspod --domains "+v+" --email minamoto.xu@outlook.com -a renew", " ")
+			cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns dnspod --domains "+v+" --email minamoto.xu@outlook.com -a renew", " ")
+			c.Writer.WriteString(cmd.String() + "\n")
 			out, err := cmd.CombinedOutput()
 			if err != nil {
 				c.String(200, err.Error())
