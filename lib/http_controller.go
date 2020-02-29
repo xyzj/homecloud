@@ -216,11 +216,11 @@ func certNamesilo(c *gin.Context) {
 	cmd.Env = append(cmd.Env, "NAMESILO_PROPAGATION_TIMEOUT=1500")
 	cmd.Env = append(cmd.Env, "NAMESILO_TTL=3600")
 	cmd.Env = append(cmd.Env, "NAMESILO_POLLING_INTERVAL=30")
-	cmd.Dir = filepath.Join(".")
+	cmd.Dir = gopsu.GetExecDir()
 
 	switch c.Param("do") {
 	case "run": // 创建新证书
-		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a run", " ")
+		cmd.Args = strings.Split("./lego --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a run", " ")
 		go func() {
 			out, err := cmd.CombinedOutput()
 			if err != nil {
@@ -243,7 +243,7 @@ func certNamesilo(c *gin.Context) {
 		}()
 		c.String(200, "Processing, you can try to download cert and key file 20 minutes later")
 	case "renew": // 更新证书
-		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a renew", " ")
+		cmd.Args = strings.Split("./lego --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a renew", " ")
 		go func() {
 			out, err := cmd.CombinedOutput()
 			if err != nil {
