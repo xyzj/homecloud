@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -166,7 +165,7 @@ func certSign(c *gin.Context) {
 		var b bytes.Buffer
 		a, err := ioutil.ReadFile(crtdst)
 		if err != nil {
-			c.String(200, "load cert file sign error:"+err.Error())
+			c.String(400, "load cert file sign error:"+err.Error())
 		}
 		b.Write(a)
 		a, err = ioutil.ReadFile(crtdst)
@@ -176,36 +175,24 @@ func certSign(c *gin.Context) {
 		b.Write(a)
 		c.String(200, gopsu.GetMD5(b.String()))
 	} else {
-		c.String(200, "no certificate files found")
+		c.String(400, "no certificate files found")
 	}
 }
 
 func certDownload(c *gin.Context) {
 	name := c.Param("name")
-	crtsrc := filepath.Join(".lego", "certificates", "_."+name+".crt")
-	keysrc := filepath.Join(".lego", "certificates", "_."+name+".key")
 	crtdst := filepath.Join("ca", name+".crt")
 	keydst := filepath.Join("ca", name+".key")
-	if gopsu.IsExist(crtsrc) && gopsu.IsExist(keysrc) {
+	if gopsu.IsExist(crtdst) && gopsu.IsExist(keydst) {
 		os.Mkdir("ca", 0775)
-		_, err := gopsu.CopyFile(crtsrc, crtdst)
+		err := gopsu.ZIPFiles(name+".zip", []string{crtdst, keydst}, "")
 		if err != nil {
-			c.String(200, err.Error())
-			return
-		}
-		_, err = gopsu.CopyFile(keysrc, keydst)
-		if err != nil {
-			c.String(200, err.Error())
-			return
-		}
-		err = gopsu.ZIPFiles(name+".zip", []string{crtdst, keydst}, "")
-		if err != nil {
-			c.String(200, err.Error())
+			c.String(400, err.Error())
 			return
 		}
 		c.FileAttachment(name+".zip", name+".zip")
 	} else {
-		c.String(200, "no certificate files found")
+		c.String(400, "no certificate files found")
 	}
 }
 
@@ -217,6 +204,7 @@ func certNamesilo(c *gin.Context) {
 	cmd.Env = append(cmd.Env, "NAMESILO_TTL=3600")
 	cmd.Env = append(cmd.Env, "NAMESILO_POLLING_INTERVAL=30")
 	cmd.Dir = gopsu.GetExecDir()
+	os.Mkdir(filepath.Join(gopsu.GetExecDir(), "ca"), 0775)
 
 	switch c.Param("do") {
 	case "run": // 创建新证书
@@ -229,18 +217,10 @@ func certNamesilo(c *gin.Context) {
 				return
 			}
 			ioutil.WriteFile("namesilo_renew.log", out, 0664)
-			if runtime.GOOS == "linux" {
-				if gopsu.IsExist(linuxSSLCopy) {
-					cmd = exec.Command(linuxSSLCopy)
-					cmd.Run()
-				}
-			}
-			if runtime.GOOS == "windows" {
-				if gopsu.IsExist(windowsSSLCopy) {
-					cmd = exec.Command(windowsSSLCopy)
-					cmd.Run()
-				}
-			}
+			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.crt"),
+				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.crt"))
+			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.key"),
+				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.key"))
 		}()
 		c.String(200, "Processing, you can try to download cert and key file 20 minutes later")
 	case "renew": // 更新证书
@@ -251,25 +231,15 @@ func certNamesilo(c *gin.Context) {
 			if err != nil {
 				ioutil.WriteFile("legoerr.log", []byte(err.Error()), 0664)
 				return
-				// c.String(200, err.Error())
 			}
 			ioutil.WriteFile("namesilo_renew.log", out, 0664)
-			// c.String(200, string(out))
 			if strings.Contains(string(out), "no renew") {
 				return
 			}
-			if runtime.GOOS == "linux" {
-				if gopsu.IsExist(linuxSSLCopy) {
-					cmd = exec.Command(linuxSSLCopy)
-					cmd.Run()
-				}
-			}
-			if runtime.GOOS == "windows" {
-				if gopsu.IsExist(windowsSSLCopy) {
-					cmd = exec.Command(windowsSSLCopy)
-					cmd.Run()
-				}
-			}
+			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.crt"),
+				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.crt"))
+			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.key"),
+				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.key"))
 		}()
 		c.String(200, "Processing, you can try to download cert and key file 20 minutes later")
 	default:
@@ -285,80 +255,50 @@ func certDNSPod(c *gin.Context) {
 	cmd.Env = append(cmd.Env, "DNSPOD_PROPAGATION_TIMEOUT=1500")
 	cmd.Env = append(cmd.Env, "DNSPOD_TTL=3600")
 	cmd.Dir = gopsu.GetExecDir()
+	os.Mkdir(filepath.Join(gopsu.GetExecDir(), "ca"), 0775)
 
-	// c.String(200, c.Param("do")+"\n")
 	switch c.Param("do") {
 	case "run": // 创建新证书
-		errcount := 0
+		for _, v := range domainList {
+			if !strings.Contains(v, ".") {
+				continue
+			}
+			cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns dnspod --domains *."+v+" --email minamoto.xu@outlook.com -a run", " ")
+			c.Writer.WriteString(cmd.String() + "\n")
+			out, err := cmd.CombinedOutput()
+			if err != nil {
+				c.Writer.WriteString(err.Error() + "\n")
+				continue
+			}
+			c.Writer.WriteString(string(out) + "\n")
+			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".crt"),
+				filepath.Join(gopsu.GetExecDir(), "ca", v+".crt"))
+			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".key"),
+				filepath.Join(gopsu.GetExecDir(), "ca", v+".key"))
+		}
+
+		c.String(200, "\nDone, you can download cert files new")
+	case "renew": // 更新证书
 		for _, v := range domainList {
 			if !strings.Contains(v, ".") || !strings.HasPrefix(v, "*") {
 				continue
 			}
-			cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns dnspod --domains "+v+" --email minamoto.xu@outlook.com -a run", " ")
+			cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns dnspod --domains *."+v+" --email minamoto.xu@outlook.com -a renew", " ")
 			c.Writer.WriteString(cmd.String() + "\n")
 			out, err := cmd.CombinedOutput()
 			if err != nil {
-				c.String(200, err.Error())
-				errcount++
+				c.Writer.WriteString(err.Error() + "\n")
 				continue
 			}
-			c.String(200, string(out))
-		}
-		if errcount >= len(domainList) {
-			goto DONERUN
-		}
-		if runtime.GOOS == "linux" {
-			if gopsu.IsExist(linuxSSLCopy) {
-				cmd = exec.Command(linuxSSLCopy)
-				cmd.Run()
-			}
-		}
-		if runtime.GOOS == "windows" {
-			if gopsu.IsExist(windowsSSLCopy) {
-				cmd = exec.Command(windowsSSLCopy)
-				cmd.Run()
-			}
-		}
-	DONERUN:
-		c.String(200, "\nDone, you can download cert files new")
-	case "renew": // 更新证书
-		errcount := 0
-		for _, v := range []string{"*.shwlst.com"} {
-			if !strings.Contains(v, ".") || !strings.HasPrefix(v, "*") {
-				continue
-			}
-			cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns dnspod --domains "+v+" --email minamoto.xu@outlook.com -a renew", " ")
-			c.Writer.WriteString(cmd.String() + "\n")
-			out, err := cmd.CombinedOutput()
-			if err != nil {
-				c.String(200, err.Error())
-				errcount++
-				continue
-				// c.String(200, err.Error())
-			}
-			c.String(200, string(out))
-			// c.String(200, string(out))
+			c.Writer.WriteString(string(out) + "\n")
 			if strings.Contains(string(out), "no renew") {
-				errcount++
 				continue
 			}
+			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".crt"),
+				filepath.Join(gopsu.GetExecDir(), "ca", v+".crt"))
+			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".key"),
+				filepath.Join(gopsu.GetExecDir(), "ca", v+".key"))
 		}
-		if errcount >= len(domainList) {
-			goto DONE
-		}
-		if runtime.GOOS == "linux" {
-			if gopsu.IsExist(linuxSSLCopy) {
-				cmd = exec.Command(linuxSSLCopy)
-				cmd.Run()
-			}
-		}
-		if runtime.GOOS == "windows" {
-			if gopsu.IsExist(windowsSSLCopy) {
-				cmd = exec.Command(windowsSSLCopy)
-				cmd.Run()
-			}
-		}
-	DONE:
 		c.String(200, "\nDone, you can download cert files now.")
 	default:
 		c.String(200, "Don't understand")
