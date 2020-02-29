@@ -289,6 +289,9 @@ func certDNSPod(c *gin.Context) {
 	case "run": // 创建新证书
 		errcount := 0
 		for _, v := range domainList {
+			if !strings.Contains(v, ".") || !strings.HasPrefix("*") {
+				continue
+			}
 			cmd.Args = strings.Split("./lego --dns dnspod --domains "+v+" --email minamoto.xu@outlook.com -a run", " ")
 			out, err := cmd.CombinedOutput()
 			if err != nil {
@@ -317,6 +320,9 @@ func certDNSPod(c *gin.Context) {
 	case "renew": // 更新证书
 		errcount := 0
 		for _, v := range []string{"*.shwlst.com"} {
+			if !strings.Contains(v, ".") || !strings.HasPrefix("*") {
+				continue
+			}
 			cmd.Args = strings.Split("./lego --dns dnspod --domains "+v+" --email minamoto.xu@outlook.com -a renew", " ")
 			out, err := cmd.CombinedOutput()
 			if err != nil {
