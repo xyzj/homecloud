@@ -215,13 +215,12 @@ func certNamesilo(c *gin.Context) {
 	cmd.Env = append(cmd.Env, "NAMESILO_API_KEY=f59e74d5e3f373b9e332e9b")
 	cmd.Env = append(cmd.Env, "NAMESILO_PROPAGATION_TIMEOUT=1500")
 	cmd.Env = append(cmd.Env, "NAMESILO_TTL=3600")
-	cmd.Env = append(cmd.Env, "NAMESILO_POLLING_INTERVAL=10")
+	cmd.Env = append(cmd.Env, "NAMESILO_POLLING_INTERVAL=30")
 	cmd.Dir = filepath.Join(".")
 
-	// c.String(200, c.Param("do")+"\n")
 	switch c.Param("do") {
 	case "run": // 创建新证书
-		cmd.Args = strings.Split(filepath.Join(".", "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a run", " ")
+		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a run", " ")
 		go func() {
 			out, err := cmd.CombinedOutput()
 			if err != nil {
@@ -244,7 +243,7 @@ func certNamesilo(c *gin.Context) {
 		}()
 		c.String(200, "Processing, you can try to download cert and key file 20 minutes later")
 	case "renew": // 更新证书
-		cmd.Args = strings.Split(filepath.Join(".", "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a renew --reuse-key", " ")
+		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a renew", " ")
 		go func() {
 			out, err := cmd.CombinedOutput()
 			if err != nil {
@@ -277,9 +276,79 @@ func certNamesilo(c *gin.Context) {
 }
 
 func certDNSPod(c *gin.Context) {
+	cmd := exec.Command(filepath.Join(".", "lego"))
+	cmd.Env = append(cmd.Env, "DNSPOD_API_KEY=141155,076ba7af12e110fb5c2eebc438dae5a1")
+	cmd.Env = append(cmd.Env, "DNSPOD_HTTP_TIMEOUT=60")
+	cmd.Env = append(cmd.Env, "DNSPOD_POLLING_INTERVAL=30")
+	cmd.Env = append(cmd.Env, "DNSPOD_PROPAGATION_TIMEOUT=1500")
+	cmd.Env = append(cmd.Env, "DNSPOD_TTL=3600")
+	cmd.Dir = gopsu.GetExecDir()
+
+	// c.String(200, c.Param("do")+"\n")
 	switch c.Param("do") {
 	case "run": // 创建新证书
+		errcount := 0
+		for _, v := range domainList {
+			cmd.Args = strings.Split("./lego --dns dnspod --domains "+v+" --email minamoto.xu@outlook.com -a run", " ")
+			out, err := cmd.CombinedOutput()
+			if err != nil {
+				c.String(200, err.Error())
+				errcount++
+				continue
+			}
+			c.String(200, string(out))
+		}
+		if errcount >= len(domainList) {
+			return
+		}
+		if runtime.GOOS == "linux" {
+			if gopsu.IsExist(linuxSSLCopy) {
+				cmd = exec.Command(linuxSSLCopy)
+				cmd.Run()
+			}
+		}
+		if runtime.GOOS == "windows" {
+			if gopsu.IsExist(windowsSSLCopy) {
+				cmd = exec.Command(windowsSSLCopy)
+				cmd.Run()
+			}
+		}
+		c.String(200, "\nDone, you can download cert files new")
 	case "renew": // 更新证书
+		errcount := 0
+		for _, v := range []string{"*.shwlst.com"} {
+			cmd.Args = strings.Split("./lego --dns dnspod --domains "+v+" --email minamoto.xu@outlook.com -a renew", " ")
+			out, err := cmd.CombinedOutput()
+			if err != nil {
+				c.String(200, err.Error())
+				errcount++
+				continue
+				// c.String(200, err.Error())
+			}
+			c.String(200, string(out))
+			// c.String(200, string(out))
+			if strings.Contains(string(out), "no renew") {
+				errcount++
+				continue
+			}
+		}
+		if errcount >= len(domainList) {
+			goto DONE
+		}
+		if runtime.GOOS == "linux" {
+			if gopsu.IsExist(linuxSSLCopy) {
+				cmd = exec.Command(linuxSSLCopy)
+				cmd.Run()
+			}
+		}
+		if runtime.GOOS == "windows" {
+			if gopsu.IsExist(windowsSSLCopy) {
+				cmd = exec.Command(windowsSSLCopy)
+				cmd.Run()
+			}
+		}
+	DONE:
+		c.String(200, "\nDone, you can download cert files now.")
 	default:
 		c.String(200, "Don't understand")
 	}

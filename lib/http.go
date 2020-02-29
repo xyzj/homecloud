@@ -38,8 +38,8 @@ func test(c *gin.Context) {
 // multiRender 预置模板
 func multiRender() multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
-	r.AddFromString("vpsinfo", TPLVpsinfo)
-	r.AddFromString("uuidinfo", TPLuuid)
+	r.AddFromString("vpsinfo", tplVpsinfo)
+	r.AddFromString("uuidinfo", tpluuid)
 	return r
 }
 
@@ -109,7 +109,7 @@ func NewHTTPService(port int) {
 					println("http server err:" + err.Error())
 				}
 			}()
-			err = ginmiddleware.ListenAndServeTLS(port, r, filepath.Join(".", "ca", "xyzjdays.xyz.crt"), filepath.Join(".", "ca", "xyzjdays.xyz.key"), "")
+			err = ginmiddleware.ListenAndServeTLS(port, r, filepath.Join(".", "ca", DomainName+".crt"), filepath.Join(".", "ca", DomainName+".key"), "")
 		}
 		if err != nil {
 			println("Failed start HTTP(S) server at :" + strconv.Itoa(port) + "|" + err.Error())
