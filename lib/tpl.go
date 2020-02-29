@@ -1,7 +1,7 @@
 package lib
 
 const (
-	TPLuuid = `<!DOCTYPE html>
+	tpluuid = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -26,7 +26,7 @@ const (
 </body>
 </html>`
 
-	TPLVpsinfo = `<!DOCTYPE html>
+	tplVpsinfo = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">

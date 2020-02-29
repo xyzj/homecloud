@@ -25,6 +25,7 @@ var (
 	ver         = flag.Bool("version", false, "print version info and exit.")
 	enableDebug = flag.Bool("debug", false, "set if enable debug info.")
 	web         = flag.Int("http", 6819, "set http port to listen on.")
+	domain      = flag.String("domain", "xyzjdays.xyz", "set domain name.")
 	conf        = flag.String("conf", "", "set the config file path.")
 )
 
@@ -49,6 +50,7 @@ func parseArguments() {
 	// 使用多核cpu
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	lib.EnableDebug = *enableDebug
+	lib.DomainName = *domain
 
 	if *conf == "" {
 		println("no config file set.")
