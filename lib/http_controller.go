@@ -248,44 +248,35 @@ func certNamesilo(c *gin.Context) {
 }
 
 func certDNSPod(c *gin.Context) {
-	cmd := exec.Command(filepath.Join(".", "lego"))
-	cmd.Env = append(cmd.Env, "DNSPOD_API_KEY=141155,076ba7af12e110fb5c2eebc438dae5a1")
-	cmd.Env = append(cmd.Env, "DNSPOD_HTTP_TIMEOUT=60")
-	cmd.Env = append(cmd.Env, "DNSPOD_POLLING_INTERVAL=30")
-	cmd.Env = append(cmd.Env, "DNSPOD_PROPAGATION_TIMEOUT=1500")
-	cmd.Env = append(cmd.Env, "DNSPOD_TTL=3600")
-	cmd.Dir = gopsu.GetExecDir()
 	os.Mkdir(filepath.Join(gopsu.GetExecDir(), "ca"), 0775)
 
-	switch c.Param("do") {
-	case "run": // 创建新证书
-		for _, v := range domainList {
-			if !strings.Contains(v, ".") {
-				continue
-			}
+	for _, v := range domainList {
+		if !strings.Contains(v, ".") {
+			continue
+		}
+		cmd := exec.Command(filepath.Join(".", "lego"))
+		cmd.Env = append(cmd.Env, "DNSPOD_API_KEY=141155,076ba7af12e110fb5c2eebc438dae5a1")
+		cmd.Env = append(cmd.Env, "DNSPOD_HTTP_TIMEOUT=60")
+		cmd.Env = append(cmd.Env, "DNSPOD_POLLING_INTERVAL=30")
+		cmd.Env = append(cmd.Env, "DNSPOD_PROPAGATION_TIMEOUT=1500")
+		cmd.Env = append(cmd.Env, "DNSPOD_TTL=3600")
+		cmd.Dir = gopsu.GetExecDir()
+		var err error
+		var out []byte
+		switch c.Param("do") {
+		case "run":
 			cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns dnspod --domains *."+v+" --email minamoto.xu@outlook.com -a run", " ")
 			c.Writer.WriteString(cmd.String() + "\n")
-			out, err := cmd.CombinedOutput()
+			out, err = cmd.CombinedOutput()
 			if err != nil {
 				c.Writer.WriteString(err.Error() + "\n")
 				continue
 			}
 			c.Writer.WriteString(string(out) + "\n")
-			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".crt"),
-				filepath.Join(gopsu.GetExecDir(), "ca", v+".crt"))
-			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".key"),
-				filepath.Join(gopsu.GetExecDir(), "ca", v+".key"))
-		}
-
-		c.String(200, "\nDone, you can download cert files new")
-	case "renew": // 更新证书
-		for _, v := range domainList {
-			if !strings.Contains(v, ".") || !strings.HasPrefix(v, "*") {
-				continue
-			}
+		case "renew":
 			cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns dnspod --domains *."+v+" --email minamoto.xu@outlook.com -a renew", " ")
 			c.Writer.WriteString(cmd.String() + "\n")
-			out, err := cmd.CombinedOutput()
+			out, err = cmd.CombinedOutput()
 			if err != nil {
 				c.Writer.WriteString(err.Error() + "\n")
 				continue
@@ -294,13 +285,14 @@ func certDNSPod(c *gin.Context) {
 			if strings.Contains(string(out), "no renew") {
 				continue
 			}
-			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".crt"),
-				filepath.Join(gopsu.GetExecDir(), "ca", v+".crt"))
-			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".key"),
-				filepath.Join(gopsu.GetExecDir(), "ca", v+".key"))
+		default:
+			c.String(200, "Don't understand")
+			continue
 		}
-		c.String(200, "\nDone, you can download cert files now.")
-	default:
-		c.String(200, "Don't understand")
+		gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".crt"),
+			filepath.Join(gopsu.GetExecDir(), "ca", v+".crt"))
+		gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".key"),
+			filepath.Join(gopsu.GetExecDir(), "ca", v+".key"))
 	}
+	c.String(200, "\nDone, you can download cert files now.")
 }
