@@ -100,15 +100,6 @@ func NewHTTPService(port int) {
 		if EnableDebug { // 调试模式下使用http
 			err = ginmiddleware.ListenAndServe(port, r)
 		} else { // 生产模式下使用https,若设置了clientca，则会验证客户端证书
-			go func() {
-				rr := gin.New()
-				rr.Use(ginmiddleware.Recovery())
-				rr.Use(ginmiddleware.TLSRedirect())
-				err := rr.Run(fmt.Sprintf(":%d", port-1))
-				if err != nil {
-					println("http server err:" + err.Error())
-				}
-			}()
 			err = ginmiddleware.ListenAndServeTLS(port, r, filepath.Join(".", "ca", DomainName+".crt"), filepath.Join(".", "ca", DomainName+".key"), "")
 		}
 		if err != nil {
