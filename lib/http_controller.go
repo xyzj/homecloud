@@ -160,18 +160,12 @@ func newUUID4(c *gin.Context) {
 func certSign(c *gin.Context) {
 	name := c.Param("name")
 	crtdst := filepath.Join("ca", name+".crt")
-	crtissuerdst := filepath.Join("ca", name+".issuer.crt")
 	keydst := filepath.Join("ca", name+".key")
-	if gopsu.IsExist(crtdst) && gopsu.IsExist(crtissuerdst) && gopsu.IsExist(keydst) {
+	if gopsu.IsExist(crtdst) && gopsu.IsExist(keydst) {
 		var b bytes.Buffer
 		a, err := ioutil.ReadFile(crtdst)
 		if err != nil {
 			c.String(400, "load cert file sign error:"+err.Error())
-		}
-		b.Write(a)
-		a, err = ioutil.ReadFile(crtissuerdst)
-		if err != nil {
-			c.String(200, "load key file sign error:"+err.Error())
 		}
 		b.Write(a)
 		a, err = ioutil.ReadFile(keydst)
@@ -188,12 +182,11 @@ func certSign(c *gin.Context) {
 func certDownload(c *gin.Context) {
 	name := c.Param("name")
 	crtdst := filepath.Join("ca", name+".crt")
-	crtissuerdst := filepath.Join("ca", name+".issuer.crt")
 	keydst := filepath.Join("ca", name+".key")
 
-	if gopsu.IsExist(crtdst) && gopsu.IsExist(crtissuerdst) && gopsu.IsExist(keydst) {
+	if gopsu.IsExist(crtdst) && gopsu.IsExist(keydst) {
 		os.Mkdir("ca", 0775)
-		err := gopsu.ZIPFiles(name+".zip", []string{crtdst, crtissuerdst, keydst}, "")
+		err := gopsu.ZIPFiles(name+".zip", []string{crtdst, keydst}, "")
 		if err != nil {
 			c.String(400, err.Error())
 			return
@@ -227,8 +220,8 @@ func certNamesilo(c *gin.Context) {
 			ioutil.WriteFile("namesilo_renew.log", out, 0664)
 			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.crt"),
 				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.crt"))
-			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.issuer.crt"),
-				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.issuer.crt"))
+			// gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.issuer.crt"),
+			// 	filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.issuer.crt"))
 			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.key"),
 				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.key"))
 		}()
@@ -248,8 +241,8 @@ func certNamesilo(c *gin.Context) {
 			}
 			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.crt"),
 				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.crt"))
-			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.issuer.crt"),
-				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.issuer.crt"))
+			// gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.issuer.crt"),
+			// 	filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.issuer.crt"))
 			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.key"),
 				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.key"))
 		}()
@@ -309,8 +302,8 @@ func certDNSPod(c *gin.Context) {
 		}
 		gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".crt"),
 			filepath.Join(gopsu.GetExecDir(), "ca", v+".crt"))
-		gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+"issuer.crt"),
-			filepath.Join(gopsu.GetExecDir(), "ca", v+".crt"))
+		// gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+"issuer.crt"),
+		// 	filepath.Join(gopsu.GetExecDir(), "ca", v+".crt"))
 		gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".key"),
 			filepath.Join(gopsu.GetExecDir(), "ca", v+".key"))
 	}
