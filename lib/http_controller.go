@@ -208,7 +208,7 @@ func certNamesilo(c *gin.Context) {
 	// cmd := exec.Command(filepath.Join(".", "lego"), strings.Split("--dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a run", " ")...)
 	cmd := exec.Command(filepath.Join(".", "lego"))
 	cmd.Env = append(cmd.Env, "NAMESILO_API_KEY=f59e74d5e3f373b9e332e9b")
-	cmd.Env = append(cmd.Env, "NAMESILO_PROPAGATION_TIMEOUT=1500")
+	cmd.Env = append(cmd.Env, "NAMESILO_PROPAGATION_TIMEOUT=1800")
 	cmd.Env = append(cmd.Env, "NAMESILO_TTL=3600")
 	cmd.Env = append(cmd.Env, "NAMESILO_POLLING_INTERVAL=30")
 	cmd.Dir = gopsu.GetExecDir()
@@ -227,6 +227,8 @@ func certNamesilo(c *gin.Context) {
 			ioutil.WriteFile("namesilo_renew.log", out, 0664)
 			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.crt"),
 				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.crt"))
+			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.issuer.crt"),
+				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.issuer.crt"))
 			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.key"),
 				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.key"))
 		}()
@@ -246,6 +248,8 @@ func certNamesilo(c *gin.Context) {
 			}
 			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.crt"),
 				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.crt"))
+			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.issuer.crt"),
+				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.issuer.crt"))
 			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.key"),
 				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.key"))
 		}()
