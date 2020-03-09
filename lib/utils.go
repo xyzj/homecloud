@@ -2,7 +2,6 @@ package lib
 
 import (
 	"path/filepath"
-	"strings"
 
 	"github.com/xyzj/gopsu"
 )
@@ -28,7 +27,7 @@ var (
 	urlConf        *gopsu.ConfData
 	linuxSSLCopy   = filepath.Join(gopsu.GetExecDir(), "sslcopy.sh")
 	windowsSSLCopy = filepath.Join(gopsu.GetExecDir(), "sslcopy.bat")
-	domainList     = []string{"shwlst.com,wlst.vip"}
+	domainList     = []string{"wlst.vip,shwlst.com"}
 )
 
 // LoadExtConfigure 载入除标准配置外的自定义配置内容（可选）
@@ -38,6 +37,6 @@ func LoadExtConfigure(f string) {
 	if err != nil {
 		println("Load configure file error:" + err.Error())
 	}
-	domainList = strings.Split(urlConf.GetItemDefault("dnspod_list", "shwlst.com,wlst.vip", "要管理的dnspod域名列表"), ",")
-	urlConf.Save()
+	// domainList = strings.Split(urlConf.GetItemDefault("dnspod_list", "wlst.vip,shwlst.com", "要管理的dnspod域名列表"), ",")
+	// urlConf.Save()
 }
