@@ -3,6 +3,7 @@
 pkill -9 -f sslrenew
 pkill -9 -f deluge
 pkill -9 -f mlnet
+pkill -9 -f frpc
 
 service nginx stop
 
@@ -17,3 +18,6 @@ service nginx start
 
 start-stop-daemon --start --name mlnet -d /root --background --exec /usr/bin/mlnet
 /usr/bin/deluge-web
+
+cd /root/bin/frp
+start-stop-daemon --start --name frpc -d /root/bin/frp --background --exec frpc -- -c frpc.ini
