@@ -57,6 +57,7 @@ func remoteSign(domain string) string {
 	if err != nil {
 		return "1"
 	}
+	defer resp.Body.Close()
 	sign, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "1"
@@ -75,6 +76,7 @@ func downloadCert(domain string) bool {
 		dlog.Println("download error:" + err.Error())
 		return false
 	}
+	defer resp.Body.Close()
 	f, err := os.Create(domain + ".zip")
 	if err != nil {
 		dlog.Println("save error:" + err.Error())
