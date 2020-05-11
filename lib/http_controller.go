@@ -218,12 +218,18 @@ func certNamesilo(c *gin.Context) {
 				return
 			}
 			ioutil.WriteFile("namesilo_renew.log", out, 0664)
-			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.crt"),
-				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.crt"))
-			// gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.issuer.crt"),
-			// 	filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.issuer.crt"))
-			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.key"),
-				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.key"))
+
+			cmd = exec.Command(filepath.Join(".", "sslcopy.sh"))
+			err = cmd.Run()
+			if err != nil {
+				c.Writer.WriteString("run sslcopy.sh error: " + err.Error())
+			}
+			// gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.crt"),
+			// 	filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.crt"))
+			// // gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.issuer.crt"),
+			// // 	filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.issuer.crt"))
+			// gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.key"),
+			// 	filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.key"))
 		}()
 		c.String(200, "Processing, you can try to download cert and key file 20 minutes later")
 	case "renew": // 更新证书
@@ -239,12 +245,17 @@ func certNamesilo(c *gin.Context) {
 			if strings.Contains(string(out), "no renew") {
 				return
 			}
-			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.crt"),
-				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.crt"))
-			// gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.issuer.crt"),
-			// 	filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.issuer.crt"))
-			gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.key"),
-				filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.key"))
+			cmd = exec.Command(filepath.Join(".", "sslcopy.sh"))
+			err = cmd.Run()
+			if err != nil {
+				c.Writer.WriteString("run sslcopy.sh error: " + err.Error())
+			}
+			// gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.crt"),
+			// 	filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.crt"))
+			// // gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.issuer.crt"),
+			// // 	filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.issuer.crt"))
+			// gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_.xyzjdays.xyz.key"),
+			// 	filepath.Join(gopsu.GetExecDir(), "ca", "xyzjdays.xyz.key"))
 		}()
 		c.String(200, "Processing, you can try to download cert and key file 20 minutes later")
 	default:
@@ -296,16 +307,21 @@ func certDNSPod(c *gin.Context) {
 		c.String(200, "Don't understand")
 		return
 	}
-	for _, v := range domainList {
-		if !strings.Contains(v, ".") {
-			continue
-		}
-		gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".crt"),
-			filepath.Join(gopsu.GetExecDir(), "ca", v+".crt"))
-		// gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+"issuer.crt"),
-		// 	filepath.Join(gopsu.GetExecDir(), "ca", v+".crt"))
-		gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".key"),
-			filepath.Join(gopsu.GetExecDir(), "ca", v+".key"))
+	cmd = exec.Command(filepath.Join(".", "sslcopy.sh"))
+	err = cmd.Run()
+	if err != nil {
+		c.Writer.WriteString("run sslcopy.sh error: " + err.Error())
 	}
+	// for _, v := range domainList {
+	// 	if !strings.Contains(v, ".") {
+	// 		continue
+	// 	}
+	// 	gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".crt"),
+	// 		filepath.Join(gopsu.GetExecDir(), "ca", v+".crt"))
+	// 	// gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+"issuer.crt"),
+	// 	// 	filepath.Join(gopsu.GetExecDir(), "ca", v+".crt"))
+	// 	gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".key"),
+	// 		filepath.Join(gopsu.GetExecDir(), "ca", v+".key"))
+	// }
 	c.String(200, "\nDone, you can download cert files now.")
 }
