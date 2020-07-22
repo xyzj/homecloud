@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/render"
 	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 	"github.com/xyzj/gopsu"
@@ -21,6 +22,17 @@ import (
 // 这个是服务接口的业务逻辑处理文件，所有接口方法可以都写在这里，或按类别分文件写
 // 此处是用户管理服务的代码，供参考，所有方法都是和http.go里面的路由对应的
 // Enjoy your coding
+
+func codeString(c *gin.Context) {
+	if c.Request.Method == "POST" {
+		c.String(200, gopsu.CodeString(c.Param("rawstr")))
+		return
+	}
+	// web页面
+	c.Header("Content-Type", "text/html")
+	c.Status(http.StatusOK)
+	render.WriteString(c.Writer, tplCodeStr, nil)
+}
 
 // login 登录
 func movies(c *gin.Context) {
