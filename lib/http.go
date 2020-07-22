@@ -77,10 +77,10 @@ func NewHTTPService(port int) {
 		c.String(200, "180.167.245.233")
 	})
 	g3.GET("/kod", func(c *gin.Context) {
-		c.Redirect(http.StatusTemporaryRedirect, "http://180.167.245.233:20080")
+		c.Redirect(http.StatusTemporaryRedirect, "http://office.shwlst.com:20080")
 	})
 	g3.GET("/zd", func(c *gin.Context) {
-		c.Redirect(http.StatusTemporaryRedirect, "http://180.167.245.233:5990")
+		c.Redirect(http.StatusTemporaryRedirect, "http://office.shwlst.com:5990")
 	})
 	// 证书管理
 	g4 := r.Group("/cert", ginmiddleware.ReadParams())
@@ -88,6 +88,10 @@ func NewHTTPService(port int) {
 	g4.GET("/download/:name", certDownload)
 	g4.GET("/namesilo/:do", certNamesilo)
 	g4.GET("/dnspod/:do", certDNSPod)
+
+	g5 := r.Group("/tools")
+	g5.GET("/codestr", codeString)
+	g5.POST("/codestr", ginmiddleware.ReadParams(), codeString)
 
 	r.HandleMethodNotAllowed = true
 	r.NoMethod(ginmiddleware.Page405)
