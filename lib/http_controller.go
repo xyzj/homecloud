@@ -37,20 +37,20 @@ func codeString(c *gin.Context) {
 // login 登录
 func movies(c *gin.Context) {
 	urlConf.Reload()
-	if ipCached == "" {
-		b, err := ioutil.ReadFile(".ipcache")
-		if err != nil {
-			c.String(200, err.Error())
-			return
-		}
-		ipCached = strings.TrimSpace((string(b)))
-	}
+	// if ipCached == "" {
+	// 	b, err := ioutil.ReadFile(".ipcache")
+	// 	if err != nil {
+	// 		c.String(200, err.Error())
+	// 		return
+	// 	}
+	// 	ipCached = strings.TrimSpace((string(b)))
+	// }
 	n, err := urlConf.GetItem(c.Param("name"))
 	if err != nil {
 		c.String(200, err.Error())
 		return
 	}
-	s := fmt.Sprintf("http://%s:6895/index.php?share/"+n, ipCached)
+	s := "https://kod.xyzjdays.xyz:10043/index.php?share/" + n
 	c.Redirect(http.StatusTemporaryRedirect, s)
 }
 
