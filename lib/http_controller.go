@@ -50,7 +50,7 @@ func movies(c *gin.Context) {
 		c.String(200, err.Error())
 		return
 	}
-	s := "https://kod.xyzjdays.xyz:10043/index.php?share/" + n
+	s := "https://kod.xyzjdays.xyz:10043/index.php?share/" + gopsu.DecodeString(n)
 	c.Redirect(http.StatusTemporaryRedirect, s)
 }
 
@@ -210,18 +210,18 @@ func certDownload(c *gin.Context) {
 }
 
 func certNamesilo(c *gin.Context) {
-	// cmd := exec.Command(filepath.Join(".", "lego"), strings.Split("--dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a run", " ")...)
+	// cmd := exec.Command(filepath.Join(".", "lego"), strings.Split("--dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@hotmail.com -a run", " ")...)
 	cmd := exec.Command(filepath.Join(".", "lego"))
 	cmd.Env = append(cmd.Env, "NAMESILO_API_KEY=f59e74d5e3f373b9e332e9b")
 	cmd.Env = append(cmd.Env, "NAMESILO_PROPAGATION_TIMEOUT=1800")
-	cmd.Env = append(cmd.Env, "NAMESILO_TTL=3600")
+	cmd.Env = append(cmd.Env, "NAMESILO_TTL=7207")
 	cmd.Env = append(cmd.Env, "NAMESILO_POLLING_INTERVAL=30")
 	cmd.Dir = gopsu.GetExecDir()
 	os.Mkdir(filepath.Join(gopsu.GetExecDir(), "ca"), 0775)
 
 	switch c.Param("do") {
 	case "run": // 创建新证书
-		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a run", " ")
+		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --dns.resolvers ns2.dnsowl.com --domains *.xyzjdays.xyz --email minamoto.xu@hotmail.com -a run", " ")
 		c.Writer.WriteString(cmd.String() + "\n")
 		go func() {
 			out, err := cmd.CombinedOutput()
@@ -245,7 +245,7 @@ func certNamesilo(c *gin.Context) {
 		}()
 		c.String(200, "Processing, you can try to download cert and key file 20 minutes later")
 	case "renew": // 更新证书
-		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --domains *.xyzjdays.xyz --email minamoto.xu@outlook.com -a renew", " ")
+		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --dns.resolvers ns2.dnsowl.com --domains *.xyzjdays.xyz --email minamoto.xu@hotmail.com -a renew", " ")
 		c.Writer.WriteString(cmd.String() + "\n")
 		go func() {
 			out, err := cmd.CombinedOutput()
