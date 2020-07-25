@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -60,9 +59,23 @@ func NewHTTPService(port int) {
 	r.POST("/", remoteIP)
 	r.GET("/test", test)
 	r.GET("/givemenewuuid4", newUUID4)
+	// kod共享
 	r.GET("/m/:name", movies)
-	r.GET("/share/:name", func(c *gin.Context) {
-		c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("http://%s:6895%s", ipCached, strings.ReplaceAll(c.Request.URL.String(), "/share", "")))
+	r.GET("/share/add", ginmiddleware.ReadParams(), func(c *gin.Context) {
+		if !urlConf.SetItem(c.Param("src"), strings.ReplaceAll(c.Param("dst"), " ", "+"), "share") {
+			c.String(200, "failed")
+			return
+		}
+		urlConf.Save()
+		c.String(200, "ok")
+	})
+	r.GET("/share/del", ginmiddleware.ReadParams(), func(c *gin.Context) {
+		urlConf.DelItem(c.Param("src"))
+		urlConf.Save()
+		c.String(200, "ok")
+	})
+	r.GET("/share/query", func(c *gin.Context) {
+		c.String(200, urlConf.GetAll())
 	})
 	// vps相关
 	g1 := r.Group("/vps")
