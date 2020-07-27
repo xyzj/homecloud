@@ -60,7 +60,16 @@ func NewHTTPService(port int) {
 	r.GET("/test", test)
 	r.GET("/givemenewuuid4", newUUID4)
 	// kod共享
-	r.GET("/m/:name", movies)
+	r.GET("/m/:name", func(c *gin.Context) {
+		urlConf.Reload()
+		n, err := urlConf.GetItem(c.Param("name"))
+		if err != nil {
+			c.String(200, err.Error())
+			return
+		}
+		s := "https://kod.xyzjdays.xyz:10043/index.php?share/" + gopsu.DecodeString(n)
+		c.Redirect(http.StatusTemporaryRedirect, s)
+	})
 	r.GET("/share/add", ginmiddleware.ReadParams(), func(c *gin.Context) {
 		if !urlConf.SetItem(c.Param("src"), strings.ReplaceAll(c.Param("dst"), " ", "+"), "share") {
 			c.String(200, "failed")
