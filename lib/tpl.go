@@ -61,13 +61,13 @@ const (
 		.video-js {
 			float: left;
 			width: 90% !important;
-			height: 720px;
+			height:580px;
 		}
 
 		.vjs-playlist {
-			float: left;
+			float: right;
 			width: 10%;
-			height: 720px;
+			height: 580px;
 		}
 
 		.vjs-playlist-item {
@@ -98,8 +98,8 @@ const (
 <body style="background-color:#1a1a1a;">
     <div class="player-container">
         <video id="example" class="video-js vjs-default-skin vjs-big-play-centered vjs-liveui " playsinline
-            webkit-playsinline controls preload="none" loop="false" width="640" height="480"
-            data-setup='{"videoWidth":640,"videoHeight":480,"techOrder": ["html5","flash"]}'>
+            webkit-playsinline controls preload="none" loop="false"
+            data-setup='{"techOrder": ["html5","flash"]}'>
         </video>
         <div class="vjs-playlist playlist-container">
             <!--
