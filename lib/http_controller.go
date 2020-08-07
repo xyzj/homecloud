@@ -94,6 +94,8 @@ func runVideojs(c *gin.Context) {
 			playitem, _ = sjson.Set(playitem, "duration", dur)
 			playitem, _ = sjson.Set(playitem, "sources.0.src", "/tv-"+c.Param("dir")+"/"+f.Name())
 			playitem, _ = sjson.Set(playitem, "sources.0.type", "video/"+fileext[1:])
+			playitem, _ = sjson.Set(playitem, "sources.0.width", "640")
+			playitem, _ = sjson.Set(playitem, "sources.0.height", "360")
 			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", "/tv-"+c.Param("dir")+"/"+f.Name()+".png")
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
 		case ".dur", ".png":
@@ -105,7 +107,7 @@ func runVideojs(c *gin.Context) {
 	tpl := strings.Replace(tplVideojs, "playlist_data_here", gjson.Parse(playlist).Get("pl").String(), 1)
 	c.Header("Content-Type", "text/html")
 	c.Status(http.StatusOK)
-	
+
 	thumblocker.Wait()
 	render.WriteString(c.Writer, tpl, nil)
 
