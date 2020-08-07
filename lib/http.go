@@ -87,7 +87,7 @@ func NewHTTPService(port int) {
 		c.String(200, urlConf.GetAll())
 	})
 	// 视频播放
-	r.GET("/v/:dir", runVideojs)
+	r.GET("/v/:dir", ginmiddleware.ReadParams(), runVideojs)
 	keys := urlConf.GetKeys()
 	for _, key := range keys {
 		if strings.HasPrefix(key, "tv-") {
