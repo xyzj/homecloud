@@ -53,7 +53,7 @@ func NewHTTPService(port int) {
 	// 渲染模板
 	r.HTMLRender = multiRender()
 
-	r.Static("/static", ".")
+	r.Static("/static", gopsu.JoinPathFromHere("static"))
 
 	r.GET("/", remoteIP)
 	r.POST("/", remoteIP)
@@ -71,7 +71,7 @@ func NewHTTPService(port int) {
 		c.Redirect(http.StatusTemporaryRedirect, s)
 	})
 	r.GET("/share/add", ginmiddleware.ReadParams(), func(c *gin.Context) {
-		if !urlConf.SetItem(c.Param("src"), strings.ReplaceAll(c.Param("dst"), " ", "+"), "share") {
+		if !urlConf.SetItem(c.Param("src"), strings.ReplaceAll(c.Param("dst"), " ", "+"), "kod share") {
 			c.String(200, "failed")
 			return
 		}
@@ -86,6 +86,18 @@ func NewHTTPService(port int) {
 	r.GET("/share/query", func(c *gin.Context) {
 		c.String(200, urlConf.GetAll())
 	})
+	// 视频播放
+	r.GET("/v/:dir", runVideojs)
+	keys := urlConf.GetKeys()
+	for _, key := range keys {
+		if strings.HasPrefix(key, "tv-") {
+			v, _ := urlConf.GetItem(key)
+			if v == "" {
+				continue
+			}
+			r.Static("/"+key, v)
+		}
+	}
 	// vps相关
 	g1 := r.Group("/vps")
 	g1.GET("v4info", vps4info)
@@ -110,7 +122,7 @@ func NewHTTPService(port int) {
 	g4.GET("/download/:name", certDownload)
 	g4.GET("/namesilo/:do", certNamesilo)
 	g4.GET("/dnspod/:do", certDNSPod)
-
+	// 工具
 	g5 := r.Group("/tools")
 	g5.GET("/codestr", codeString)
 	g5.POST("/codestr", ginmiddleware.ReadParams(), codeString)

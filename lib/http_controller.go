@@ -11,17 +11,83 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
+
+	"github.com/tidwall/sjson"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/render"
 	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 	"github.com/xyzj/gopsu"
+	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
 )
 
 // 这个是服务接口的业务逻辑处理文件，所有接口方法可以都写在这里，或按类别分文件写
 // 此处是用户管理服务的代码，供参考，所有方法都是和http.go里面的路由对应的
 // Enjoy your coding
+
+func runVideojs(c *gin.Context) {
+	dst, err := urlConf.GetItem("tv-" + c.Param("dir"))
+	if err != nil {
+		ginmiddleware.Page404(c)
+		return
+	}
+	flist, err := ioutil.ReadDir(dst)
+	if err != nil {
+		ginmiddleware.Page404(c)
+		return
+	}
+	var playlist, playitem string
+	var thumblocker sync.WaitGroup
+	for _, f := range flist {
+		if f.IsDir() {
+			continue
+		}
+		fileext := strings.ToLower(filepath.Ext(f.Name()))
+		filesrc := filepath.Join(dst, f.Name())
+		filethumb := filepath.Join(dst, f.Name()+".png")
+		filedur := filepath.Join(dst, f.Name()+".dur")
+		dur := 0
+		switch fileext {
+		case ".mp4", ".MP4", ".mkv", ".MKV":
+			if !gopsu.IsExist(filedur) {
+				dcmd := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", "-i", filesrc)
+				b, err := dcmd.CombinedOutput()
+				if err == nil {
+					s := bytes.Split(b, []byte("."))[0]
+					ioutil.WriteFile(filedur, s, 0664)
+				}
+			}else{
+				b,err:=ioutil.ReadFile(filedur)
+				if err==nil{
+					dur=gopsu.String2Int(string(b), 10)
+				}
+			}
+			playitem, _ = sjson.Set("", "name", f.Name())
+			playitem, _ = sjson.Set(playitem, "duration", dur)
+			playitem, _ = sjson.Set(playitem, "sources.0.src", "/tv-"+c.Param("dir")+"/"+f.Name())
+			playitem, _ = sjson.Set(playitem, "sources.0.type", "video/"+fileext[1:])
+			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", "/tv-"+c.Param("dir")+"/"+f.Name()+".png")
+			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
+			if gopsu.IsExist(filethumb) {
+				continue
+			}
+			go func() {
+				thumblocker.Add(1)
+				defer thumblocker.Done()
+				cmd := exec.Command("ffmpeg", "-i", filesrc, "-ss", "00:00:01.000", "-s", "256:144", "-vframes", "1", filethumb)
+				cmd.Run()
+			}()
+		}
+	}
+	thumblocker.Wait()
+	tpl := strings.Replace(tplVideojs, "playlist_data_here", gjson.Parse(playlist).Get("pl").String(), 1)
+	c.Header("Content-Type", "text/html")
+	c.Status(http.StatusOK)
+	render.WriteString(c.Writer, tpl, nil)
+
+}
 
 func codeString(c *gin.Context) {
 	if c.Request.Method == "POST" {

@@ -28,6 +28,7 @@ var (
 	linuxSSLCopy   = filepath.Join(gopsu.GetExecDir(), "sslcopy.sh")
 	windowsSSLCopy = filepath.Join(gopsu.GetExecDir(), "sslcopy.bat")
 	domainList     = []string{"wlst.vip,shwlst.com"}
+	
 )
 
 // LoadExtConfigure 载入除标准配置外的自定义配置内容（可选）
