@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"flag"
 	"path/filepath"
 
 	"github.com/xyzj/gopsu"
@@ -28,7 +29,9 @@ var (
 	linuxSSLCopy   = filepath.Join(gopsu.GetExecDir(), "sslcopy.sh")
 	windowsSSLCopy = filepath.Join(gopsu.GetExecDir(), "sslcopy.bat")
 	domainList     = []string{"wlst.vip,shwlst.com"}
-	
+)
+var (
+	forceHTTP = flag.Bool("forcehttp", false, "set if run as http")
 )
 
 // LoadExtConfigure 载入除标准配置外的自定义配置内容（可选）
