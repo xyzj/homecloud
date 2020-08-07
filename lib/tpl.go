@@ -15,65 +15,73 @@ const (
     <script type="text/javascript" src="/static/js/videojs-playlist/videojs-playlist-ui.min.js"></script>
     <script src="/static/js/videojs/lang/zh-TW.js"></script>
     <style>
-        /*暂停时显示播放按钮*/
-        .vjs-paused .vjs-big-play-button,
-        .vjs-paused.vjs-has-started .vjs-big-play-button {
-            display: block;
-        }
+		/*暂停时显示播放按钮*/
+		.vjs-paused .vjs-big-play-button,
+		.vjs-paused.vjs-has-started .vjs-big-play-button {
+			display: block;
+		}
 
-        /* 中间的播放箭头 */
-        .vjs-big-play-button .vjs-icon-placeholder {
-            font-size: 1.63em;
-        }
+		/*****START 播放按钮变○圆形 START*****/
+		.video-js .vjs-big-play-button {
+			font-size: 2.5em;
+			line-height: 2.3em;
+			height: 2.5em;
+			width: 2.5em;
+			-webkit-border-radius: 2.5em;
+			-moz-border-radius: 2.5em;
+			border-radius: 2.5em;
+			background-color: #73859f;
+			background-color: rgba(115, 133, 159, .5);
+			border-width: 0.15em;
+			margin-top: -1.25em;
+			margin-left: -1.75em;
+		}
 
-        /* 加载圆圈 */
-        .vjs-loading-spinner {
-            font-size: 2.5em;
-            width: 2em;
-            height: 2em;
-            border-radius: 1em;
-            margin-top: -1em;
-            margin-left: -1.5em;
-        }
-    </style>
-    <style>
-        .player-container {
-            background: #1a1a1a;
-            overflow: auto;
-        }
+		/* 中间的播放箭头 */
+		.vjs-big-play-button .vjs-icon-placeholder {
+			font-size: 1.63em;
+		}
 
-        .video-js {
-            position: absolute;
-            /*top: 0;
-            left: 0;*/
-            width: 90% ;
-            /*height: 100% !important;
-             float: left; */
-            /* width: 90% !important;
-            height: 720px; */
-        }
+		/* 加载圆圈 */
+		.vjs-loading-spinner {
+			font-size: 2.5em;
+			width: 2em;
+			height: 2em;
+			border-radius: 1em;
+			margin-top: -1em;
+			margin-left: -1.5em;
+		}
+	</style>
+	<style>
+		.player-container {
+			background: #1a1a1a;
+			overflow: auto;
+		}
 
-        .vjs-playlist {
-            position: absolute;
-            /* float: right; */
-            width: 10%;
-            right: 0;
-            top: 0;
-            /* height: 760px; */
-        }
+		.video-js {
+			float: left;
+			width: 90% !important;
+			height: 720px;
+		}
 
-        .vjs-playlist-item {
-            border: 2px solid #FFFFFF;
-        }
+		.vjs-playlist {
+			float: left;
+			width: 10%;
+			height: 720px;
+		}
 
-        .vjs-playlist .vjs-selected {
-            border: 2px solid #00FF00;
-        }
+		.vjs-playlist-item {
+			border: 1px solid #FFFFFF;
+		}
 
-        .vjs-playlist .vjs-selected img {
-            opacity: .5;
-        }
-    </style>
+		.vjs-playlist .vjs-selected {
+			border: 1px solid #00FF00;
+		}
+
+		.vjs-playlist .vjs-selected img {
+			opacity: .5;
+		}
+	</style>
     <script type="text/javascript">
         videojs.options.flash.swf = "/static/js/videojs-flash/video-js.swf";//flash路径，有一些html播放不了的视频，就需要用到flash播放。这一句话要加在在videojs.js引入之后使用
     </script>
