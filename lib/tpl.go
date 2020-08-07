@@ -1,6 +1,117 @@
 package lib
 
 const (
+	tplVideojs = `<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Web TV</title>
+    <link href="/static/css/video-js.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/videojs-playlist-ui.vertical.css" />
+    <script src="/static/js/videojs/video.min.js"></script>
+    <script src="/static/js/videojs-playlist/videojs-playlist.min.js"></script>
+    <script src="/static/js/videojs-flash/videojs-flash.js"></script>
+    <script type="text/javascript" src="/static/js/videojs-playlist/videojs-playlist-ui.min.js"></script>
+    <script src="/static/js/videojs/lang/zh-TW.js"></script>
+    <style>
+        /*暂停时显示播放按钮*/
+        .vjs-paused .vjs-big-play-button,
+        .vjs-paused.vjs-has-started .vjs-big-play-button {
+            display: block;
+        }
+
+        /* 中间的播放箭头 */
+        .vjs-big-play-button .vjs-icon-placeholder {
+            font-size: 1.63em;
+        }
+
+        /* 加载圆圈 */
+        .vjs-loading-spinner {
+            font-size: 2.5em;
+            width: 2em;
+            height: 2em;
+            border-radius: 1em;
+            margin-top: -1em;
+            margin-left: -1.5em;
+        }
+    </style>
+    <style>
+        .player-container {
+            background: #1a1a1a;
+            overflow: auto;
+        }
+
+        .video-js {
+            position: absolute;
+            /*top: 0;
+            left: 0;*/
+            width: 90% ;
+            /*height: 100% !important;
+             float: left; */
+            /* width: 90% !important;
+            height: 720px; */
+        }
+
+        .vjs-playlist {
+            position: absolute;
+            /* float: right; */
+            width: 10%;
+            right: 0;
+            top: 0;
+            /* height: 760px; */
+        }
+
+        .vjs-playlist-item {
+            border: 2px solid #FFFFFF;
+        }
+
+        .vjs-playlist .vjs-selected {
+            border: 2px solid #00FF00;
+        }
+
+        .vjs-playlist .vjs-selected img {
+            opacity: .5;
+        }
+    </style>
+    <script type="text/javascript">
+        videojs.options.flash.swf = "/static/js/videojs-flash/video-js.swf";//flash路径，有一些html播放不了的视频，就需要用到flash播放。这一句话要加在在videojs.js引入之后使用
+    </script>
+</head>
+<!--
+    作者：450695461@qq.com
+    时间：2019-05-27
+    描述：一些关键字段的补充说明
+    1、默认的播放按钮在左上角，在video标签中增加 vjs-big-play-centered 类，即可居中
+    2、禁止在iPhone safari中自动全屏：playsinline参数。注意，在iOS10之前用的是webkit-playsinline。
+    3、播放格式优先级：{"techOrder": ["html5", "flash"]}width="100%" height="100%"
+-->
+
+<body style="background-color:#1a1a1a;">
+    <div class="player-container">
+        <video id="example" class="video-js vjs-default-skin vjs-big-play-centered vjs-liveui " playsinline
+            webkit-playsinline controls preload="none" loop="false" width="640" height="480"
+            data-setup='{"videoWidth":640,"videoHeight":480,"techOrder": ["html5","flash"]}'>
+        </video>
+        <div class="vjs-playlist playlist-container">
+            <!--
+            The contents of this element will be filled based on the
+            currently loaded playlist
+            -->
+        </div>
+    </div>
+</body>
+<!--<script src="/static/playlist.js"></script>-->
+<script type="text/javascript">
+    var player = videojs('example');
+
+    player.playlist(playlist_data_here);
+
+    player.playlistUi();
+</script>
+
+</html>`
+
 	tpluuid = `<!DOCTYPE html>
 <html>
 <head>
