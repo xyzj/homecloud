@@ -135,7 +135,7 @@ func NewHTTPService(port int) {
 	go func() {
 		var err error
 		println("Starting HTTP(S) server at :" + strconv.Itoa((port)))
-		if EnableDebug { // 调试模式下使用http
+		if EnableDebug || *forceHTTP { // 调试模式下使用http
 			err = ginmiddleware.ListenAndServe(port, r)
 		} else { // 生产模式下使用https,若设置了clientca，则会验证客户端证书
 			err = ginmiddleware.ListenAndServeTLS(port, r, filepath.Join(".", "ca", DomainName+".crt"), filepath.Join(".", "ca", DomainName+".key"), "")
