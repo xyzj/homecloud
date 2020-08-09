@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -147,21 +146,6 @@ func checkCode(b bool) string {
 }
 
 func main() {
-	flag.Parse()
-	t := time.Now().Unix()
-	recordData.WriteString("# XXX服务平台自测报告\r\n")
-	recordData.WriteString(fmt.Sprintf("> 测试时间： %s\r\n>\r\n", gopsu.Stamp2Time(t)))
-	recordData.WriteString(fmt.Sprintf("> 测试地址： %s\r\n\r\n", baseurl))
-	recordData.WriteString("---\r\n")
-	recordData.WriteString("|序号|接口路径|接口类型|输入参数|输出数据|结果|\r\n|:-:|:-|:-:|:-|:-|:-:|\r\n")
-
-	for i := 0; i < 100; i++ {
-		getID()
-	}
-	for i := 0; i < 10; i++ {
-		checkCode(i%2 == 0)
-	}
-	if *report {
-		ioutil.WriteFile(fmt.Sprintf("testreport_indxmanager_%s.md", gopsu.Stamp2Time(time.Now().Unix(), "20060102150405")), recordData.Bytes(), 0644)
-	}
+	t := time.Now()
+	println(t.Format("01-02 15:04"))
 }
