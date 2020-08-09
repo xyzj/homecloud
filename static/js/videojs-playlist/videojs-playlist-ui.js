@@ -1,9 +1,10 @@
 /*! @name videojs-playlist-ui @version 3.8.0 @license Apache-2.0 */
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('global/document'), require('video.js')) :
-  typeof define === 'function' && define.amd ? define(['global/document', 'video.js'], factory) :
-  (global.videojsPlaylistUi = factory(global.document,global.videojs));
-}(this, (function (document,videojs) { 'use strict';
+    typeof define === 'function' && define.amd ? define(['global/document', 'video.js'], factory) :
+      (global.videojsPlaylistUi = factory(global.document, global.videojs));
+}(this, (function (document, videojs) {
+  'use strict';
 
   document = document && document.hasOwnProperty('default') ? document['default'] : document;
   videojs = videojs && videojs.hasOwnProperty('default') ? videojs['default'] : videojs;
@@ -115,292 +116,294 @@
   var Component = videojs.getComponent('Component');
 
   var PlaylistMenuItem =
-  /*#__PURE__*/
-  function (_Component) {
-    _inheritsLoose(PlaylistMenuItem, _Component);
+    /*#__PURE__*/
+    function (_Component) {
+      _inheritsLoose(PlaylistMenuItem, _Component);
 
-    function PlaylistMenuItem(player, playlistItem, settings) {
-      var _this;
+      function PlaylistMenuItem(player, playlistItem, settings) {
+        var _this;
 
-      if (!playlistItem.item) {
-        throw new Error('Cannot construct a PlaylistMenuItem without an item option');
+        if (!playlistItem.item) {
+          throw new Error('Cannot construct a PlaylistMenuItem without an item option');
+        }
+
+        playlistItem.showDescription = settings.showDescription;
+        _this = _Component.call(this, player, playlistItem) || this;
+        _this.item = playlistItem.item;
+        _this.playOnSelect = settings.playOnSelect;
+
+        _this.emitTapEvents();
+
+        _this.on(['click', 'tap'], _this.switchPlaylistItem_);
+
+        _this.on('keydown', _this.handleKeyDown_);
+
+        return _this;
       }
 
-      playlistItem.showDescription = settings.showDescription;
-      _this = _Component.call(this, player, playlistItem) || this;
-      _this.item = playlistItem.item;
-      _this.playOnSelect = settings.playOnSelect;
+      var _proto = PlaylistMenuItem.prototype;
 
-      _this.emitTapEvents();
+      _proto.handleKeyDown_ = function handleKeyDown_(event) {
+        // keycode 13 is <Enter>
+        // keycode 32 is <Space>
+        if (event.which === 13 || event.which === 32) {
+          this.switchPlaylistItem_();
+        }
+      };
 
-      _this.on(['click', 'tap'], _this.switchPlaylistItem_);
+      _proto.switchPlaylistItem_ = function switchPlaylistItem_(event) {
+        this.player_.playlist.currentItem(indexOf(this.player_.playlist(), this.item));
 
-      _this.on('keydown', _this.handleKeyDown_);
+        if (this.playOnSelect) {
+          this.player_.play();
+        }
+      };
 
-      return _this;
-    }
+      _proto.createEl = function createEl() {
+        var li = document.createElement('li');
+        var item = this.options_.item;
+        var showDescription = this.options_.showDescription;
 
-    var _proto = PlaylistMenuItem.prototype;
+        if (typeof item.data === 'object') {
+          var dataKeys = Object.keys(item.data);
+          dataKeys.forEach(function (key) {
+            var value = item.data[key];
+            li.dataset[key] = value;
+          });
+        }
 
-    _proto.handleKeyDown_ = function handleKeyDown_(event) {
-      // keycode 13 is <Enter>
-      // keycode 32 is <Space>
-      if (event.which === 13 || event.which === 32) {
-        this.switchPlaylistItem_();
-      }
-    };
+        li.className = 'vjs-playlist-item';
+        li.setAttribute('tabIndex', 0); // Thumbnail image
 
-    _proto.switchPlaylistItem_ = function switchPlaylistItem_(event) {
-      this.player_.playlist.currentItem(indexOf(this.player_.playlist(), this.item));
+        this.thumbnail = createThumbnail(item.thumbnail);
+        li.appendChild(this.thumbnail); // Duration
 
-      if (this.playOnSelect) {
-        this.player_.play();
-      }
-    };
+        if (item.duration) {
+          var duration = document.createElement('time');
+          var time = videojs.formatTime(item.duration);
+          duration.className = 'vjs-playlist-duration';
+          duration.setAttribute('datetime', 'PT0H0M' + item.duration + 'S');
+          duration.appendChild(document.createTextNode(time));
+          li.appendChild(duration);
+        } // Now playing
 
-    _proto.createEl = function createEl() {
-      var li = document.createElement('li');
-      var item = this.options_.item;
-      var showDescription = this.options_.showDescription;
+        if (item.datetime) {
+          var dt = document.createElement('dt');
+          dt.className = 'vjs-playlist-datetime';
+          dt.appendChild(document.createTextNode(item.datetime));
+          li.appendChild(dt);
+        }
 
-      if (typeof item.data === 'object') {
-        var dataKeys = Object.keys(item.data);
-        dataKeys.forEach(function (key) {
-          var value = item.data[key];
-          li.dataset[key] = value;
-        });
-      }
+        // var nowPlayingEl = document.createElement('span');
+        // var nowPlayingText = this.localize('Now Playing');
+        // nowPlayingEl.className = 'vjs-playlist-now-playing-text';
+        // nowPlayingEl.appendChild(document.createTextNode(nowPlayingText));
+        // nowPlayingEl.setAttribute('title', nowPlayingText);
+        // this.thumbnail.appendChild(nowPlayingEl); // Title container contains title and "up next"
 
-      li.className = 'vjs-playlist-item';
-      li.setAttribute('tabIndex', 0); // Thumbnail image
+        var titleContainerEl = document.createElement('div');
+        titleContainerEl.className = 'vjs-playlist-title-container';
+        this.thumbnail.appendChild(titleContainerEl); // Up next
 
-      this.thumbnail = createThumbnail(item.thumbnail);
-      li.appendChild(this.thumbnail); // Duration
+        // var upNextEl = document.createElement('span');
+        // var upNextText = this.localize('Up Next');
+        // upNextEl.className = 'vjs-up-next-text';
+        // upNextEl.appendChild(document.createTextNode(upNextText));
+        // upNextEl.setAttribute('title', upNextText);
+        // titleContainerEl.appendChild(upNextEl); // Video title
 
-      if (item.duration) {
-        var duration = document.createElement('time');
-        var time = videojs.formatTime(item.duration);
-        duration.className = 'vjs-playlist-duration';
-        duration.setAttribute('datetime', 'PT0H0M' + item.duration + 'S');
-        duration.appendChild(document.createTextNode(time));
-        li.appendChild(duration);
-      } // Now playing
+        var titleEl = document.createElement('cite');
+        var titleText = item.name || this.localize('Untitled Video');
+        titleEl.className = 'vjs-playlist-name';
+        titleEl.appendChild(document.createTextNode(titleText));
+        titleEl.setAttribute('title', titleText);
+        titleContainerEl.appendChild(titleEl); // We add thumbnail video description only if specified in playlist options
 
-      var dt = document.createElement('dt');
-      dt.className = 'vjs-playlist-datetime';
-      dt.appendChild(document.createTextNode(item.datetime));
-      li.appendChild(dt);
+        if (showDescription) {
+          var descriptionEl = document.createElement('div');
+          var descriptionText = item.description || '';
+          descriptionEl.className = 'vjs-playlist-description';
+          descriptionEl.appendChild(document.createTextNode(descriptionText));
+          descriptionEl.setAttribute('title', descriptionText);
+          titleContainerEl.appendChild(descriptionEl);
+        }
 
-      // var nowPlayingEl = document.createElement('span');
-      // var nowPlayingText = this.localize('Now Playing');
-      // nowPlayingEl.className = 'vjs-playlist-now-playing-text';
-      // nowPlayingEl.appendChild(document.createTextNode(nowPlayingText));
-      // nowPlayingEl.setAttribute('title', nowPlayingText);
-      // this.thumbnail.appendChild(nowPlayingEl); // Title container contains title and "up next"
+        return li;
+      };
 
-      var titleContainerEl = document.createElement('div');
-      titleContainerEl.className = 'vjs-playlist-title-container';
-      this.thumbnail.appendChild(titleContainerEl); // Up next
-
-      // var upNextEl = document.createElement('span');
-      // var upNextText = this.localize('Up Next');
-      // upNextEl.className = 'vjs-up-next-text';
-      // upNextEl.appendChild(document.createTextNode(upNextText));
-      // upNextEl.setAttribute('title', upNextText);
-      // titleContainerEl.appendChild(upNextEl); // Video title
-
-      var titleEl = document.createElement('cite');
-      var titleText = item.name || this.localize('Untitled Video');
-      titleEl.className = 'vjs-playlist-name';
-      titleEl.appendChild(document.createTextNode(titleText));
-      titleEl.setAttribute('title', titleText);
-      titleContainerEl.appendChild(titleEl); // We add thumbnail video description only if specified in playlist options
-
-      if (showDescription) {
-        var descriptionEl = document.createElement('div');
-        var descriptionText = item.description || '';
-        descriptionEl.className = 'vjs-playlist-description';
-        descriptionEl.appendChild(document.createTextNode(descriptionText));
-        descriptionEl.setAttribute('title', descriptionText);
-        titleContainerEl.appendChild(descriptionEl);
-      }
-
-      return li;
-    };
-
-    return PlaylistMenuItem;
-  }(Component);
+      return PlaylistMenuItem;
+    }(Component);
 
   var PlaylistMenu =
-  /*#__PURE__*/
-  function (_Component2) {
-    _inheritsLoose(PlaylistMenu, _Component2);
+    /*#__PURE__*/
+    function (_Component2) {
+      _inheritsLoose(PlaylistMenu, _Component2);
 
-    function PlaylistMenu(player, options) {
-      var _this2;
+      function PlaylistMenu(player, options) {
+        var _this2;
 
-      if (!player.playlist) {
-        throw new Error('videojs-playlist is required for the playlist component');
-      }
-
-      _this2 = _Component2.call(this, player, options) || this;
-      _this2.items = [];
-
-      if (options.horizontal) {
-        _this2.addClass('vjs-playlist-horizontal');
-      } else {
-        _this2.addClass('vjs-playlist-vertical');
-      } // If CSS pointer events aren't supported, we have to prevent
-      // clicking on playlist items during ads with slightly more
-      // invasive techniques. Details in the stylesheet.
-
-
-      if (options.supportsCssPointerEvents) {
-        _this2.addClass('vjs-csspointerevents');
-      }
-
-      _this2.createPlaylist_();
-
-      if (!videojs.browser.TOUCH_ENABLED) {
-        _this2.addClass('vjs-mouse');
-      }
-
-      _this2.on(player, ['loadstart', 'playlistchange', 'playlistsorted'], function (event) {
-        _this2.update();
-      }); // Keep track of whether an ad is playing so that the menu
-      // appearance can be adapted appropriately
-
-
-      _this2.on(player, 'adstart', function () {
-        _this2.addClass('vjs-ad-playing');
-      });
-
-      _this2.on(player, 'adend', function () {
-        _this2.removeClass('vjs-ad-playing');
-      });
-
-      _this2.on('dispose', function () {
-        _this2.empty_();
-
-        player.playlistMenu = null;
-      });
-
-      _this2.on(player, 'dispose', function () {
-        _this2.dispose();
-      });
-
-      return _this2;
-    }
-
-    var _proto2 = PlaylistMenu.prototype;
-
-    _proto2.createEl = function createEl() {
-      return dom.createEl('div', {
-        className: this.options_.className
-      });
-    };
-
-    _proto2.empty_ = function empty_() {
-      if (this.items && this.items.length) {
-        this.items.forEach(function (i) {
-          return i.dispose();
-        });
-        this.items.length = 0;
-      }
-    };
-
-    _proto2.createPlaylist_ = function createPlaylist_() {
-      var playlist = this.player_.playlist() || [];
-      var list = this.el_.querySelector('.vjs-playlist-item-list');
-      var overlay = this.el_.querySelector('.vjs-playlist-ad-overlay');
-
-      if (!list) {
-        list = document.createElement('ol');
-        list.className = 'vjs-playlist-item-list';
-        this.el_.appendChild(list);
-      }
-
-      this.empty_(); // create new items
-
-      for (var i = 0; i < playlist.length; i++) {
-        var item = new PlaylistMenuItem(this.player_, {
-          item: playlist[i]
-        }, this.options_);
-        this.items.push(item);
-        list.appendChild(item.el_);
-      } // Inject the ad overlay. IE<11 doesn't support "pointer-events:
-      // none" so we use this element to block clicks during ad
-      // playback.
-
-
-      if (!overlay) {
-        overlay = document.createElement('li');
-        overlay.className = 'vjs-playlist-ad-overlay';
-        list.appendChild(overlay);
-      } else {
-        // Move overlay to end of list
-        list.appendChild(overlay);
-      } // select the current playlist item
-
-
-      var selectedIndex = this.player_.playlist.currentItem();
-
-      if (this.items.length && selectedIndex >= 0) {
-        addSelectedClass(this.items[selectedIndex]);
-        var thumbnail = this.items[selectedIndex].$('.vjs-playlist-thumbnail');
-
-        if (thumbnail) {
-          dom.addClass(thumbnail, 'vjs-playlist-now-playing');
+        if (!player.playlist) {
+          throw new Error('videojs-playlist is required for the playlist component');
         }
+
+        _this2 = _Component2.call(this, player, options) || this;
+        _this2.items = [];
+
+        if (options.horizontal) {
+          _this2.addClass('vjs-playlist-horizontal');
+        } else {
+          _this2.addClass('vjs-playlist-vertical');
+        } // If CSS pointer events aren't supported, we have to prevent
+        // clicking on playlist items during ads with slightly more
+        // invasive techniques. Details in the stylesheet.
+
+
+        if (options.supportsCssPointerEvents) {
+          _this2.addClass('vjs-csspointerevents');
+        }
+
+        _this2.createPlaylist_();
+
+        if (!videojs.browser.TOUCH_ENABLED) {
+          _this2.addClass('vjs-mouse');
+        }
+
+        _this2.on(player, ['loadstart', 'playlistchange', 'playlistsorted'], function (event) {
+          _this2.update();
+        }); // Keep track of whether an ad is playing so that the menu
+        // appearance can be adapted appropriately
+
+
+        _this2.on(player, 'adstart', function () {
+          _this2.addClass('vjs-ad-playing');
+        });
+
+        _this2.on(player, 'adend', function () {
+          _this2.removeClass('vjs-ad-playing');
+        });
+
+        _this2.on('dispose', function () {
+          _this2.empty_();
+
+          player.playlistMenu = null;
+        });
+
+        _this2.on(player, 'dispose', function () {
+          _this2.dispose();
+        });
+
+        return _this2;
       }
-    };
 
-    _proto2.update = function update() {
-      // replace the playlist items being displayed, if necessary
-      var playlist = this.player_.playlist();
+      var _proto2 = PlaylistMenu.prototype;
 
-      if (this.items.length !== playlist.length) {
-        // if the menu is currently empty or the state is obviously out
-        // of date, rebuild everything.
-        this.createPlaylist_();
-        return;
-      }
+      _proto2.createEl = function createEl() {
+        return dom.createEl('div', {
+          className: this.options_.className
+        });
+      };
 
-      for (var i = 0; i < this.items.length; i++) {
-        if (this.items[i].item !== playlist[i]) {
-          // if any of the playlist items have changed, rebuild the
-          // entire playlist
+      _proto2.empty_ = function empty_() {
+        if (this.items && this.items.length) {
+          this.items.forEach(function (i) {
+            return i.dispose();
+          });
+          this.items.length = 0;
+        }
+      };
+
+      _proto2.createPlaylist_ = function createPlaylist_() {
+        var playlist = this.player_.playlist() || [];
+        var list = this.el_.querySelector('.vjs-playlist-item-list');
+        var overlay = this.el_.querySelector('.vjs-playlist-ad-overlay');
+
+        if (!list) {
+          list = document.createElement('ol');
+          list.className = 'vjs-playlist-item-list';
+          this.el_.appendChild(list);
+        }
+
+        this.empty_(); // create new items
+
+        for (var i = 0; i < playlist.length; i++) {
+          var item = new PlaylistMenuItem(this.player_, {
+            item: playlist[i]
+          }, this.options_);
+          this.items.push(item);
+          list.appendChild(item.el_);
+        } // Inject the ad overlay. IE<11 doesn't support "pointer-events:
+        // none" so we use this element to block clicks during ad
+        // playback.
+
+
+        if (!overlay) {
+          overlay = document.createElement('li');
+          overlay.className = 'vjs-playlist-ad-overlay';
+          list.appendChild(overlay);
+        } else {
+          // Move overlay to end of list
+          list.appendChild(overlay);
+        } // select the current playlist item
+
+
+        var selectedIndex = this.player_.playlist.currentItem();
+
+        if (this.items.length && selectedIndex >= 0) {
+          addSelectedClass(this.items[selectedIndex]);
+          var thumbnail = this.items[selectedIndex].$('.vjs-playlist-thumbnail');
+
+          if (thumbnail) {
+            dom.addClass(thumbnail, 'vjs-playlist-now-playing');
+          }
+        }
+      };
+
+      _proto2.update = function update() {
+        // replace the playlist items being displayed, if necessary
+        var playlist = this.player_.playlist();
+
+        if (this.items.length !== playlist.length) {
+          // if the menu is currently empty or the state is obviously out
+          // of date, rebuild everything.
           this.createPlaylist_();
           return;
         }
-      } // the playlist itself is unchanged so just update the selection
 
-
-      var currentItem = this.player_.playlist.currentItem();
-
-      for (var _i = 0; _i < this.items.length; _i++) {
-        var item = this.items[_i];
-
-        if (_i === currentItem) {
-          addSelectedClass(item);
-
-          if (document.activeElement !== item.el()) {
-            dom.addClass(item.thumbnail, 'vjs-playlist-now-playing');
+        for (var i = 0; i < this.items.length; i++) {
+          if (this.items[i].item !== playlist[i]) {
+            // if any of the playlist items have changed, rebuild the
+            // entire playlist
+            this.createPlaylist_();
+            return;
           }
+        } // the playlist itself is unchanged so just update the selection
 
-          notUpNext(item);
-        } else if (_i === currentItem + 1) {
-          removeSelectedClass(item);
-          upNext(item);
-        } else {
-          removeSelectedClass(item);
-          notUpNext(item);
+
+        var currentItem = this.player_.playlist.currentItem();
+
+        for (var _i = 0; _i < this.items.length; _i++) {
+          var item = this.items[_i];
+
+          if (_i === currentItem) {
+            addSelectedClass(item);
+
+            if (document.activeElement !== item.el()) {
+              dom.addClass(item.thumbnail, 'vjs-playlist-now-playing');
+            }
+
+            notUpNext(item);
+          } else if (_i === currentItem + 1) {
+            removeSelectedClass(item);
+            upNext(item);
+          } else {
+            removeSelectedClass(item);
+            notUpNext(item);
+          }
         }
-      }
-    };
+      };
 
-    return PlaylistMenu;
-  }(Component);
+      return PlaylistMenu;
+    }(Component);
   /**
    * Returns a boolean indicating whether an element has child elements.
    *

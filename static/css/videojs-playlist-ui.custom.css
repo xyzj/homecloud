@@ -68,13 +68,13 @@
 
 .vjs-playlist .vjs-playlist-name {
 	display: block;
-	max-height: 2.3em;
+	max-height: 40px;
 	padding: 0 0 2px 2px;
 	font-style: normal;
 	text-overflow: ellipsis;
 	overflow: hidden;
     white-space: wrap;
-	/* line-height: 20px */
+	line-height: 20px
 }
 
 .vjs-playlist .vjs-playlist-description {
