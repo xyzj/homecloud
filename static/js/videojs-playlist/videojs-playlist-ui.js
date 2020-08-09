@@ -186,24 +186,28 @@
         li.appendChild(duration);
       } // Now playing
 
+      var dt = document.createElement('dt');
+      dt.className = 'vjs-playlist-datetime';
+      dt.appendChild(document.createTextNode(item.datetime));
+      li.appendChild(dt);
 
-      var nowPlayingEl = document.createElement('span');
-      var nowPlayingText = this.localize('Now Playing');
-      nowPlayingEl.className = 'vjs-playlist-now-playing-text';
-      nowPlayingEl.appendChild(document.createTextNode(nowPlayingText));
-      nowPlayingEl.setAttribute('title', nowPlayingText);
-      this.thumbnail.appendChild(nowPlayingEl); // Title container contains title and "up next"
+      // var nowPlayingEl = document.createElement('span');
+      // var nowPlayingText = this.localize('Now Playing');
+      // nowPlayingEl.className = 'vjs-playlist-now-playing-text';
+      // nowPlayingEl.appendChild(document.createTextNode(nowPlayingText));
+      // nowPlayingEl.setAttribute('title', nowPlayingText);
+      // this.thumbnail.appendChild(nowPlayingEl); // Title container contains title and "up next"
 
       var titleContainerEl = document.createElement('div');
       titleContainerEl.className = 'vjs-playlist-title-container';
       this.thumbnail.appendChild(titleContainerEl); // Up next
 
-      var upNextEl = document.createElement('span');
-      var upNextText = this.localize('Up Next');
-      upNextEl.className = 'vjs-up-next-text';
-      upNextEl.appendChild(document.createTextNode(upNextText));
-      upNextEl.setAttribute('title', upNextText);
-      titleContainerEl.appendChild(upNextEl); // Video title
+      // var upNextEl = document.createElement('span');
+      // var upNextText = this.localize('Up Next');
+      // upNextEl.className = 'vjs-up-next-text';
+      // upNextEl.appendChild(document.createTextNode(upNextText));
+      // upNextEl.setAttribute('title', upNextText);
+      // titleContainerEl.appendChild(upNextEl); // Video title
 
       var titleEl = document.createElement('cite');
       var titleText = item.name || this.localize('Untitled Video');

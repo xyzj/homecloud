@@ -39,7 +39,8 @@ func (fis byModTime) Less(i, j int) bool {
 }
 
 func runVideojs(c *gin.Context) {
-	dst, err := urlConf.GetItem("tv-" + c.Param("dir"))
+	dir := c.Param("dir")
+	dst, err := urlConf.GetItem("tv-" + dir)
 	if err != nil {
 		ginmiddleware.Page404(c)
 		return
@@ -49,61 +50,74 @@ func runVideojs(c *gin.Context) {
 		ginmiddleware.Page404(c)
 		return
 	}
+
 	var playlist, playitem string
+	var showdur bool
 	var thumblocker sync.WaitGroup
 	if c.Param("order") != "name" {
 		sort.Sort(byModTime(flist))
 	}
+	_, showdur = c.Params.Get("dur")
+	var fileext, filesrc, filethumb, filedur string
+	var dur int
 	for _, f := range flist {
 		if f.IsDir() {
 			continue
 		}
-		fileext := strings.ToLower(filepath.Ext(f.Name()))
-		filesrc := filepath.Join(dst, f.Name())
-		filethumb := filepath.Join(dst, f.Name()+".png")
-		filedur := filepath.Join(dst, f.Name()+".dur")
-		dur := 0
+		fileext = strings.ToLower(filepath.Ext(f.Name()))
 		switch fileext {
 		case ".mp4", ".mkv", ".MP4", ".MKV":
-			if !gopsu.IsExist(filedur) {
-				go func() {
-					thumblocker.Add(1)
-					defer thumblocker.Done()
-					dcmd := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", "-i", filesrc)
-					b, err := dcmd.CombinedOutput()
-					if err == nil {
-						s := bytes.Split(b, []byte("."))[0]
-						ioutil.WriteFile(filedur, s, 0664)
-					}
-				}()
+			filesrc = filepath.Join(dst, f.Name())
+			filethumb = filepath.Join(dst, "."+f.Name()+".png")
+			filedur = filepath.Join(dst, "."+f.Name()+".dur")
+			dur = 0
+			if showdur {
+				if !gopsu.IsExist(filedur) {
+					go func(in, out string) {
+						thumblocker.Add(1)
+						defer thumblocker.Done()
+						cmd := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", "-i", in)
+						b, err := cmd.CombinedOutput()
+						if err == nil {
+							s := bytes.Split(b, []byte("."))[0]
+							ioutil.WriteFile(out, s, 0664)
+						}
+					}(filesrc, filedur)
+				}
 			}
 			if !gopsu.IsExist(filethumb) {
-				go func() {
+				go func(in, out string) {
 					thumblocker.Add(1)
 					defer thumblocker.Done()
-					cmd := exec.Command("ffmpeg", "-i", filesrc, "-ss", "00:00:01.000", "-s", "256:144", "-vframes", "1", filethumb)
+					cmd := exec.Command("ffmpeg", "-i", in, "-ss", "00:00:03", "-s", "256:144", "-vframes", "1", out)
 					cmd.Run()
-				}()
+				}(filesrc, filethumb)
 			}
-			b, err := ioutil.ReadFile(filedur)
-			if err == nil {
-				dur = gopsu.String2Int(string(b), 10)
+			if showdur {
+				b, err := ioutil.ReadFile(filedur)
+				if err == nil {
+					dur = gopsu.String2Int(string(b), 10)
+				}
 			}
 			playitem, _ = sjson.Set("", "name", f.Name())
 			// playitem, _ = sjson.Set(playitem, "description", f.ModTime().String())
 			playitem, _ = sjson.Set(playitem, "duration", dur)
-			playitem, _ = sjson.Set(playitem, "sources.0.src", "/tv-"+c.Param("dir")+"/"+f.Name())
+			playitem, _ = sjson.Set(playitem, "datetime", f.ModTime().Format("01月02日 15:04"))
+			playitem, _ = sjson.Set(playitem, "sources.0.src", "/tv-"+dir+"/"+f.Name())
 			playitem, _ = sjson.Set(playitem, "sources.0.type", "video/"+fileext[1:])
-			playitem, _ = sjson.Set(playitem, "sources.0.width", "640")
+			// playitem, _ = sjson.Set(playitem, "sources.0.width", "640")
 			playitem, _ = sjson.Set(playitem, "sources.0.height", "360")
-			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", "/tv-"+c.Param("dir")+"/"+f.Name()+".png")
+			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", "/tv-"+dir+"/."+f.Name()+".png")
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
 		case ".dur", ".png":
-			if !gopsu.IsExist(strings.Trim(filesrc, fileext)) {
-				os.Remove(filesrc)
+			if strings.HasPrefix(f.Name(), ".") {
+				if !gopsu.IsExist(filepath.Join(dst, strings.Trim(f.Name()[1:], fileext))) {
+					os.Remove(filepath.Join(dst, f.Name()))
+				}
 			}
 		}
 	}
+
 	tpl := strings.Replace(tplVideojs, "playlist_data_here", gjson.Parse(playlist).Get("pl").String(), 1)
 	c.Header("Content-Type", "text/html")
 	c.Status(http.StatusOK)
