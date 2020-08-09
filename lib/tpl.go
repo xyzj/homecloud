@@ -8,80 +8,81 @@ const (
     <meta charset="UTF-8">
     <title>Web TV</title>
     <link href="/static/css/video-js.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/videojs-playlist-ui.vertical.css" />
+    <link rel="stylesheet" href="/static/css/videojs-playlist-ui.custom.css" />
     <script src="/static/js/videojs/video.min.js"></script>
+    <script src="/static/js/videojs-hotkeys/videojs.hotkeys.min.js"></script>
     <script src="/static/js/videojs-playlist/videojs-playlist.min.js"></script>
     <script src="/static/js/videojs-flash/videojs-flash.js"></script>
-    <script type="text/javascript" src="/static/js/videojs-playlist/videojs-playlist-ui.min.js"></script>
+    <script type="text/javascript" src="/static/js/videojs-playlist/videojs-playlist-ui.js"></script>
     <script src="/static/js/videojs/lang/zh-TW.js"></script>
     <style>
-		/*暂停时显示播放按钮*/
-		.vjs-paused .vjs-big-play-button,
-		.vjs-paused.vjs-has-started .vjs-big-play-button {
-			display: block;
-		}
+        /*暂停时显示播放按钮*/
+        .vjs-paused .vjs-big-play-button,
+        .vjs-paused.vjs-has-started .vjs-big-play-button {
+            display: block;
+        }
 
-		/*****START 播放按钮变○圆形 START*****/
-		.video-js .vjs-big-play-button {
-			font-size: 2.5em;
-			line-height: 2.3em;
-			height: 2.5em;
-			width: 2.5em;
-			-webkit-border-radius: 2.5em;
-			-moz-border-radius: 2.5em;
-			border-radius: 2.5em;
-			background-color: #73859f;
-			background-color: rgba(115, 133, 159, .5);
-			border-width: 0.15em;
-			margin-top: -1.25em;
-			margin-left: -1.75em;
-		}
+        /*****START 播放按钮变○圆形 START*****/
+        .video-js .vjs-big-play-button {
+            font-size: 2.5em;
+            line-height: 2.3em;
+            height: 2.5em;
+            width: 2.5em;
+            -webkit-border-radius: 2.5em;
+            -moz-border-radius: 2.5em;
+            border-radius: 2.5em;
+            background-color: #73859f;
+            background-color: rgba(115, 133, 159, .5);
+            border-width: 0.15em;
+            margin-top: -1.25em;
+            margin-left: -1.75em;
+        }
 
-		/* 中间的播放箭头 */
-		.vjs-big-play-button .vjs-icon-placeholder {
-			font-size: 1.63em;
-		}
+        /* 中间的播放箭头 */
+        .vjs-big-play-button .vjs-icon-placeholder {
+            font-size: 1.63em;
+        }
 
-		/* 加载圆圈 */
-		.vjs-loading-spinner {
-			font-size: 2.5em;
-			width: 2em;
-			height: 2em;
-			border-radius: 1em;
-			margin-top: -1em;
-			margin-left: -1.5em;
-		}
-	</style>
-	<style>
-		.player-container {
-			background: #1a1a1a;
-			overflow: auto;
-		}
+        /* 加载圆圈 */
+        .vjs-loading-spinner {
+            font-size: 2.5em;
+            width: 2em;
+            height: 2em;
+            border-radius: 1em;
+            margin-top: -1em;
+            margin-left: -1.5em;
+        }
+    </style>
+    <style>
+        .player-container {
+            background: rgba(50, 50, 50, 0.7);
+            overflow: auto;
+        }
 
-		.video-js {
-			float: left;
-			width: 85% !important;
-			height: 450px;
-		}
+        .video-js {
+            float: left;
+            width: 80% !important;
+            height: 450px;
+        }
 
-		.vjs-playlist {
-			float: rigt;
-			width: 15%;
-			height: 450px;
-		}
+        .vjs-playlist {
+            float: rigt;
+            width: 20%;
+            height: 450px;
+        }
 
-		.vjs-playlist-item {
-			border: 1px solid #FFFFFF;
-		}
+        /*.vjs-playlist-item {
+            border: 1px solid #FFFFFF;
+        }
 
-		.vjs-playlist .vjs-selected {
-			border: 1px solid #00FF00;
-		}
+        .vjs-playlist .vjs-selected {
+            border: 3px solid #00FF00;
+        }
 
-		.vjs-playlist .vjs-selected img {
-			opacity: .5;
-		}
-	</style>
+        .vjs-playlist .vjs-selected img {
+            opacity: .5;
+        }*/
+    </style>
     <script type="text/javascript">
         videojs.options.flash.swf = "/static/js/videojs-flash/video-js.swf";//flash路径，有一些html播放不了的视频，就需要用到flash播放。这一句话要加在在videojs.js引入之后使用
     </script>
@@ -95,10 +96,10 @@ const (
     3、播放格式优先级：{"techOrder": ["html5", "flash"]}width="100%" height="100%"
 -->
 
-<body style="background-color:#1a1a1a;">
+<body style="background-color:#505050;">
     <div class="player-container">
-        <video id="example" class="video-js vjs-default-skin vjs-big-play-centered vjs-liveui vjs-v7 vjs-user-active" playsinline
-            webkit-playsinline controls preload="none" loop="false" width="640" height="360"
+        <video id="example" class="video-js vjs-default-skin vjs-big-play-centered vjs-liveui vjs-v7 vjs-user-active"
+            playsinline webkit-playsinline controls preload="none" height="360"
             data-setup='{"techOrder": ["html5","flash"]}'>
         </video>
         <div class="vjs-playlist playlist-container">
@@ -114,8 +115,15 @@ const (
     var player = videojs('example');
 
     player.playlist(playlist_data_here);
-
+    player.playlist.autoadvance(3);
     player.playlistUi();
+    player.ready(function() {
+        this.hotkeys({
+          volumeStep: 0.1,
+          seekStep: 15,
+          enableModifiersForNumbers: false
+        });
+      });
 </script>
 
 </html>`
