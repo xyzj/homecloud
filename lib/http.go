@@ -57,7 +57,11 @@ func NewHTTPService(port int) {
 
 	r.GET("/", remoteIP)
 	r.POST("/", remoteIP)
-	r.GET("/test", test)
+	r.GET("/reloadext", func(c *gin.Context) {
+		urlConf.Reload()
+		pageWebTV = loadWebTVPage()
+		c.String(200, "done")
+	})
 	r.GET("/givemenewuuid4", newUUID4)
 	// kod共享
 	r.GET("/m/:name", func(c *gin.Context) {
