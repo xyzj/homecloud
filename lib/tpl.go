@@ -1,28 +1,29 @@
 package lib
 
-const (
+var (
 	tplVideojs = `<!DOCTYPE html>
 <html>
 
 <head>
     <meta charset="UTF-8">
     <title>Web TV</title>
-    <link href="/static/css/video-js.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/video-js.min.css" />
     <link rel="stylesheet" href="/static/css/videojs-playlist-ui.custom.css" />
     <script src="/static/js/videojs/video.min.js"></script>
     <script src="/static/js/videojs-hotkeys/videojs.hotkeys.min.js"></script>
     <script src="/static/js/videojs-playlist/videojs-playlist.min.js"></script>
     <script src="/static/js/videojs-flash/videojs-flash.js"></script>
-    <script type="text/javascript" src="/static/js/videojs-playlist/videojs-playlist-ui.js"></script>
+    <script src="/static/js/videojs-playlist/videojs-playlist-ui.js"></script>
     <script src="/static/js/videojs/lang/zh-TW.js"></script>
     <style>
         /*暂停时显示播放按钮*/
+
         .vjs-paused .vjs-big-play-button,
         .vjs-paused.vjs-has-started .vjs-big-play-button {
             display: block;
         }
-
         /*****START 播放按钮变○圆形 START*****/
+
         .video-js .vjs-big-play-button {
             font-size: 2.5em;
             line-height: 2.3em;
@@ -37,13 +38,13 @@ const (
             margin-top: -1.25em;
             margin-left: -1.75em;
         }
-
         /* 中间的播放箭头 */
+
         .vjs-big-play-button .vjs-icon-placeholder {
             font-size: 1.63em;
         }
-
         /* 加载圆圈 */
+
         .vjs-loading-spinner {
             font-size: 2.5em;
             width: 2em;
@@ -55,36 +56,40 @@ const (
     </style>
     <style>
         .player-container {
-            background: rgba(50, 50, 50, 0.7);
+            background: #1a1a1a;
             overflow: auto;
+            float: left;
+            width: 79.5% !important;
+            position: absolute;
+            /* height: 450px; */
+            left: 8px;
+            top: 8px;
+            bottom: 10px
+        }
+
+        .playlist-container {
+            background: #1a1a1a;
+            overflow: auto;
+            float: right;
+            position: absolute;
+            width: 20% !important;
+            /* bottom: 5px; */
+            top: 8px;
+            right: 0px;
         }
 
         .video-js {
-            float: left;
-            width: 80% !important;
-            height: 450px;
+            width: 100%;
+            height: 100%
         }
 
         .vjs-playlist {
-            float: rigt;
-            width: 20%;
-            height: 450px;
+            width: 100%;
+            height: 98%;
         }
-
-        /*.vjs-playlist-item {
-            border: 1px solid #FFFFFF;
-        }
-
-        .vjs-playlist .vjs-selected {
-            border: 3px solid #00FF00;
-        }
-
-        .vjs-playlist .vjs-selected img {
-            opacity: .5;
-        }*/
     </style>
     <script type="text/javascript">
-        videojs.options.flash.swf = "/static/js/videojs-flash/video-js.swf";//flash路径，有一些html播放不了的视频，就需要用到flash播放。这一句话要加在在videojs.js引入之后使用
+        videojs.options.flash.swf = "/static/js/videojs-flash/video-js.swf"; //flash路径，有一些html播放不了的视频，就需要用到flash播放。这一句话要加在在videojs.js引入之后使用
     </script>
 </head>
 <!--
@@ -98,16 +103,14 @@ const (
 
 <body style="background-color:#505050;">
     <div class="player-container">
-        <video id="example" class="video-js vjs-default-skin vjs-big-play-centered vjs-liveui vjs-v7 vjs-user-active"
-            playsinline webkit-playsinline controls preload="none" height="360"
-            data-setup='{"techOrder": ["html5","flash"]}'>
+        <video id="example" class="video-js vjs-default-skin vjs-big-play-centered vjs-liveui vjs-v7 vjs-user-active" playsinline webkit-playsinline controls preload="none" height="360" data-setup='{"techOrder": ["html5","flash"]}'>
         </video>
-        <div class="vjs-playlist playlist-container">
-            <!--
-            The contents of this element will be filled based on the
-            currently loaded playlist
-            -->
-        </div>
+    </div>
+    <div class="playlist-container vjs-playlist">
+        <!--
+        The contents of this element will be filled based on the
+        currently loaded playlist
+        -->
     </div>
 </body>
 <!--<script src="/static/playlist.js"></script>-->
@@ -119,11 +122,11 @@ const (
     player.playlistUi();
     player.ready(function() {
         this.hotkeys({
-          volumeStep: 0.1,
-          seekStep: 15,
-          enableModifiersForNumbers: false
+            volumeStep: 0.1,
+            seekStep: 15,
+            enableModifiersForNumbers: false
         });
-      });
+    });
 </script>
 
 </html>`

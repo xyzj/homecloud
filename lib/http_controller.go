@@ -38,6 +38,10 @@ func (fis byModTime) Less(i, j int) bool {
 	return fis[i].ModTime().After(fis[j].ModTime())
 }
 
+var (
+	pageWebTV string
+)
+
 func runVideojs(c *gin.Context) {
 	dir := c.Param("dir")
 	dst, err := urlConf.GetItem("tv-" + dir)
@@ -66,7 +70,13 @@ func runVideojs(c *gin.Context) {
 		}
 		fileext = strings.ToLower(filepath.Ext(f.Name()))
 		switch fileext {
-		case ".mp4", ".mkv", ".MP4", ".MKV":
+		case ".wav", ".m4a": // 音频
+			filesrc = filepath.Join(dst, f.Name())
+			playitem, _ = sjson.Set("", "name", f.Name())
+			playitem, _ = sjson.Set(playitem, "sources.0.src", "/tv-"+dir+"/"+f.Name())
+			playitem, _ = sjson.Set(playitem, "sources.0.type", "audio/"+fileext[1:])
+			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
+		case ".mp4", ".mkv": // 视频
 			filesrc = filepath.Join(dst, f.Name())
 			filethumb = filepath.Join(dst, "."+f.Name()+".png")
 			filedur = filepath.Join(dst, "."+f.Name()+".dur")
@@ -118,7 +128,7 @@ func runVideojs(c *gin.Context) {
 		}
 	}
 
-	tpl := strings.Replace(tplVideojs, "playlist_data_here", gjson.Parse(playlist).Get("pl").String(), 1)
+	tpl := strings.Replace(pageWebTV, "playlist_data_here", gjson.Parse(playlist).Get("pl").String(), 1)
 	c.Header("Content-Type", "text/html")
 	c.Status(http.StatusOK)
 

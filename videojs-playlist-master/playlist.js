@@ -1,4 +1,4 @@
-var plist = [{
+var playlist_data_here = [{
     name: 'trailer',//视频标题
     description: 'Explore the depths of our planet\'s oceans.',//视频描述
     duration: 52,//视频总时长，单位秒(s)

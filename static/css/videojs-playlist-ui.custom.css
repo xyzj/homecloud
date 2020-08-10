@@ -1,28 +1,28 @@
 .vjs-playlist {
-	padding: 0;
-	background-color:rgba(50, 50, 50, 0.7);
-	color: #fff;
+    padding: 0;
+    background-color: rgba(50, 50, 50, 0.7);
+    color: #fff;
     list-style-type: none;
 }
 
 .vjs-playlist img {
-	display: block;
-	height: auto;
-	width: auto;
+    display: block;
+    height: auto;
+    width: auto;
 }
 
 .vjs-playlist .vjs-playlist-item-list {
-	position: relative;
-	margin: 0;
-	padding: 0;
-	list-style: none;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 .vjs-playlist .vjs-playlist-item {
-	position: relative;
-	cursor: pointer;
+    position: relative;
+    cursor: pointer;
     overflow: hidden;
-    border: 1px solid rgb(231, 231, 231);
+    border: 1px solid #c5c5c5;
 }
 
 .vjs-playlist .vjs-playlist-thumbnail-placeholder {
@@ -30,71 +30,71 @@
 }
 
 .vjs-playlist .vjs-playlist-now-playing-text {
-	display: none;
-	position: absolute;
-	top: 0;
-	left: 0;
-	padding-left: 2px;
-	margin: .8rem
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding-left: 2px;
+    margin: .8rem
 }
 
 .vjs-playlist .vjs-playlist-duration {
-	position: absolute;
-	top: 0;
-	right: 0;
-	padding: 1px 3px 1px;
-	margin-right: 1px;
-	background-color: rgba(50, 50, 50, 0.7)
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 1px 3px 1px;
+    margin-right: 1px;
+    background-color: rgba(50, 50, 50, 0.7)
 }
 
 .vjs-playlist .vjs-playlist-datetime {
-	position: absolute;
-	top: 0;
-	left: 0;
-	padding: 1px 3px 1px;
-	margin-left: 1px;
-	background-color: rgba(50, 50, 50, 0.7)
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 1px 3px 1px;
+    margin-left: 1px;
+    background-color: rgba(50, 50, 50, 0.7)
 }
 
 .vjs-playlist .vjs-playlist-title-container {
-	position: absolute;
-	bottom: 0;
-	box-sizing: border-box;
+    position: absolute;
+    bottom: 0;
+    box-sizing: border-box;
     width: 100%;
-	padding: .2rem .1rem;
-	background-color: rgba(50, 50, 50, 0.7)
-	/* text-shadow: 1px  1px 2px black, -1px  1px 2px black, 1px -1px 2px black, -1px -1px 2px black */
+    padding: .2rem .1rem;
+    background-color: rgba(50, 50, 50, 0.7)
+    /* text-shadow: 1px  1px 2px black, -1px  1px 2px black, 1px -1px 2px black, -1px -1px 2px black */
 }
 
 .vjs-playlist .vjs-playlist-name {
-	display: block;
-	max-height: 40px;
-	padding: 0 0 2px 2px;
-	font-style: normal;
-	text-overflow: ellipsis;
-	overflow: hidden;
+    display: block;
+    max-height: 40px;
+    padding: 0 0 2px 2px;
+    font-style: normal;
+    text-overflow: ellipsis;
+    overflow: hidden;
     white-space: wrap;
-	line-height: 20px
+    line-height: 20px
 }
 
 .vjs-playlist .vjs-playlist-description {
-	text-overflow: ellipsis;
-	overflow: hidden;
-	white-space: nowrap;
-	display: none;
-	font-size: 14px;
-	padding: 0 0 0 2px
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    display: none;
+    font-size: 14px;
+    padding: 0 0 0 2px
 }
 
 .vjs-playlist .vjs-up-next-text {
-	display: none;
-	padding: .1rem 2px;
-	font-size: .8em;
-	text-transform: uppercase
+    display: none;
+    padding: .1rem 2px;
+    font-size: .8em;
+    text-transform: uppercase
 }
 
 .vjs-playlist .vjs-up-next .vjs-up-next-text {
-	display: none
+    display: none
 }
 
 .vjs-playlist .vjs-selected {
@@ -103,151 +103,150 @@
 }
 
 .vjs-playlist .vjs-selected img {
-	opacity: .5
+    opacity: .5
 }
 
 .vjs-playlist .vjs-selected .vjs-playlist-duration {
-	display: block
+    display: block
 }
 
 .vjs-playlist .vjs-selected .vjs-playlist-now-playing-text {
-	display: none
+    display: none
 }
 
 .vjs-playlist .vjs-selected .vjs-playlist-title-container {
-	text-shadow: none
+    text-shadow: none
 }
 
 .vjs-playlist-vertical {
-	overflow-x: hidden;
-	overflow-y: auto
+    overflow-x: hidden;
+    overflow-y: auto
 }
 
 .vjs-playlist-vertical img {
-	width: 100%;
-	min-height: 90px
+    width: 100%;
+    min-height: 90px
 }
 
 .vjs-playlist-vertical .vjs-playlist-item {
-	margin-bottom: 3px
+    margin-bottom: 3px
 }
 
 .vjs-playlist-vertical .vjs-playlist-thumbnail {
-	display: block;
-	width: 100%
+    display: block;
+    width: 100%
 }
 
 .vjs-playlist-vertical .vjs-playlist-thumbnail-placeholder {
-	height: 90px
+    height: 90px
 }
 
 .vjs-playlist-horizontal {
-	overflow-x: auto;
-	overflow-y: hidden
+    overflow-x: auto;
+    overflow-y: hidden
 }
 
 .vjs-playlist-horizontal img {
-	min-width: 100px;
-	height: 100%
+    min-width: 100px;
+    height: 100%
 }
 
 .vjs-playlist-horizontal .vjs-playlist-item-list {
-	height: 100%;
-	white-space: nowrap
+    height: 100%;
+    white-space: nowrap
 }
 
 .vjs-playlist-horizontal .vjs-playlist-item {
-	display: inline-block;
-	height: 100%;
-	margin-right: 5px
+    display: inline-block;
+    height: 100%;
+    margin-right: 5px
 }
 
 .vjs-playlist-horizontal .vjs-playlist-thumbnail {
-	display: block;
-	height: 100%
+    display: block;
+    height: 100%
 }
 
 .vjs-playlist-horizontal .vjs-playlist-thumbnail-placeholder {
-	height: 100%;
-	width: 180px
+    height: 100%;
+    width: 180px
 }
 
 .vjs-playlist.vjs-ad-playing {
-	overflow: hidden
+    overflow: hidden
 }
 
 .vjs-playlist.vjs-ad-playing.vjs-csspointerevents {
-	pointer-events: none;
-	overflow: auto
+    pointer-events: none;
+    overflow: auto
 }
 
 .vjs-playlist.vjs-ad-playing.vjs-csspointerevents .vjs-playlist-ad-overlay {
-	pointer-events: auto
+    pointer-events: auto
 }
 
 .vjs-playlist.vjs-ad-playing .vjs-playlist-ad-overlay {
-	display: block;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: #1a1a1a;
-	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
-	background-color: rgba(0,0,0,0.5)
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a1a;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    background-color: rgba(0, 0, 0, 0.5)
 }
 
 .vjs-playlist {
-	font-size: 14px
+    font-size: 14px
 }
 
 .vjs-playlist .vjs-playlist-description {
-	height: 28px;
-	line-height: 21px
+    height: 28px;
+    line-height: 21px
 }
 
 .vjs-mouse.vjs-playlist {
-	font-size: 15px
+    font-size: 15px
 }
 
 .vjs-mouse.vjs-playlist .vjs-playlist-description {
-	height: 30px;
-	line-height: 23px
+    height: 30px;
+    line-height: 23px
 }
 
 @media (min-width: 600px) {
-	.vjs-mouse.vjs-playlist {
-		font-size: 17px
-	}
-
-	.vjs-mouse.vjs-playlist .vjs-playlist-description {
-		height: 34px;
-		line-height: 26px
-	}
-
-	.vjs-playlist .vjs-playlist-name {
-		line-height: 22px
-	}
+    .vjs-mouse.vjs-playlist {
+        font-size: 17px
+    }
+    .vjs-mouse.vjs-playlist .vjs-playlist-description {
+        height: 34px;
+        line-height: 26px
+    }
+    .vjs-playlist .vjs-playlist-name {
+        line-height: 22px
+    }
 }
 
 @media (max-width: 520px) {
-	.vjs-playlist .vjs-selected .vjs-playlist-now-playing-text,.vjs-playlist .vjs-up-next .vjs-up-next-text {
-		display: none
-	}
-
-	.vjs-mouse.vjs-playlist .vjs-selected .vjs-playlist-now-playing-text,.vjs-mouse.vjs-playlist .vjs-up-next .vjs-up-next-text {
-		display: none
-	}
+    .vjs-playlist .vjs-selected .vjs-playlist-now-playing-text,
+    .vjs-playlist .vjs-up-next .vjs-up-next-text {
+        display: none
+    }
+    .vjs-mouse.vjs-playlist .vjs-selected .vjs-playlist-now-playing-text,
+    .vjs-mouse.vjs-playlist .vjs-up-next .vjs-up-next-text {
+        display: none
+    }
 }
 
 @media (min-width: 521px) {
-	.vjs-playlist img {
-		min-height: 85px
-	}
+    .vjs-playlist img {
+        min-height: 85px
+    }
 }
 
 @media (max-width: 750px) {
-	.vjs-playlist .vjs-playlist-duration {
-		display: none
-	}
+    .vjs-playlist .vjs-playlist-duration {
+        display: none
+    }
 }
