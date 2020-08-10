@@ -56,24 +56,24 @@ var (
     </style>
     <style>
         .player-container {
-            background: #1a1a1a;
+            background: #505050;
             overflow: auto;
             float: left;
-            width: 79.5% !important;
+            width: 79.3% !important;
             position: absolute;
             /* height: 450px; */
             left: 8px;
             top: 8px;
-            bottom: 10px
+            bottom: 8px
         }
 
         .playlist-container {
-            background: #1a1a1a;
+            background: #505050;
             overflow: auto;
             float: right;
             position: absolute;
             width: 20% !important;
-            /* bottom: 5px; */
+            bottom: 8px;
             top: 8px;
             right: 0px;
         }
@@ -85,7 +85,7 @@ var (
 
         .vjs-playlist {
             width: 100%;
-            height: 98%;
+            height: 98.5%;
         }
     </style>
     <script type="text/javascript">
