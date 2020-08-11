@@ -76,7 +76,7 @@ func runVideojs(c *gin.Context) {
 			playitem, _ = sjson.Set(playitem, "sources.0.src", "/tv-"+dir+"/"+f.Name())
 			playitem, _ = sjson.Set(playitem, "sources.0.type", "audio/"+fileext[1:])
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
-		case ".mp4", ".mkv": // 视频
+		case ".mp4", ".mkv", ".webm": // 视频
 			filesrc = filepath.Join(dst, f.Name())
 			filethumb = filepath.Join(dst, "."+f.Name()+".png")
 			filedur = filepath.Join(dst, "."+f.Name()+".dur")
@@ -114,7 +114,12 @@ func runVideojs(c *gin.Context) {
 			playitem, _ = sjson.Set(playitem, "duration", dur)
 			playitem, _ = sjson.Set(playitem, "datetime", f.ModTime().Format("01月02日 15:04"))
 			playitem, _ = sjson.Set(playitem, "sources.0.src", "/tv-"+dir+"/"+f.Name())
-			playitem, _ = sjson.Set(playitem, "sources.0.type", "video/"+fileext[1:])
+			switch fileext {
+			case ".mkv":
+				playitem, _ = sjson.Set(playitem, "sources.0.type", "video/webm")
+			default:
+				playitem, _ = sjson.Set(playitem, "sources.0.type", "video/"+fileext[1:])
+			}
 			// playitem, _ = sjson.Set(playitem, "sources.0.width", "640")
 			playitem, _ = sjson.Set(playitem, "sources.0.height", "360")
 			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", "/tv-"+dir+"/."+f.Name()+".png")
