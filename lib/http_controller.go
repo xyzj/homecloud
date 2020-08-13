@@ -62,7 +62,7 @@ func runVideojs(c *gin.Context) {
 		sort.Sort(byModTime(flist))
 	}
 	_, showdur = c.Params.Get("dur")
-	var fileext, filesrc, filethumb, filedur string
+	var fileext, filesrc, filethumb, filedur, fileText string
 	var dur int
 	for _, f := range flist {
 		if f.IsDir() {
@@ -80,6 +80,7 @@ func runVideojs(c *gin.Context) {
 			filesrc = filepath.Join(dst, f.Name())
 			filethumb = filepath.Join(dst, "."+f.Name()+".png")
 			filedur = filepath.Join(dst, "."+f.Name()+".dur")
+			fileText = filepath.Join(dst, strings.Trim(f.Name(), fileext)+".vtt")
 			dur = 0
 			if showdur {
 				if !gopsu.IsExist(filedur) {
@@ -122,6 +123,13 @@ func runVideojs(c *gin.Context) {
 			}
 			// playitem, _ = sjson.Set(playitem, "sources.0.width", "640")
 			playitem, _ = sjson.Set(playitem, "sources.0.height", "360")
+			if gopsu.IsExist(fileText) {
+				playitem, _ = sjson.Set(playitem, "textTracks.0.src", "/tv-"+dir+"/"+strings.Trim(f.Name(), fileext)+".smi")
+				playitem, _ = sjson.Set(playitem, "textTracks.0.label", "中文")
+				playitem, _ = sjson.Set(playitem, "textTracks.0.kind", "subtitles")
+				playitem, _ = sjson.Set(playitem, "textTracks.0.srclang", "zh")
+				playitem, _ = sjson.Set(playitem, "textTracks.0.default", "true")
+			}
 			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", "/tv-"+dir+"/."+f.Name()+".png")
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
 		case ".dur", ".png":
