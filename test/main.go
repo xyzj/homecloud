@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -145,7 +146,56 @@ func checkCode(b bool) string {
 	return gjson.Get(body, "uuid").String()
 }
 
+// Smi2Vtt smi转vtt
+func Smi2Vtt(in, out string) error {
+	bIn, err := ioutil.ReadFile(in)
+	if err != nil {
+		println(err.Error())
+		return err
+	}
+	ss := strings.Split(string(bIn), "\n")
+	var bOut bytes.Buffer
+	bOut.WriteString("WEBVTT\r\n\r\n")
+	var text string
+	var tStart, tEnd int
+	for _, v := range ss {
+		v = gopsu.TrimString(v)
+		idxTime1 := strings.Index(v, "Start=")
+		idxClass := strings.Index(v, "class=")
+		if idxTime1 == -1 || idxClass == -1 || !strings.HasPrefix(v[idxClass+7:], "zh") {
+			continue
+		}
+		idxTime2 := strings.Index(v, ">")
+		idxText := strings.LastIndex(v, ">")
+		if v[idxText+1:] == "" {
+			continue
+		}
+		if v[idxText+1:] == "&nbsp;" {
+			tEnd = gopsu.String2Int(v[idxTime1+6:idxTime2], 10)
+		} else {
+			tStart = gopsu.String2Int(v[idxTime1+6:idxTime2], 10)
+			text = v[idxText+1:]
+		}
+		if tStart > 0 && tEnd > 0 && len(text) > 0 {
+			bOut.WriteString(fmt.Sprintf("%02d:%02d:%02d.%03d --> %02d:%02d:%02d.%03d\r\n",
+				tStart/1000/60/60,
+				tStart/1000/60%60,
+				tStart/1000%60,
+				tStart%1000,
+				tEnd/1000/60/60,
+				tEnd/1000/60%60,
+				tEnd/1000%60,
+				tEnd%1000))
+			bOut.WriteString(text + "\r\n")
+			tStart = 0
+			tEnd = 0
+			text = ""
+		}
+	}
+
+	return ioutil.WriteFile(out, bOut.Bytes(), 0644)
+}
+
 func main() {
-	t := time.Now()
-	println(t.Format("01-02 15:04"))
+	Smi2Vtt("../tv/Giving the New Cat Family a Home! _ Kittisaurus_HIGH.smi", "../tv/Giving the New Cat Family a Home! _ Kittisaurus_HIGH.vtt")
 }
