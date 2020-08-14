@@ -62,7 +62,7 @@ func runVideojs(c *gin.Context) {
 		sort.Sort(byModTime(flist))
 	}
 	_, showdur = c.Params.Get("dur")
-	var fileext, filesrc, filethumb, filedur, fileText string
+	var fileext, filesrc, filethumb, filedur, fileSmi, fileVtt string
 	var dur int
 	for _, f := range flist {
 		if f.IsDir() {
@@ -80,7 +80,8 @@ func runVideojs(c *gin.Context) {
 			filesrc = filepath.Join(dst, f.Name())
 			filethumb = filepath.Join(dst, "."+f.Name()+".png")
 			filedur = filepath.Join(dst, "."+f.Name()+".dur")
-			fileText = filepath.Join(dst, strings.Trim(f.Name(), fileext)+".vtt")
+			fileSmi = filepath.Join(dst, strings.Trim(f.Name(), fileext)+".smi")
+			fileVtt = filepath.Join(dst, "."+f.Name()+".vtt")
 			dur = 0
 			if showdur {
 				if !gopsu.IsExist(filedur) {
@@ -104,11 +105,9 @@ func runVideojs(c *gin.Context) {
 					cmd.Run()
 				}(filesrc, filethumb)
 			}
-			if showdur {
-				b, err := ioutil.ReadFile(filedur)
-				if err == nil {
-					dur = gopsu.String2Int(string(b), 10)
-				}
+			b, err := ioutil.ReadFile(filedur)
+			if err == nil {
+				dur = gopsu.String2Int(string(b), 10)
 			}
 			playitem, _ = sjson.Set("", "name", f.Name())
 			// playitem, _ = sjson.Set(playitem, "description", f.ModTime().String())
@@ -123,8 +122,11 @@ func runVideojs(c *gin.Context) {
 			}
 			// playitem, _ = sjson.Set(playitem, "sources.0.width", "640")
 			playitem, _ = sjson.Set(playitem, "sources.0.height", "360")
-			if gopsu.IsExist(fileText) {
-				playitem, _ = sjson.Set(playitem, "textTracks.0.src", "/tv-"+dir+"/"+strings.Trim(f.Name(), fileext)+".smi")
+			if gopsu.IsExist(fileSmi) && !gopsu.IsExist(fileVtt) {
+				Smi2Vtt(fileSmi, fileVtt)
+			}
+			if gopsu.IsExist(fileVtt) {
+				playitem, _ = sjson.Set(playitem, "textTracks.0.src", "/tv-"+dir+"/."+f.Name()+".vtt")
 				playitem, _ = sjson.Set(playitem, "textTracks.0.label", "中文")
 				playitem, _ = sjson.Set(playitem, "textTracks.0.kind", "subtitles")
 				playitem, _ = sjson.Set(playitem, "textTracks.0.srclang", "zh")
@@ -132,10 +134,13 @@ func runVideojs(c *gin.Context) {
 			}
 			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", "/tv-"+dir+"/."+f.Name()+".png")
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
-		case ".dur", ".png":
+		case ".dur", ".png", ".vtt":
 			if strings.HasPrefix(f.Name(), ".") {
 				if !gopsu.IsExist(filepath.Join(dst, strings.Trim(f.Name()[1:], fileext))) {
 					os.Remove(filepath.Join(dst, f.Name()))
+					if fileext == ".vtt" {
+						os.Remove(filepath.Join(dst, strings.Trim(f.Name()[1:], fileext)+".smi"))
+					}
 				}
 			}
 		}
