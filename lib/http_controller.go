@@ -44,26 +44,30 @@ var (
 
 func runVideojs(c *gin.Context) {
 	dir := c.Param("dir")
+	subdir := c.Param("sub")
 	dst, err := urlConf.GetItem("tv-" + dir)
 	if err != nil {
 		ginmiddleware.Page404(c)
 		return
 	}
+	dst = filepath.Join(dst, subdir)
 	flist, err := ioutil.ReadDir(dst)
 	if err != nil {
 		ginmiddleware.Page404(c)
 		return
 	}
-
 	var playlist, playitem string
-	var showdur bool
 	var thumblocker sync.WaitGroup
 	if c.Param("order") != "name" {
 		sort.Sort(byModTime(flist))
 	}
-	_, showdur = c.Params.Get("dur")
-	var fileext, filesrc, filethumb, filedur, fileSmi, fileVtt string
+	_, showdur := c.Params.Get("dur")
+	var fileext, filesrc, filethumb, filedur, fileSmi, fileVtt, srcdir string
 	var dur int
+	srcdir = "/tv-" + dir + "/"
+	if subdir != "" {
+		srcdir += subdir + "/"
+	}
 	for _, f := range flist {
 		if f.IsDir() {
 			continue
@@ -73,7 +77,7 @@ func runVideojs(c *gin.Context) {
 		case ".wav", ".m4a": // 音频
 			filesrc = filepath.Join(dst, f.Name())
 			playitem, _ = sjson.Set("", "name", f.Name())
-			playitem, _ = sjson.Set(playitem, "sources.0.src", "/tv-"+dir+"/"+f.Name())
+			playitem, _ = sjson.Set(playitem, "sources.0.src", srcdir+f.Name())
 			playitem, _ = sjson.Set(playitem, "sources.0.type", "audio/"+fileext[1:])
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
 		case ".mp4", ".mkv", ".webm": // 视频
@@ -113,7 +117,7 @@ func runVideojs(c *gin.Context) {
 			// playitem, _ = sjson.Set(playitem, "description", f.ModTime().String())
 			playitem, _ = sjson.Set(playitem, "duration", dur)
 			playitem, _ = sjson.Set(playitem, "datetime", f.ModTime().Format("01月02日 15:04"))
-			playitem, _ = sjson.Set(playitem, "sources.0.src", "/tv-"+dir+"/"+f.Name())
+			playitem, _ = sjson.Set(playitem, "sources.0.src", srcdir+f.Name())
 			switch fileext {
 			case ".mkv":
 				playitem, _ = sjson.Set(playitem, "sources.0.type", "video/webm")
@@ -126,13 +130,13 @@ func runVideojs(c *gin.Context) {
 				Smi2Vtt(fileSmi, fileVtt)
 			}
 			if gopsu.IsExist(fileVtt) {
-				playitem, _ = sjson.Set(playitem, "textTracks.0.src", "/tv-"+dir+"/."+f.Name()+".vtt")
+				playitem, _ = sjson.Set(playitem, "textTracks.0.src", srcdir+"."+f.Name()+".vtt")
 				playitem, _ = sjson.Set(playitem, "textTracks.0.label", "中文")
 				playitem, _ = sjson.Set(playitem, "textTracks.0.kind", "subtitles")
 				playitem, _ = sjson.Set(playitem, "textTracks.0.srclang", "zh")
 				playitem, _ = sjson.Set(playitem, "textTracks.0.default", "true")
 			}
-			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", "/tv-"+dir+"/."+f.Name()+".png")
+			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"."+f.Name()+".png")
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
 		case ".dur", ".png", ".vtt":
 			if strings.HasPrefix(f.Name(), ".") {
