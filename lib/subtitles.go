@@ -16,6 +16,21 @@ func Smi2Vtt(in, out string) error {
 		return err
 	}
 	ss := strings.Split(string(bIn), "\n")
+	// 分析语言
+	var language string
+	for _, v := range ss {
+		if strings.HasPrefix(v, "-->") {
+			break
+		}
+		if strings.HasPrefix(v, ".zh") {
+			language = v[1:strings.Index(v, " {")]
+			if strings.Contains(v, "自动翻译") {
+				continue
+			}
+			break
+		}
+	}
+	// 分析主体
 	var bOut bytes.Buffer
 	// bOut.WriteString("WEBVTT\r\n\r\n")
 	var text string
@@ -24,7 +39,7 @@ func Smi2Vtt(in, out string) error {
 		v = gopsu.TrimString(v)
 		idxTime1 := strings.Index(v, "Start=")
 		idxClass := strings.Index(v, "class=")
-		if idxTime1 == -1 || idxClass == -1 || !strings.HasPrefix(v[idxClass+7:], "zh") {
+		if idxTime1 == -1 || idxClass == -1 || !strings.Contains(v, "class='"+language+"'") {
 			continue
 		}
 		idxTime2 := strings.Index(v, ">")
