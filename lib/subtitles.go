@@ -24,7 +24,7 @@ func Smi2Vtt(in, out string) error {
 		}
 		if strings.HasPrefix(v, ".zh") {
 			language = v[1:strings.Index(v, " {")]
-			if strings.Contains(v, "自动翻译") {
+			if strings.Contains(v, "自动翻译") || language != "zh-Hant" {
 				continue
 			}
 			break
