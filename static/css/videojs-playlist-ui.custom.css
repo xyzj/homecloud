@@ -113,7 +113,8 @@
 }
 
 .vjs-playlist-vertical .vjs-playlist-item {
-    margin-bottom: 3px
+    margin-bottom: 3px;
+    outline: none;
 }
 
 .vjs-playlist-vertical .vjs-playlist-thumbnail {
