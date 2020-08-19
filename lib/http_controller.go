@@ -76,7 +76,28 @@ func runVideojs(c *gin.Context) {
 		switch fileext {
 		case ".wav", ".m4a": // 音频
 			filesrc = filepath.Join(dst, f.Name())
+			filedur = filepath.Join(dst, "."+f.Name()+".dur")
+			dur = 0
+			if showdur {
+				if !gopsu.IsExist(filedur) {
+					go func(in, out string) {
+						thumblocker.Add(1)
+						defer thumblocker.Done()
+						cmd := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", "-i", in)
+						b, err := cmd.CombinedOutput()
+						if err == nil {
+							s := bytes.Split(b, []byte("."))[0]
+							ioutil.WriteFile(out, s, 0664)
+						}
+					}(filesrc, filedur)
+				}
+			}
 			playitem, _ = sjson.Set("", "name", f.Name())
+			b, err := ioutil.ReadFile(filedur)
+			if err == nil {
+				dur = gopsu.String2Int(string(b), 10)
+				playitem, _ = sjson.Set(playitem, "duration", dur)
+			}
 			playitem, _ = sjson.Set(playitem, "sources.0.src", srcdir+f.Name())
 			playitem, _ = sjson.Set(playitem, "sources.0.type", "audio/"+fileext[1:])
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
@@ -109,13 +130,13 @@ func runVideojs(c *gin.Context) {
 					cmd.Run()
 				}(filesrc, filethumb)
 			}
+			playitem, _ = sjson.Set("", "name", f.Name())
+			// playitem, _ = sjson.Set(playitem, "description", f.ModTime().String())
 			b, err := ioutil.ReadFile(filedur)
 			if err == nil {
 				dur = gopsu.String2Int(string(b), 10)
+				playitem, _ = sjson.Set(playitem, "duration", dur)
 			}
-			playitem, _ = sjson.Set("", "name", f.Name())
-			// playitem, _ = sjson.Set(playitem, "description", f.ModTime().String())
-			playitem, _ = sjson.Set(playitem, "duration", dur)
 			playitem, _ = sjson.Set(playitem, "datetime", f.ModTime().Format("01月02日 15:04"))
 			playitem, _ = sjson.Set(playitem, "sources.0.src", srcdir+f.Name())
 			switch fileext {
@@ -125,7 +146,7 @@ func runVideojs(c *gin.Context) {
 				playitem, _ = sjson.Set(playitem, "sources.0.type", "video/"+fileext[1:])
 			}
 			// playitem, _ = sjson.Set(playitem, "sources.0.width", "640")
-			playitem, _ = sjson.Set(playitem, "sources.0.height", "360")
+			// playitem, _ = sjson.Set(playitem, "sources.0.height", "360")
 			if gopsu.IsExist(fileSmi) && !gopsu.IsExist(fileVtt) {
 				Smi2Vtt(fileSmi, fileVtt)
 			}
