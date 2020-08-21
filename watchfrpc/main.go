@@ -1,7 +1,10 @@
 package main
 
 import (
+	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/shirou/gopsutil/process"
@@ -31,8 +34,13 @@ func main() {
 				}
 			}
 			if !found {
+				a, _ := os.Executable()
+				execdir := filepath.Dir(a)
+				if strings.Contains(execdir, "go-build") {
+					execdir, _ = filepath.Abs(".")
+				}
 				cmd := exec.Command("frpc", "-c", "frpc.ini")
-				cmd.Dir = "/home/xy/bin/frp"
+				cmd.Dir = execdir
 				cmd.Start()
 			}
 		}

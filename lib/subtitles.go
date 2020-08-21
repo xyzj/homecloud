@@ -53,7 +53,7 @@ func Smi2Vtt(in, out string) error {
 			tStart = gopsu.String2Int(v[idxTime1+6:idxTime2], 10)
 			text = v[idxText+1:]
 		}
-		if tStart > 0 && tEnd > 0 && len(text) > 0 {
+		if tStart >= 0 && tEnd > 0 && len(text) > 0 {
 			bOut.WriteString(fmt.Sprintf("%02d:%02d:%02d.%03d --> %02d:%02d:%02d.%03d\r\n",
 				tStart/1000/60/60,
 				tStart/1000/60%60,
@@ -64,7 +64,7 @@ func Smi2Vtt(in, out string) error {
 				tEnd/1000%60,
 				tEnd%1000))
 			bOut.WriteString(text + "\r\n")
-			tStart = 0
+			tStart = -1
 			tEnd = 0
 			text = ""
 		}
