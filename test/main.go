@@ -12,6 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	lib "../lib"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"github.com/xyzj/gopsu"
@@ -146,5 +147,5 @@ func checkCode(b bool) string {
 }
 
 func main() {
-	println(gopsu.String2Int("mp4", 10))
+	lib.Smi2Vtt("../a.smi", "../a.vtt")
 }
