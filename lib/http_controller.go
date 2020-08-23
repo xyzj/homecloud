@@ -14,12 +14,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/tidwall/sjson"
-
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/render"
 	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 	"github.com/xyzj/gopsu"
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
 )
@@ -492,5 +491,45 @@ func certDNSPod(c *gin.Context) {
 	// 	gopsu.CopyFile(filepath.Join(gopsu.GetExecDir(), ".lego", "certificates", "_."+v+".key"),
 	// 		filepath.Join(gopsu.GetExecDir(), "ca", v+".key"))
 	// }
+	c.String(200, "\nDone, you can download cert files now.")
+}
+
+func certCloudflare(c *gin.Context) {
+	cmd := exec.Command(filepath.Join(".", "lego"))
+	cmd.Env = append(cmd.Env, "CLOUDFLARE_DNS_API_TOKEN=XbWUwbGAxQgC_BgATXVehBh6lwl9dDVt8cI2zvSC")
+	cmd.Dir = gopsu.GetExecDir()
+	var err error
+	var out []byte
+	switch c.Param("do") {
+	case "run":
+		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains *.xyzjdays.xyz --email minamoto.xu@hotmail.com -a run", " ")
+		c.Writer.WriteString(cmd.String() + "\n")
+		out, err = cmd.CombinedOutput()
+		if err != nil {
+			c.Writer.WriteString(err.Error() + "\n")
+			return
+		}
+		c.Writer.WriteString(string(out) + "\n")
+	case "renew":
+		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains *.xyzjdays.xyz --email minamoto.xu@hotmail.com -a renew", " ")
+		c.Writer.WriteString(cmd.String() + "\n")
+		out, err = cmd.CombinedOutput()
+		if err != nil {
+			c.Writer.WriteString(err.Error() + "\n")
+			return
+		}
+		c.Writer.WriteString(string(out) + "\n")
+		if strings.Contains(string(out), "no renew") {
+			return
+		}
+	default:
+		c.String(200, "Don't understand")
+		return
+	}
+	cmd = exec.Command(gopsu.JoinPathFromHere("sslcopy.sh"))
+	err = cmd.Run()
+	if err != nil {
+		c.Writer.WriteString("run sslcopy.sh error: " + err.Error())
+	}
 	c.String(200, "\nDone, you can download cert files now.")
 }
