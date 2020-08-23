@@ -83,7 +83,7 @@
 
 .vjs-playlist .vjs-selected {
     background-color: #86fc62;
-    /* border: 3px solid #39ee39; */
+    border: 3px solid #e9c526;
 }
 
 .vjs-playlist .vjs-selected img {
