@@ -126,6 +126,7 @@ func NewHTTPService(port int) {
 	g4.GET("/download/:name", certDownload)
 	g4.GET("/namesilo/:do", certNamesilo)
 	g4.GET("/dnspod/:do", certDNSPod)
+	g4.GET("/cloudflare/:do", certCloudflare)
 	// 工具
 	g5 := r.Group("/tools")
 	g5.GET("/codestr", codeString)
