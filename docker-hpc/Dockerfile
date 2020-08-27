@@ -1,15 +1,13 @@
 FROM ubuntu:latest
-MAINTAINER      X.Minamoto "xuyuan8720@189.cn"
-
-ENV DEBIAN_FRONTEND noninteractive
+LABEL maintainer="X.Minamoto"
+ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8
 
 RUN			apt-get -y update; \
 			apt-get -y upgrade; \
 			apt-get -y install software-properties-common; \
 			add-apt-repository ppa:deluge-team/stable; \
             apt-get update; \
-            apt-get install deluge; \
-			apt-get -y install kmod curl socat apt-utils net-tools nano tzdata ssh cron nginx deluged deluge-web deluge-console mldonkey-server openssh-client php7.2 php7.2-fpm php7.2-curl php7.2-mbstring php7.2-gd php7.2-sqlite3; \
+			apt-get -y install kmod curl socat apt-utils net-tools nano tzdata ssh cron nginx deluged deluge-web deluge-console mldonkey-server openssh-client php7.4 php7.4-fpm php7.4-curl php7.4-mbstring php7.4-gd php7.4-sqlite3; \
 			apt-get -y autoremove; \
 			apt-get -y clean; \
 			apt-get -y autoclean; \

@@ -44,6 +44,7 @@ var (
 func runVideojs(c *gin.Context) {
 	dir := c.Param("dir")
 	subdir := c.Param("sub")
+	name := c.Param("name")
 	dst, err := urlConf.GetItem("tv-" + dir)
 	if err != nil {
 		ginmiddleware.Page404(c)
@@ -69,6 +70,9 @@ func runVideojs(c *gin.Context) {
 	}
 	for _, f := range flist {
 		if f.IsDir() {
+			continue
+		}
+		if !strings.Contains(f.Name(), name) {
 			continue
 		}
 		fileext = strings.ToLower(filepath.Ext(f.Name()))
