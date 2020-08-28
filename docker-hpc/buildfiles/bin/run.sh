@@ -9,14 +9,14 @@ service nginx stop
 
 start-stop-daemon --start --name sslrenew -d /root/bin --background --exec /root/bin/sslrenew -- -debug
 
-service php7.2-fpm stop
+service php7.4-fpm stop
 
 sleep 1
 
-service php7.2-fpm start
+service php7.4-fpm start
 
 start-stop-daemon --start --name mlnet -d /root --background --exec /usr/bin/mlnet
-/usr/bin/deluge-web
+/usr/bin/deluge-web -i 0.0.0.0 -p 10046
 
 service nginx start
 

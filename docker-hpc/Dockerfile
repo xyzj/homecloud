@@ -5,7 +5,6 @@ ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8
 RUN			apt-get -y update; \
 			apt-get -y upgrade; \
 			apt-get -y install software-properties-common; \
-			add-apt-repository ppa:deluge-team/stable; \
             apt-get update; \
 			apt-get -y install kmod curl socat apt-utils net-tools nano tzdata ssh cron nginx deluged deluge-web deluge-console mldonkey-server openssh-client php7.4 php7.4-fpm php7.4-curl php7.4-mbstring php7.4-gd php7.4-sqlite3; \
 			apt-get -y autoremove; \
@@ -26,6 +25,7 @@ COPY		buildfiles /root
 
 RUN			cp /root/bin/nginx.default /etc/nginx/sites-enabled/default; \
 			mkdir /www; \
-			chown -R www-data:www-data /www
+			chown -R www-data:www-data /www; \
+			sed -i "s/='ngettext'/=['ngettext']/g" /usr/lib/python3/dist-packages/deluge/i18n/util.py
 # WORKDIR		/root
 # ENTRYPOINT	["/root/bin/run.sh"]
