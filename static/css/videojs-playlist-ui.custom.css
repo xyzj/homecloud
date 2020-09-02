@@ -82,12 +82,12 @@
 }
 
 .vjs-playlist .vjs-selected {
-    background-color: #86fc62;
-    border: 3px solid #fc704d;
+    background-color: #ffffff;
+    border: 4px solid #dca74a;
 }
 
 .vjs-playlist .vjs-selected img {
-    opacity: .5
+    opacity: .6
 }
 
 .vjs-playlist .vjs-selected .vjs-playlist-duration {
