@@ -35,6 +35,10 @@
             margin-top: -1.25em;
             margin-left: -1.75em;
         }
+        
+        .video-js.vjs-error .vjs-big-play-button {
+            display: none;
+        }
         /* 中间的播放箭头 */
         
         .vjs-big-play-button .vjs-icon-placeholder {
@@ -52,6 +56,57 @@
         }
     </style>
     <style>
+        .video-js .vjs-playback-rate .vjs-playback-rate-value {
+            padding-top: 1px;
+            font-size: 13px;
+            text-align: center;
+        }
+        
+        .video-js .vjs-time-control {
+            display: block;
+            flex: none;
+            font-size: 1em;
+            line-height: 3em;
+            min-width: 0em;
+            width: auto;
+        }
+        
+        .video-js .vjs-remaining-time {
+            display: block;
+        }
+        /* .video-js .vjs-load-progress {
+            background: rgba(120, 150, 103, 0.8);
+        } */
+        
+        .vjs-progress-control .vjs-play-progress {
+            background-color: rgba(68, 231, 131, 0.9)
+        }
+        
+        .vjs-progress-control .vjs-play-progress:before {
+            display: none
+        }
+        /* .vjs-progress-control .vjs-slider {
+            background-color: rgba(125, 160, 185, 0.5)
+        } */
+        /* .vjs-progress-control .vjs-load-progress div {
+            background: hsla(0, 0%, 100%, .5)
+        } */
+        
+        .vjs-progress-control .vjs-progress-holder {
+            margin: 0;
+            height: 70%
+        }
+        
+        .vjs-progress-control .vjs-time-tooltip {
+            background-color: rgba(65, 118, 188, .7);
+            color: #fff
+        }
+        
+        .vjs-progress-control .vjs-mouse-display .vjs-time-tooltip {
+            background-color: hsla(0, 0%, 100%, .7);
+            color: #4176bc
+        }
+        
         .player-container {
             background: #505050;
             overflow: auto;
@@ -92,7 +147,7 @@
 <!--
     作者：450695461@qq.com
     时间：2019-05-27
-    描述：一些关键字段的补充说明
+    描述：一些关键字段的补充说明vjs-liveui vjs-v7 playsinline webkit-playsinline  vjs-user-active controls preload="none" height="360" data-setup='{"techOrder": ["html5","flash"]}'
     1、默认的播放按钮在左上角，在video标签中增加 vjs-big-play-centered 类，即可居中
     2、禁止在iPhone safari中自动全屏：playsinline参数。注意，在iOS10之前用的是webkit-playsinline。
     3、播放格式优先级：{"techOrder": ["html5", "flash"]}width="100%" height="100%"
@@ -100,7 +155,7 @@
 
 <body style="background-color:#505050;">
     <div class="player-container">
-        <video id="example" class="video-js vjs-default-skin vjs-big-play-centered vjs-liveui vjs-v7 vjs-user-active" playsinline webkit-playsinline controls preload="none" height="360" data-setup='{"techOrder": ["html5","flash"]}'>
+        <video id="mytv" class="video-js vjs-default-skin vjs-big-play-centered ">
         </video>
     </div>
     <div class="playlist-container vjs-playlist">
@@ -112,8 +167,33 @@
 </body>
 <!--<script src="/static/playlist.js"></script>-->
 <script type="text/javascript">
-    var player = videojs('example');
-
+    var options = {
+        controls: true,
+        techOrder: ["html5", "flash"],
+        preload: 'none',
+        fluid: false,
+        autoPlay: false,
+        controlBar: { //设置是否显示该组件
+            'volumePanel': {
+                'inline': false
+            },
+            'playbackRateMenuButton': {
+                'playbackRates': [0.7, 1.0, 1.5, 2.0]
+            },
+            children: [
+                "playToggle",
+                "currentTimeDisplay",
+                "progressControl",
+                "remainingTimeDisplay",
+                // "timeDivider",
+                // "durationDisplay",
+                "volumeMenuButton",
+                "fullscreenToggle",
+                "playbackRateMenuButton"
+            ]
+        }
+    };
+    var player = videojs("mytv", options);
     player.playlist(playlist_data_here);
     player.playlist.autoadvance(3);
     player.playlistUi();
