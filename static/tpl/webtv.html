@@ -74,6 +74,14 @@
         .video-js .vjs-remaining-time {
             display: block;
         }
+        
+        .video-js .vjs-time-divider {
+            display: none;
+        }
+        
+        .video-js .vjs-duration-display {
+            display: none;
+        }
         /* .video-js .vjs-load-progress {
             background: rgba(120, 150, 103, 0.8);
         } */
@@ -94,7 +102,8 @@
         
         .vjs-progress-control .vjs-progress-holder {
             margin: 0;
-            height: 70%
+            padding: 0;
+            height: 80%
         }
         
         .vjs-progress-control .vjs-time-tooltip {
@@ -179,18 +188,7 @@
             },
             'playbackRateMenuButton': {
                 'playbackRates': [0.7, 1.0, 1.5, 2.0]
-            },
-            children: [
-                "playToggle",
-                "currentTimeDisplay",
-                "progressControl",
-                "remainingTimeDisplay",
-                // "timeDivider",
-                // "durationDisplay",
-                "volumeMenuButton",
-                "fullscreenToggle",
-                "playbackRateMenuButton"
-            ]
+            }
         }
     };
     var player = videojs("mytv", options);
