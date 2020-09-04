@@ -89,23 +89,7 @@ func downloadCert(domain string) bool {
 		dlog.Println("unzip file error:" + err.Error())
 	}
 	dlog.Println("Download success. start copy ...")
-	var cmd *exec.Cmd
-	switch runtime.GOOS {
-	case "linux", "darwin":
-		if gopsu.IsExist(linuxSSLCopy) {
-			cmd = exec.Command(linuxSSLCopy)
-		}
-	case "windows":
-		if gopsu.IsExist(windowsSSLCopy) {
-			cmd = exec.Command(windowsSSLCopy)
-		}
-	}
-	if cmd != nil {
-		err := cmd.Run()
-		if err != nil {
-			dlog.Println("run sslcopy error:" + err.Error())
-		}
-	}
+
 	return true
 }
 
@@ -124,6 +108,29 @@ func renew() {
 			}
 		}
 		println("-------")
+	}
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "linux", "darwin":
+		if gopsu.IsExist(linuxSSLCopy) {
+			cmd = exec.Command(linuxSSLCopy)
+		} else {
+			dlog.Println("no sslcopy found")
+		}
+	case "windows":
+		if gopsu.IsExist(windowsSSLCopy) {
+			cmd = exec.Command(windowsSSLCopy)
+		} else {
+			dlog.Println("no sslcopy found")
+		}
+	}
+	if cmd != nil {
+		err := cmd.Run()
+		if err != nil {
+			dlog.Println("run sslcopy error:" + err.Error())
+		} else {
+			dlog.Println("do sslcopy done")
+		}
 	}
 	dlog.Println("All Done.")
 }
