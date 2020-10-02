@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/xyzj/gopsu"
@@ -11,6 +12,7 @@ import (
 
 // Smi2Vtt smi转vtt
 func Smi2Vtt(in, out string) error {
+	defer os.Remove(in)
 	bIn, err := ioutil.ReadFile(in)
 	if err != nil {
 		return err
