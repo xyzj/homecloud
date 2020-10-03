@@ -46,7 +46,6 @@ func LoadExtConfigure(f string) {
 	// domainList = strings.Split(urlConf.GetItemDefault("dnspod_list", "wlst.vip,shwlst.com", "要管理的dnspod域名列表"), ",")
 	// urlConf.Save()
 	pageWebTV = loadWebTVPage()
-	Smi2Vtt("tv/Giving the New Cat Family a Home! _ Kittisaurus_HIGH.smi", "tv/Giving the New Cat Family a Home! _ Kittisaurus_HIGH.vtt")
 }
 
 func loadWebTVPage() string {
