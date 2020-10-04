@@ -132,6 +132,8 @@ func NewHTTPService(port int) {
 	g5.GET("/codestr", codeString)
 	g5.POST("/codestr", ginmiddleware.ReadParams(), codeString)
 	g5.GET("/ydl", ginmiddleware.ReadParams(), ydl)
+	g5.GET("/ydlb", ydlb)
+	g5.POST("/ydlb", ginmiddleware.ReadParams(), ydlb)
 
 	r.HandleMethodNotAllowed = true
 	r.NoMethod(ginmiddleware.Page405)
