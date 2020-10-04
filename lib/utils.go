@@ -31,6 +31,7 @@ var (
 	linuxSSLCopy   = filepath.Join(gopsu.GetExecDir(), "sslcopy.sh")
 	windowsSSLCopy = filepath.Join(gopsu.GetExecDir(), "sslcopy.bat")
 	domainList     = []string{"wlst.vip,shwlst.com"}
+	ydir           string
 )
 var (
 	forceHTTP = flag.Bool("forcehttp", false, "set if run as http")
@@ -42,6 +43,11 @@ func LoadExtConfigure(f string) {
 	urlConf, err = gopsu.LoadConfig(f)
 	if err != nil {
 		println("Load configure file error:" + err.Error())
+	} else {
+		ydir, _ = urlConf.GetItem("ydl_dir")
+		if ydir != "" && !strings.HasSuffix(ydir, "/") {
+			ydir += "/"
+		}
 	}
 	// domainList = strings.Split(urlConf.GetItemDefault("dnspod_list", "wlst.vip,shwlst.com", "要管理的dnspod域名列表"), ",")
 	// urlConf.Save()
