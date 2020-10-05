@@ -62,25 +62,26 @@ func runVideojs(c *gin.Context) {
 		sort.Sort(byModTime(flist))
 	}
 	_, showdur := c.Params.Get("dur")
-	var fileext, filesrc, filethumb, filedur, fileSmi, fileVtt, filebase, fileVttHansRaw, fileVttHantRaw, fileVttHans, fileVttHant, srcdir string
+	var fileext, filesrc, filethumb, filedur, fileSmi, fileVtt, filename, filebase, fileVttHansRaw, fileVttHantRaw, fileVttHans, fileVttHant, srcdir string
 	var dur int
 	srcdir = "/tv-" + dir + "/"
 	if subdir != "" {
 		srcdir += subdir + "/"
 	}
 	for _, f := range flist {
-		if f.IsDir() {
+		if f.IsDir() || !strings.Contains(f.Name(), name) {
 			continue
 		}
-		if !strings.Contains(f.Name(), name) {
-			continue
+		filename = strings.ReplaceAll(f.Name(), "#", "")
+		if strings.Contains(f.Name(), "#") {
+			os.Rename(filepath.Join(dst, f.Name()), filepath.Join(dst, filename))
 		}
-		fileext = strings.ToLower(filepath.Ext(f.Name()))
-		filebase = strings.TrimSuffix(f.Name(), fileext)
+		fileext = strings.ToLower(filepath.Ext(filename))
+		filebase = strings.TrimSuffix(filename, fileext)
 		switch fileext {
 		case ".wav", ".m4a": // 音频
-			filesrc = filepath.Join(dst, f.Name())
-			filedur = filepath.Join(dst, "."+f.Name()+".dur")
+			filesrc = filepath.Join(dst, filename)
+			filedur = filepath.Join(dst, "."+filename+".dur")
 			dur = 0
 			if showdur {
 				if !gopsu.IsExist(filedur) {
@@ -96,25 +97,25 @@ func runVideojs(c *gin.Context) {
 					}(filesrc, filedur)
 				}
 			}
-			playitem, _ = sjson.Set("", "name", f.Name())
+			playitem, _ = sjson.Set("", "name", filename)
 			b, err := ioutil.ReadFile(filedur)
 			if err == nil {
 				dur = gopsu.String2Int(string(b), 10)
 				playitem, _ = sjson.Set(playitem, "duration", dur)
 			}
-			playitem, _ = sjson.Set(playitem, "sources.0.src", srcdir+f.Name())
+			playitem, _ = sjson.Set(playitem, "sources.0.src", srcdir+filename)
 			playitem, _ = sjson.Set(playitem, "sources.0.type", "audio/"+fileext[1:])
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
 		case ".mp4", ".mkv", ".webm": // 视频
-			filesrc = filepath.Join(dst, f.Name())
-			filethumb = filepath.Join(dst, "."+f.Name()+".jpg")
-			filedur = filepath.Join(dst, "."+f.Name()+".dur")
+			filesrc = filepath.Join(dst, filename)
+			filethumb = filepath.Join(dst, "."+filename+".jpg")
+			filedur = filepath.Join(dst, "."+filename+".dur")
 			fileSmi = filepath.Join(dst, filebase+".smi")
-			fileVtt = filepath.Join(dst, "."+f.Name()+".vtt")
+			fileVtt = filepath.Join(dst, "."+filename+".vtt")
 			fileVttHansRaw = filepath.Join(dst, filebase+".zh-Hans.vtt")
 			fileVttHantRaw = filepath.Join(dst, filebase+".zh-Hant.vtt")
-			fileVttHans = filepath.Join(dst, "."+f.Name()+".zh-Hans.vtt")
-			fileVttHant = filepath.Join(dst, "."+f.Name()+".zh-Hant.vtt")
+			fileVttHans = filepath.Join(dst, "."+filename+".zh-Hans.vtt")
+			fileVttHant = filepath.Join(dst, "."+filename+".zh-Hant.vtt")
 			// 视频长度
 			dur = 0
 			if showdur {
@@ -131,7 +132,7 @@ func runVideojs(c *gin.Context) {
 					}(filesrc, filedur)
 				}
 			}
-			playitem, _ = sjson.Set("", "name", f.Name())
+			playitem, _ = sjson.Set("", "name", filename)
 			// playitem, _ = sjson.Set(playitem, "description", f.ModTime().String())
 			b, err := ioutil.ReadFile(filedur)
 			if err == nil {
@@ -139,7 +140,7 @@ func runVideojs(c *gin.Context) {
 				playitem, _ = sjson.Set(playitem, "duration", dur)
 			}
 			playitem, _ = sjson.Set(playitem, "datetime", f.ModTime().Format("01月02日 15:04"))
-			playitem, _ = sjson.Set(playitem, "sources.0.src", srcdir+f.Name())
+			playitem, _ = sjson.Set(playitem, "sources.0.src", srcdir+filename)
 			switch fileext {
 			case ".mkv":
 				playitem, _ = sjson.Set(playitem, "sources.0.type", "video/webm")
@@ -161,14 +162,14 @@ func runVideojs(c *gin.Context) {
 					}
 				}(filesrc, filethumb, fileext)
 			}
-			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"."+f.Name()+".jpg")
+			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"."+filename+".jpg")
 			// 字幕
 			var idx = 0
 			if gopsu.IsExist(fileVttHantRaw) {
 				os.Rename(fileVttHantRaw, fileVttHant)
 			}
 			if gopsu.IsExist(fileVttHant) {
-				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+"."+f.Name()+".zh-Hant.vtt")
+				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+"."+filename+".zh-Hant.vtt")
 				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.label", idx), "中文繁体")
 				// playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.kind", idx), "captions")
 				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.srclang", idx), "zh-Hant")
@@ -179,7 +180,7 @@ func runVideojs(c *gin.Context) {
 				os.Rename(fileVttHansRaw, fileVttHans)
 			}
 			if gopsu.IsExist(fileVttHans) {
-				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+"."+f.Name()+".zh-Hans.vtt")
+				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+"."+filename+".zh-Hans.vtt")
 				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.label", idx), "中文简体")
 				// playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.kind", idx), "subtitles")
 				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.srclang", idx), "zh-Hans")
@@ -191,7 +192,7 @@ func runVideojs(c *gin.Context) {
 					Smi2Vtt(fileSmi, fileVtt)
 				}
 				if gopsu.IsExist(fileVtt) {
-					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+"."+f.Name()+".vtt")
+					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+"."+filename+".vtt")
 					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.label", idx), "中文")
 					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.kind", idx), "subtitles")
 					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.srclang", idx), "zh")
@@ -200,19 +201,19 @@ func runVideojs(c *gin.Context) {
 			}
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
 		case ".dur", ".png", ".jpg", ".vtt":
-			if strings.HasPrefix(f.Name(), ".") {
-				if !gopsu.IsExist(filepath.Join(dst, freplacer.Replace(f.Name()[1:]))) {
-					os.Remove(filepath.Join(dst, f.Name()))
+			if strings.HasPrefix(filename, ".") {
+				if !gopsu.IsExist(filepath.Join(dst, freplacer.Replace(filename[1:]))) {
+					os.Remove(filepath.Join(dst, filename))
 				}
 			}
 		// case ".vtt":
-		// 	if strings.HasPrefix(f.Name(), ".") {
-		// 		if !gopsu.IsExist(filepath.Join(dst, freplacer.Replace(f.Name()[1:])) + ".mp4") {
-		// 			os.Remove(filepath.Join(dst, f.Name()))
+		// 	if strings.HasPrefix(filename, ".") {
+		// 		if !gopsu.IsExist(filepath.Join(dst, freplacer.Replace(filename[1:])) + ".mp4") {
+		// 			os.Remove(filepath.Join(dst, filename))
 		// 		}
 		// 	}
 		case ".jpg~":
-			os.Remove(filepath.Join(dst, f.Name()))
+			os.Remove(filepath.Join(dst, filename))
 		}
 	}
 
