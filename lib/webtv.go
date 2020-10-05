@@ -76,7 +76,7 @@ func runVideojs(c *gin.Context) {
 			continue
 		}
 		fileext = strings.ToLower(filepath.Ext(f.Name()))
-		filebase = strings.Trim(f.Name(), fileext)
+		filebase = strings.TrimSuffix(f.Name(), fileext)
 		switch fileext {
 		case ".wav", ".m4a": // 音频
 			filesrc = filepath.Join(dst, f.Name())
@@ -147,14 +147,14 @@ func runVideojs(c *gin.Context) {
 				playitem, _ = sjson.Set(playitem, "sources.0.type", "video/"+fileext[1:])
 			}
 			// 缩略图
-			if !gopsu.IsExist(filethumb) || gopsu.IsExist(strings.Trim(filesrc, fileext)+".jpg") {
+			if !gopsu.IsExist(filethumb) || gopsu.IsExist(strings.TrimSuffix(filesrc, fileext)+".jpg") {
 				go func(in, out, ext string) {
 					thumblocker.Add(1)
 					defer thumblocker.Done()
-					if gopsu.IsExist(strings.Trim(in, ext) + ".jpg") {
+					if gopsu.IsExist(strings.TrimSuffix(in, ext) + ".jpg") {
 						cmd := exec.Command("mogrify", "-resize", "256x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".jpg")
 						cmd.Run()
-						os.Remove(strings.Trim(in, ext) + ".jpg")
+						os.Remove(strings.TrimSuffix(in, ext) + ".jpg")
 					} else {
 						cmd := exec.Command("ffmpeg", "-i", in, "-ss", "00:00:03", "-s", "256:144", "-vframes", "1", out)
 						cmd.Run()
