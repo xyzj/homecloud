@@ -9,7 +9,7 @@
     <script src="/static/js/videojs/video.min.js"></script>
     <script src="/static/js/videojs-hotkeys/videojs.hotkeys.min.js"></script>
     <script src="/static/js/videojs-playlist/videojs-playlist.min.js"></script>
-    <script src="/static/js/videojs-flash/videojs-flash.js"></script>
+    <script src="/static/js/videojs-flash/videojs-flash.min.js"></script>
     <script src="/static/js/videojs-playlist/videojs-playlist-ui.js"></script>
     <script src="/static/js/videojs/lang/zh-TW.js"></script>
     <style>
@@ -164,7 +164,15 @@
 
 <body style="background-color:#505050;">
     <div class="player-container">
-        <video id="mytv" class="video-js vjs-default-skin vjs-big-play-centered ">
+        <video id="mytv" class="video-js 
+        vjs-v7 
+        vjs-default-skin 
+        vjs-big-play-centered 
+        playsinline 
+        webkit-playsinline 
+        x-webkit-airplay='true' 
+        x5-video-player-type='h5' 
+        x5-video-player-orientation='landscape'">
         </video>
     </div>
     <div class="playlist-container vjs-playlist">
