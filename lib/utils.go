@@ -93,11 +93,11 @@ func loadWebTVPage() string {
 	}
 	webPage = strings.Replace(webPage, `<script src="/static/js/videojs-playlist/videojs-playlist.min.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	//videojs-flash.js
-	b, err = ioutil.ReadFile(gopsu.JoinPathFromHere("static", "js", "videojs-flash", "videojs-flash.js"))
+	b, err = ioutil.ReadFile(gopsu.JoinPathFromHere("static", "js", "videojs-flash", "videojs-flash.min.js"))
 	if err != nil {
 		return tplVideojs
 	}
-	webPage = strings.Replace(webPage, `<script src="/static/js/videojs-flash/videojs-flash.js"></script>`, "<script>"+string(b)+"</script>", 1)
+	webPage = strings.Replace(webPage, `<script src="/static/js/videojs-flash/videojs-flash.min.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	//videojs-playlist-ui.js
 	b, err = ioutil.ReadFile(gopsu.JoinPathFromHere("static", "js", "videojs-playlist", "videojs-playlist-ui.js"))
 	if err != nil {
