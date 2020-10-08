@@ -421,7 +421,7 @@ var (
 </style>
 </head>
 <body>
-<textarea id='v1' style="width:50%;height:60%"></textarea>
+<textarea id='v1' style="width:50%;height:60%;outline:none"></textarea>
 <div><button>提交</button></div>
 <textarea id='v2' readonly="readonly" style="width:50%;height:20%;border:none;resize:none;outline:none"></textarea>
 <script>
