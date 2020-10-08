@@ -407,7 +407,6 @@ var (
 	*{
 		margin: 0;
 		padding: 0;
-
 	}
 	textarea,button{
 		margin: 10px 50px 10px 20px;
@@ -416,19 +415,15 @@ var (
 		width: 100%;
 		height: 100%;
 	}
-	textarea{
-		width: 50%;
-		height: 60%;
-    }
     button{
         width:10%;
     }
 </style>
 </head>
 <body>
-<textarea id='v1'></textarea>
+<textarea id='v1' style="width:50%;height:60%"></textarea>
 <div><button>提交</button></div>
-<label id='v2'></label>
+<textarea id='v2' readonly="readonly" style="width:50%;height:20%;border:none;resize:none;outline:none"></textarea>
 <script>
 	$(function(){
 		$('button').on('click',function(){
@@ -439,7 +434,8 @@ var (
 				method:"post",
 				data:{vlist:$('#v1').val()},
 				success:function(res){
-					$('#v2').text(res)
+                    $('#v2').text(res+"\r\n\r\n"+$('#v1').val())
+                    $('#v1').val("")
 				}
 			})
 		})

@@ -21,6 +21,45 @@ import (
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
 )
 
+type videoinfo struct {
+	url    string
+	format string
+}
+
+type videoformat struct {
+	audio250 bool
+	audio251 bool
+	audio140 bool
+	video242 bool
+	video133 bool
+	video18  bool
+}
+
+func (vf *videoformat) Format() string {
+	s := make([]string, 0)
+	//"242+250/133+250/133+140/18"
+	if vf.video242 {
+		if vf.audio250 {
+			s = append(s, "242+250")
+		} else if vf.audio251 {
+			s = append(s, "242+251")
+		} else if vf.audio140 {
+			s = append(s, "242+140")
+		}
+	} else if vf.video133 {
+		if vf.audio250 {
+			s = append(s, "133+250")
+		} else if vf.audio251 {
+			s = append(s, "133+251")
+		} else if vf.audio140 {
+			s = append(s, "133+140")
+		}
+	} else if vf.video18 {
+		s = append(s, "18")
+	}
+	return strings.Join(s, "/")
+}
+
 type byModTime []os.FileInfo
 
 func (fis byModTime) Len() int {
@@ -38,6 +77,8 @@ func (fis byModTime) Less(i, j int) bool {
 var (
 	pageWebTV           string
 	chanDownloadControl = make(chan *videoinfo, 100)
+	extreplacer         = strings.NewReplacer(".dur", "", ".smi", "", ".png", "", ".jpg", "", ".zh-Hans", "", ".zh-Hant", "", ".vtt", "")
+	namereplacer        = strings.NewReplacer("#", "", "%", "")
 )
 
 func runVideojs(c *gin.Context) {
@@ -45,7 +86,6 @@ func runVideojs(c *gin.Context) {
 	subdir := c.Param("sub")
 	name := c.Param("name")
 	dst, err := urlConf.GetItem("tv-" + dir)
-	freplacer := strings.NewReplacer(".dur", "", ".smi", "", ".png", "", ".jpg", "", ".zh-Hans", "", ".zh-Hant", "", ".vtt", "")
 	if err != nil {
 		ginmiddleware.Page404(c)
 		return
@@ -72,12 +112,15 @@ func runVideojs(c *gin.Context) {
 		if f.IsDir() || !strings.Contains(f.Name(), name) {
 			continue
 		}
-		filename = strings.ReplaceAll(f.Name(), "#", "")
-		if strings.Contains(f.Name(), "#") {
+		filename = namereplacer.Replace(f.Name())
+		if f.Name() != filename {
 			os.Rename(filepath.Join(dst, f.Name()), filepath.Join(dst, filename))
 		}
 		fileext = strings.ToLower(filepath.Ext(filename))
 		filebase = strings.TrimSuffix(filename, fileext)
+		if strings.Contains(".f242.f251.f250.f133.f140", filebase[len(filebase)-5:]) {
+			continue
+		}
 		switch fileext {
 		case ".wav", ".m4a": // 音频
 			filesrc = filepath.Join(dst, filename)
@@ -202,13 +245,13 @@ func runVideojs(c *gin.Context) {
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
 		case ".dur", ".png", ".jpg", ".vtt":
 			if strings.HasPrefix(filename, ".") {
-				if !gopsu.IsExist(filepath.Join(dst, freplacer.Replace(filename[1:]))) {
+				if !gopsu.IsExist(filepath.Join(dst, extreplacer.Replace(filename[1:]))) {
 					os.Remove(filepath.Join(dst, filename))
 				}
 			}
 		// case ".vtt":
 		// 	if strings.HasPrefix(filename, ".") {
-		// 		if !gopsu.IsExist(filepath.Join(dst, freplacer.Replace(filename[1:])) + ".mp4") {
+		// 		if !gopsu.IsExist(filepath.Join(dst, extreplacer.Replace(filename[1:])) + ".mp4") {
 		// 			os.Remove(filepath.Join(dst, filename))
 		// 		}
 		// 	}
@@ -252,13 +295,8 @@ func ydlb(c *gin.Context) {
 				chanDownloadControl <- &videoinfo{url: vl, format: ""}
 			}
 		}
-		c.String(200, "The video file has started downloading... ")
+		c.String(200, "These videos have been added to the download queue...")
 	}
-}
-
-type videoinfo struct {
-	url    string
-	format string
 }
 
 func downloadControl() {
@@ -271,12 +309,68 @@ RUN:
 			dlock.Done()
 		}()
 		var scmd bytes.Buffer
+		var cmd *exec.Cmd
+		var shellName string
+		var videoName = "%(title)s"
 		for {
 			select {
 			case vi := <-chanDownloadControl:
 				if gopsu.TrimString(vi.url) == "" {
 					continue
 				}
+				shellName = "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + ".sh"
+
+				// 检查格式
+				// 	if vi.format == "" {
+				// 		scmd.Reset()
+				// 		scmd.WriteString("#!/bin/bash\n\n")
+				// 		scmd.WriteString("youtube-dl ")
+				// 		scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
+				// 		scmd.WriteString("--skip-download ")
+				// 		scmd.WriteString("-F ")
+				// 		scmd.WriteString(vi.url + "\n")
+				// 		scmd.WriteString("rm $0\n")
+				// 		ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
+				// 		cmd = exec.Command(shellName)
+				// 		b, err := cmd.CombinedOutput()
+				// 		if err != nil {
+				// 			goto DOWNLOAD
+				// 		}
+				// 		vf := &videoformat{}
+				// 		for _, v := range strings.Split(string(b), "\n") {
+				// 			if strings.HasPrefix(v, "250") && !strings.Contains(v, "DASH") {
+				// 				vf.audio250 = true
+				// 				continue
+				// 			}
+				// 			if strings.HasPrefix(v, "251") && !strings.Contains(v, "DASH") {
+				// 				vf.audio251 = true
+				// 				continue
+				// 			}
+				// 			if strings.HasPrefix(v, "140") && !strings.Contains(v, "DASH") {
+				// 				vf.audio140 = true
+				// 				continue
+				// 			}
+				// 			if strings.HasPrefix(v, "242") && !strings.Contains(v, "DASH") {
+				// 				vf.video242 = true
+				// 				continue
+				// 			}
+				// 			if strings.HasPrefix(v, "133") && !strings.Contains(v, "DASH") {
+				// 				vf.video133 = true
+				// 				continue
+				// 			}
+				// 			if strings.HasPrefix(v, "18") && !strings.Contains(v, "DASH") {
+				// 				vf.video18 = true
+				// 				continue
+				// 			}
+				// 		}
+				// 		vi.format = vf.Format()
+				// 		if vi.format == "" {
+				// 			continue
+				// 		}
+				// 		// println(string(b), "\n", "-"+vf.Format()+"-")
+				// 		// continue
+				// 	}
+				// DOWNLOAD:
 				scmd.Reset()
 				scmd.WriteString("#!/bin/bash\n\n")
 
@@ -285,23 +379,31 @@ RUN:
 				scmd.WriteString("--write-thumbnail ")
 				scmd.WriteString("--write-sub --write-auto-sub --sub-lang 'zh-Hant,zh-Hans' ")
 				scmd.WriteString("--mark-watched ")
-				scmd.WriteString("--youtube-skip-dash-manifest ")
+				// scmd.WriteString("--youtube-skip-dash-manifest ")
+				scmd.WriteString("--skip-unavailable-fragments ")
+				// scmd.WriteString("--abort-on-unavailable-fragment ")
+				scmd.WriteString("--no-mtime ")
 				scmd.WriteString("--buffer-size 64k ")
-				scmd.WriteString("-o " + ydir + "'%(title)s.%(ext)s' ")
+				// scmd.WriteString("--recode-video mp4 ")
+				scmd.WriteString("-o '" + ydir + videoName + ".%(ext)s' ")
+				// scmd.WriteString("-o '" + ydir + "%(title)s.%(ext)s' ")
 				if vi.format == "" {
-					vi.format = "242+251/133+251/133+140/18"
+					vi.format = "242+250/242+251/133+250/133+251/133+140/18"
 				}
 				scmd.WriteString("-f '" + vi.format + "' ")
 				if strings.HasPrefix(vi.url, "http") {
-					scmd.WriteString(vi.url + " && \\\n\\\n")
+					scmd.WriteString(vi.url)
 				} else {
-					scmd.WriteString("-- " + vi.url + " && \\\n\\\n")
+					scmd.WriteString("-- " + vi.url)
 				}
-				scmd.WriteString("rm $0\n")
-				name := "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + ".sh"
-				ioutil.WriteFile(name, scmd.Bytes(), 0755)
-				cmd := exec.Command(name)
-				cmd.Run()
+				scmd.WriteString(" && \\\n\\\nrm $0\n")
+				ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
+				cmd = exec.Command(shellName)
+				b, err := cmd.CombinedOutput()
+				if err != nil {
+					b = append(b, []byte("\n"+err.Error()+"\n")...)
+					ioutil.WriteFile(shellName+".log", b, 0664)
+				}
 			}
 		}
 	}()
