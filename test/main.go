@@ -146,5 +146,8 @@ func checkCode(b bool) string {
 }
 
 func main() {
-	println(strings.Contains("asdfaf.exe", "z"))
+	s := make([]string, 0)
+	println(strings.Join(s, "/"))
+	s = append(s, "18")
+	println(strings.Join(s, "/"))
 }
