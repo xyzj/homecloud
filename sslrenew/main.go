@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -89,7 +88,6 @@ func downloadCert(domain string) bool {
 		dlog.Println("unzip file error:" + err.Error())
 	}
 	dlog.Println("Download success. start copy ...")
-
 	return true
 }
 
@@ -145,6 +143,6 @@ func main() {
 	}
 	for {
 		renew()
-		time.Sleep(time.Hour * time.Duration(24+rand.Int63n(48)))
+		time.Sleep(time.Hour * time.Duration(24))
 	}
 }
