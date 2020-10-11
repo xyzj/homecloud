@@ -24,6 +24,7 @@ import (
 type videoinfo struct {
 	url    string
 	format string
+	try    int
 }
 
 type videoformat struct {
@@ -77,8 +78,9 @@ func (fis byModTime) Less(i, j int) bool {
 var (
 	pageWebTV           string
 	chanDownloadControl = make(chan *videoinfo, 100)
-	extreplacer         = strings.NewReplacer(".dur", "", ".smi", "", ".png", "", ".jpg", "", ".zh-Hans", "", ".zh-Hant", "", ".vtt", "")
+	extreplacer         = strings.NewReplacer(".dur", "", ".smi", "", ".png", "", ".jpg", "", ".zh-Hans", "", ".zh-Hant", "", ".vtt", "", ".en", "", ".en-US", "")
 	namereplacer        = strings.NewReplacer("#", "", "%", "")
+	subTypes            = []string{".en", ".en-US", ".zh-Hant", ".zh-Hans"}
 )
 
 func runVideojs(c *gin.Context) {
@@ -102,7 +104,7 @@ func runVideojs(c *gin.Context) {
 		sort.Sort(byModTime(flist))
 	}
 	_, showdur := c.Params.Get("dur")
-	var fileext, filesrc, filethumb, filedur, fileSmi, fileVtt, filename, filebase, fileVttHansRaw, fileVttHantRaw, fileVttHans, fileVttHant, srcdir string
+	var fileext, filesrc, filethumb, filedur, fileSmi, fileVtt, filename, filebase, srcdir string
 	var dur int
 	srcdir = "/tv-" + dir + "/"
 	if subdir != "" {
@@ -155,10 +157,6 @@ func runVideojs(c *gin.Context) {
 			filedur = filepath.Join(dst, "."+filename+".dur")
 			fileSmi = filepath.Join(dst, filebase+".smi")
 			fileVtt = filepath.Join(dst, "."+filename+".vtt")
-			fileVttHansRaw = filepath.Join(dst, filebase+".zh-Hans.vtt")
-			fileVttHantRaw = filepath.Join(dst, filebase+".zh-Hant.vtt")
-			fileVttHans = filepath.Join(dst, "."+filename+".zh-Hans.vtt")
-			fileVttHant = filepath.Join(dst, "."+filename+".zh-Hant.vtt")
 			// 视频长度
 			dur = 0
 			if showdur {
@@ -208,27 +206,23 @@ func runVideojs(c *gin.Context) {
 			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"."+filename+".jpg")
 			// 字幕
 			var idx = 0
-			if gopsu.IsExist(fileVttHantRaw) {
-				os.Rename(fileVttHantRaw, fileVttHant)
-			}
-			if gopsu.IsExist(fileVttHant) {
-				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+"."+filename+".zh-Hant.vtt")
-				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.label", idx), "中文繁体")
-				// playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.kind", idx), "captions")
-				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.srclang", idx), "zh-Hant")
-				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.default", idx), "true")
-				idx++
-			}
-			if gopsu.IsExist(fileVttHansRaw) {
-				os.Rename(fileVttHansRaw, fileVttHans)
-			}
-			if gopsu.IsExist(fileVttHans) {
-				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+"."+filename+".zh-Hans.vtt")
-				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.label", idx), "中文简体")
-				// playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.kind", idx), "subtitles")
-				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.srclang", idx), "zh-Hans")
-				playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.default", idx), "false")
-				idx++
+			for _, v := range subTypes {
+				subraw := filepath.Join(dst, filebase+v+".vtt")
+				subdst := filepath.Join(dst, "."+filename+v+".vtt")
+				subsrc := srcdir + "." + filename + v + ".vtt"
+				if gopsu.IsExist(subraw) {
+					os.Rename(subraw, subdst)
+				}
+				if gopsu.IsExist(subdst) {
+					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), subsrc)
+					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.label", idx), v[1:])
+					// playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.kind", idx), "subtitles")
+					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.srclang", idx), v[1:])
+					if idx == 0 {
+						playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.default", idx), "true")
+					}
+					idx++
+				}
 			}
 			if idx == 0 {
 				if gopsu.IsExist(fileSmi) && !gopsu.IsExist(fileVtt) {
@@ -237,7 +231,6 @@ func runVideojs(c *gin.Context) {
 				if gopsu.IsExist(fileVtt) {
 					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+"."+filename+".vtt")
 					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.label", idx), "中文")
-					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.kind", idx), "subtitles")
 					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.srclang", idx), "zh")
 					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.default", idx), "false")
 				}
@@ -315,94 +308,49 @@ RUN:
 		for {
 			select {
 			case vi := <-chanDownloadControl:
-				if gopsu.TrimString(vi.url) == "" {
+				if gopsu.TrimString(vi.url) == "" || vi.try >= 3 {
 					continue
 				}
 				shellName = "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + ".sh"
+				if !gopsu.IsExist(shellName) {
+					scmd.Reset()
+					scmd.WriteString("#!/bin/bash\n\n")
 
-				// 检查格式
-				// 	if vi.format == "" {
-				// 		scmd.Reset()
-				// 		scmd.WriteString("#!/bin/bash\n\n")
-				// 		scmd.WriteString("youtube-dl ")
-				// 		scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
-				// 		scmd.WriteString("--skip-download ")
-				// 		scmd.WriteString("-F ")
-				// 		scmd.WriteString(vi.url + "\n")
-				// 		scmd.WriteString("rm $0\n")
-				// 		ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
-				// 		cmd = exec.Command(shellName)
-				// 		b, err := cmd.CombinedOutput()
-				// 		if err != nil {
-				// 			goto DOWNLOAD
-				// 		}
-				// 		vf := &videoformat{}
-				// 		for _, v := range strings.Split(string(b), "\n") {
-				// 			if strings.HasPrefix(v, "250") && !strings.Contains(v, "DASH") {
-				// 				vf.audio250 = true
-				// 				continue
-				// 			}
-				// 			if strings.HasPrefix(v, "251") && !strings.Contains(v, "DASH") {
-				// 				vf.audio251 = true
-				// 				continue
-				// 			}
-				// 			if strings.HasPrefix(v, "140") && !strings.Contains(v, "DASH") {
-				// 				vf.audio140 = true
-				// 				continue
-				// 			}
-				// 			if strings.HasPrefix(v, "242") && !strings.Contains(v, "DASH") {
-				// 				vf.video242 = true
-				// 				continue
-				// 			}
-				// 			if strings.HasPrefix(v, "133") && !strings.Contains(v, "DASH") {
-				// 				vf.video133 = true
-				// 				continue
-				// 			}
-				// 			if strings.HasPrefix(v, "18") && !strings.Contains(v, "DASH") {
-				// 				vf.video18 = true
-				// 				continue
-				// 			}
-				// 		}
-				// 		vi.format = vf.Format()
-				// 		if vi.format == "" {
-				// 			continue
-				// 		}
-				// 		// println(string(b), "\n", "-"+vf.Format()+"-")
-				// 		// continue
-				// 	}
-				// DOWNLOAD:
-				scmd.Reset()
-				scmd.WriteString("#!/bin/bash\n\n")
-
-				scmd.WriteString("youtube-dl ")
-				scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
-				scmd.WriteString("--write-thumbnail ")
-				scmd.WriteString("--write-sub --write-auto-sub --sub-lang 'zh-Hant,zh-Hans' ")
-				scmd.WriteString("--mark-watched ")
-				// scmd.WriteString("--youtube-skip-dash-manifest ")
-				scmd.WriteString("--skip-unavailable-fragments ")
-				// scmd.WriteString("--abort-on-unavailable-fragment ")
-				scmd.WriteString("--no-mtime ")
-				scmd.WriteString("--buffer-size 64k ")
-				// scmd.WriteString("--recode-video mp4 ")
-				scmd.WriteString("-o '" + ydir + videoName + ".%(ext)s' ")
-				// scmd.WriteString("-o '" + ydir + "%(title)s.%(ext)s' ")
-				if vi.format == "" {
-					vi.format = "242+250/242+251/133+250/133+251/133+140/18"
+					scmd.WriteString("youtube-dl ")
+					scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
+					scmd.WriteString("--write-thumbnail ")
+					scmd.WriteString("--write-sub --write-auto-sub --sub-lang 'en-US,zh-Hant' ")
+					scmd.WriteString("--mark-watched ")
+					// scmd.WriteString("--youtube-skip-dash-manifest ")
+					scmd.WriteString("--skip-unavailable-fragments ")
+					// scmd.WriteString("--abort-on-unavailable-fragment ")
+					scmd.WriteString("--no-mtime ")
+					scmd.WriteString("--buffer-size 64k ")
+					// scmd.WriteString("--recode-video mp4 ")
+					scmd.WriteString("-o '" + ydir + videoName + ".%(ext)s' ")
+					// scmd.WriteString("-o '" + ydir + "%(title)s.%(ext)s' ")
+					if vi.format == "" {
+						vi.format = "242+250/242+251/133+250/133+251/133+140/18"
+					}
+					scmd.WriteString("-f '" + vi.format + "' ")
+					if strings.HasPrefix(vi.url, "http") {
+						scmd.WriteString(vi.url)
+					} else {
+						scmd.WriteString("-- " + vi.url)
+					}
+					scmd.WriteString(" && \\\n\\\nrm $0\n")
+					ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
 				}
-				scmd.WriteString("-f '" + vi.format + "' ")
-				if strings.HasPrefix(vi.url, "http") {
-					scmd.WriteString(vi.url)
-				} else {
-					scmd.WriteString("-- " + vi.url)
-				}
-				scmd.WriteString(" && \\\n\\\nrm $0\n")
-				ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
 				cmd = exec.Command(shellName)
 				b, err := cmd.CombinedOutput()
 				if err != nil {
 					b = append(b, []byte("\n"+err.Error()+"\n")...)
 					ioutil.WriteFile(shellName+".log", b, 0664)
+				}
+				time.Sleep(time.Second * 5)
+				if gopsu.IsExist(shellName) {
+					vi.try++
+					chanDownloadControl <- vi
 				}
 			}
 		}
