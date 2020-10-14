@@ -80,7 +80,7 @@ var (
 	chanDownloadControl = make(chan *videoinfo, 100)
 	extreplacer         = strings.NewReplacer(".dur", "", ".smi", "", ".png", "", ".jpg", "", ".zh-Hans", "", ".zh-Hant", "", ".vtt", "", ".en", "", ".en-US", "")
 	namereplacer        = strings.NewReplacer("#", "", "%", "")
-	subTypes            = []string{".en", ".en-US", ".zh-Hant", ".zh-Hans"}
+	subTypes            = []string{".zh-Hant", ".zh-Hans", ".en", ".en-US"}
 )
 
 func runVideojs(c *gin.Context) {
@@ -319,7 +319,7 @@ RUN:
 					scmd.WriteString("youtube-dl ")
 					scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
 					scmd.WriteString("--write-thumbnail ")
-					scmd.WriteString("--write-sub --write-auto-sub --sub-lang 'en-US,zh-Hant' ")
+					scmd.WriteString("--write-sub --write-auto-sub --sub-lang 'en,en-US,zh-Hant' ")
 					scmd.WriteString("--mark-watched ")
 					// scmd.WriteString("--youtube-skip-dash-manifest ")
 					scmd.WriteString("--skip-unavailable-fragments ")
