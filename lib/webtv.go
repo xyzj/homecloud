@@ -111,7 +111,7 @@ func runVideojs(c *gin.Context) {
 		srcdir += subdir + "/"
 	}
 	for _, f := range flist {
-		if f.IsDir() || !strings.Contains(f.Name(), name) {
+		if f.IsDir() || !strings.Contains(f.Name(), name) || strings.HasPrefix(f.Name(), ".fuse") {
 			continue
 		}
 		filename = namereplacer.Replace(f.Name())
@@ -312,35 +312,37 @@ RUN:
 					continue
 				}
 				shellName = "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + ".sh"
-				if !gopsu.IsExist(shellName) {
-					scmd.Reset()
-					scmd.WriteString("#!/bin/bash\n\n")
-
-					scmd.WriteString("youtube-dl ")
-					scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
-					scmd.WriteString("--write-thumbnail ")
-					scmd.WriteString("--write-sub --write-auto-sub --sub-lang 'en,en-US,zh-Hant' ")
-					scmd.WriteString("--mark-watched ")
-					// scmd.WriteString("--youtube-skip-dash-manifest ")
-					scmd.WriteString("--skip-unavailable-fragments ")
-					// scmd.WriteString("--abort-on-unavailable-fragment ")
-					scmd.WriteString("--no-mtime ")
-					scmd.WriteString("--buffer-size 64k ")
-					// scmd.WriteString("--recode-video mp4 ")
-					scmd.WriteString("-o '" + ydir + videoName + ".%(ext)s' ")
-					// scmd.WriteString("-o '" + ydir + "%(title)s.%(ext)s' ")
-					if vi.format == "" {
-						vi.format = "242+250/242+251/133+250/133+251/133+140/18"
-					}
-					scmd.WriteString("-f '" + vi.format + "' ")
-					if strings.HasPrefix(vi.url, "http") {
-						scmd.WriteString(vi.url)
-					} else {
-						scmd.WriteString("-- " + vi.url)
-					}
-					scmd.WriteString(" && \\\n\\\nrm $0\n")
-					ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
+				if gopsu.IsExist(shellName) && vi.format == "" {
+					goto DOWN
 				}
+				scmd.Reset()
+				scmd.WriteString("#!/bin/bash\n\n")
+
+				scmd.WriteString("youtube-dl ")
+				scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
+				scmd.WriteString("--write-thumbnail ")
+				scmd.WriteString("--write-sub --write-auto-sub --sub-lang 'en,en-US,zh-Hant' ")
+				scmd.WriteString("--mark-watched ")
+				// scmd.WriteString("--youtube-skip-dash-manifest ")
+				scmd.WriteString("--skip-unavailable-fragments ")
+				// scmd.WriteString("--abort-on-unavailable-fragment ")
+				scmd.WriteString("--no-mtime ")
+				scmd.WriteString("--buffer-size 64k ")
+				// scmd.WriteString("--recode-video mp4 ")
+				scmd.WriteString("-o '" + ydir + videoName + ".%(ext)s' ")
+				// scmd.WriteString("-o '" + ydir + "%(title)s.%(ext)s' ")
+				if vi.format == "" {
+					vi.format = "242+250/242+251/133+250/133+251/133+140/18"
+				}
+				scmd.WriteString("-f '" + vi.format + "' ")
+				if strings.HasPrefix(vi.url, "http") {
+					scmd.WriteString(vi.url)
+				} else {
+					scmd.WriteString("-- " + vi.url)
+				}
+				scmd.WriteString(" && \\\n\\\nrm $0\n")
+				ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
+			DOWN:
 				cmd = exec.Command(shellName)
 				b, err := cmd.CombinedOutput()
 				if err != nil {
@@ -351,6 +353,8 @@ RUN:
 				if gopsu.IsExist(shellName) {
 					vi.try++
 					chanDownloadControl <- vi
+				} else {
+					os.Remove(shellName + ".log")
 				}
 			}
 		}
