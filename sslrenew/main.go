@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -24,7 +25,7 @@ var (
 
 	urlSign        = "https://%s/cert/sign/%s"
 	urlDownload    = "https://%s/cert/download/%s"
-	domainList     = []string{"wlst.vip", "shwlst.com"}
+	domainList     = []string{"wlst.vip"} //, "shwlst.com"}
 	linuxSSLCopy   = filepath.Join(gopsu.GetExecDir(), "sslcopy.sh")
 	windowsSSLCopy = filepath.Join(gopsu.GetExecDir(), "sslcopy.bat")
 
@@ -92,19 +93,19 @@ func downloadCert(domain string) bool {
 }
 
 func renew() {
-	var oldsign, newsign string
+	// var oldsign, newsign string
 	for _, v := range domainList {
-		oldsign = localSign(v)
-		newsign = remoteSign(v)
-		if newsign != "1" && oldsign != newsign {
-			downloadCert(v)
-		} else {
-			if oldsign == newsign {
-				dlog.Println("Same signature, no update needed.")
-			} else {
-				dlog.Println("Can not get cert file info:" + v)
-			}
-		}
+		// oldsign = localSign(v)
+		// newsign = remoteSign(v)
+		// if newsign != "1" && oldsign != newsign {
+		downloadCert(v)
+		// } else {
+		// 	if oldsign == newsign {
+		// 		dlog.Println("Same signature, no update needed.")
+		// 	} else {
+		// 		dlog.Println("Can not get cert file info:" + v)
+		// 	}
+		// }
 		println("-------")
 	}
 	var cmd *exec.Cmd
@@ -141,8 +142,15 @@ func main() {
 		mainDomain = debugDomain
 		domainList = []string{"xyzjdays.xyz"}
 	}
+	rand.Seed(time.Now().UnixNano())
 	for {
+		for _, v := range domainList {
+			err := os.Remove(filepath.Join(gopsu.GetExecDir(), v+".zip"))
+			if err != nil {
+				dlog.Println("clean zip files error: " + err.Error())
+			}
+		}
 		renew()
-		time.Sleep(time.Hour * time.Duration(24))
+		time.Sleep(time.Hour * time.Duration(24+rand.Int31n(24)))
 	}
 }
