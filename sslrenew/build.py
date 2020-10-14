@@ -70,8 +70,8 @@ if __name__ == "__main__":
     # print("\n=== start build windows x64 ...")
     # build("backend.exe", "windows", "amd64", False)
     print("\n=== start build windows x64 service ...")
-    build_service("sslrenew.exe", "windows", "amd64", False)
+    build("sslrenew.exe", "windows", "amd64", False)
     print("\n=== start build linux x64 ...")
-    build("sslrenew", "linux", "amd64", False)
+    build("sslrenew", "linux", "amd64", True)
 
     # os.system("cp -f distwin/ecms*.exe ../../python/mwsc/dist/bin/")
