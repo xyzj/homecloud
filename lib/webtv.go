@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -20,6 +21,10 @@ import (
 	"github.com/xyzj/gopsu"
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
 )
+
+func init() {
+	rand.Seed(time.Now().Unix())
+}
 
 type videoinfo struct {
 	url    string
@@ -343,14 +348,15 @@ RUN:
 				scmd.WriteString(" && \\\n\\\nrm $0\n")
 				ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
 			DOWN:
+				time.Sleep(time.Second * time.Duration(rand.Int31n(5)))
 				cmd = exec.Command(shellName)
 				b, err := cmd.CombinedOutput()
 				if err != nil {
 					b = append(b, []byte("\n"+err.Error()+"\n")...)
 					ioutil.WriteFile(shellName+".log", b, 0664)
 				}
-				time.Sleep(time.Second * 5)
 				if gopsu.IsExist(shellName) {
+					time.Sleep(time.Second * time.Duration(rand.Int31n(5)+5))
 					vi.try++
 					chanDownloadControl <- vi
 				} else {

@@ -164,14 +164,14 @@
 
 <body style="background-color:#505050;">
     <div class="player-container">
-        <video id="mytv" class="video-js 
-        vjs-v7 
-        vjs-default-skin 
-        vjs-big-play-centered 
-        playsinline 
-        webkit-playsinline 
-        x-webkit-airplay='true' 
-        x5-video-player-type='h5' 
+        <video id="mytv" class="video-js
+        vjs-v7
+        vjs-default-skin
+        vjs-big-play-centered
+        playsinline
+        webkit-playsinline
+        x-webkit-airplay='true'
+        x5-video-player-type='h5'
         x5-video-player-orientation='landscape'">
         </video>
     </div>
@@ -201,7 +201,7 @@
     };
     var player = videojs("mytv", options);
     player.playlist(playlist_data_here);
-    player.playlist.autoadvance(3);
+    player.playlist.autoadvance(1);
     player.playlistUi();
     player.ready(function() {
         this.hotkeys({
