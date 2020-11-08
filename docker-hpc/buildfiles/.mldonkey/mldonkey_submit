@@ -10,7 +10,7 @@ use LWP::UserAgent;
 ($#ARGV >= 0) || die "Usage: mldonkey_submit <ed2kURI> ...
 ";
 
-$vars{'HTTPURL'} = "http://23.105.208.62:8113";
+$vars{'HTTPURL'} = "http://23.105.208.62:10048";
 $vars{'HTTPUSER'} = "admin";
 $vars{'HTTPPASS'} = "";
 

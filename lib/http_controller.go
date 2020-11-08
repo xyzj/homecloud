@@ -9,12 +9,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/render"
-	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 	"github.com/xyzj/gopsu"
 )
@@ -80,88 +78,13 @@ func vps4info(c *gin.Context) {
 	c.HTML(200, "vpsinfo", c.Keys)
 }
 
-func wt(c *gin.Context) {
-	if ipCached == "" {
-		b, err := ioutil.ReadFile(".ipcache")
-		if err != nil {
-			c.String(200, err.Error())
-			return
-		}
-		ipCached = string(b)
-	}
-	r := c.Param("name")
-	switch r {
-	case "mldonkey":
-		s := fmt.Sprintf("http://%s:6893/", ipCached)
-		c.Redirect(http.StatusTemporaryRedirect, s)
-	case "kod":
-		s := fmt.Sprintf("http://%s:6895/", ipCached)
-		c.Redirect(http.StatusTemporaryRedirect, s)
-	case "deluge":
-		s := fmt.Sprintf("http://%s:6892/", ipCached)
-		c.Redirect(http.StatusTemporaryRedirect, s)
-	case "ssh":
-		s := fmt.Sprintf("http://%s:6896/ssh/host/127.0.0.1", ipCached)
-		c.Redirect(http.StatusTemporaryRedirect, s)
-	}
-}
-
 func remoteIP(c *gin.Context) {
 	switch c.Request.Method {
 	case "GET":
 		c.String(200, c.ClientIP())
 	case "POST":
-		ipCached = c.ClientIP()
 		ioutil.WriteFile(".ipcache", []byte(c.ClientIP()), 0644)
 		c.String(200, "success")
-	}
-}
-
-func ipCache(c *gin.Context) {
-	b, _ := ioutil.ReadFile(".ipcache")
-	ipCached = string(b)
-	c.String(200, string(b))
-}
-
-func newUUID4(c *gin.Context) {
-	var s string
-	d, _ := uuid.NewRandom()
-	c.Set("newuuid4", d.String())
-	var i = 1
-	a, err := ioutil.ReadFile("/root/conf/v2rays.json")
-	if err == nil {
-		b := gjson.ParseBytes(a)
-		e := b.Get("inbounds.#.settings.clients.0.id")
-		e.ForEach(func(key, value gjson.Result) bool {
-			c.Set("uuid"+strconv.Itoa(i), value.String())
-			s += "\n" + value.String() + "\n"
-			i++
-			return true
-		})
-	}
-	a, err = ioutil.ReadFile("/root/conf/v2rayfwd.json")
-	if err == nil {
-		b := gjson.ParseBytes(a)
-		e := b.Get("inbounds.#.settings.clients.0.id")
-		e.ForEach(func(key, value gjson.Result) bool {
-			c.Set("uuid"+strconv.Itoa(i), value.String())
-			s += "\n" + value.String() + "\n"
-			i++
-			return true
-		})
-		e = b.Get("outbounds.#.settings.vnext.0.users.0.id")
-		e.ForEach(func(key, value gjson.Result) bool {
-			c.Set("uuid"+strconv.Itoa(i), value.String())
-			s += "\n" + value.String() + "\n"
-			i++
-			return true
-		})
-	}
-	switch c.Request.Method {
-	case "GET":
-		c.HTML(200, "uuidinfo", c.Keys)
-	case "POST":
-		c.String(200, s)
 	}
 }
 
@@ -372,4 +295,17 @@ func certCloudflare(c *gin.Context) {
 		c.Writer.WriteString("run sslcopy.sh error: " + err.Error())
 	}
 	c.String(200, "\nDone, you can download cert files now.")
+}
+
+func updateCFRecord(c *gin.Context) {
+	if c.Param("who") != "ohana" {
+		c.String(403, " I don't know you")
+		return
+	}
+	if c.ClientIP() != ipCached {
+		// url := "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
+		// req, _ := http.NewHttpRequest()
+
+	}
+	ipCached = c.ClientIP()
 }
