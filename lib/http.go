@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/render"
 	"github.com/xyzj/gopsu"
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
 )
@@ -43,26 +44,24 @@ func multiRender() multitemplate.Renderer {
 }
 
 // NewHTTPService NewHTTPService
-func NewHTTPService(port int) {
-	if !EnableDebug { // 设置框架使用的模式，默认debug模式，会有控制台输出，release模式仅有文件日志输出
-		gin.SetMode(gin.ReleaseMode)
+func NewHTTPService() {
+	gin.SetMode(gin.ReleaseMode)
+	if *debug {
+		gin.DefaultWriter = os.Stdout
 	}
 	r := gin.New()
 	r.Use(ginmiddleware.Recovery())
-
 	// 渲染模板
 	r.HTMLRender = multiRender()
 
 	r.Static("/static", gopsu.JoinPathFromHere("static"))
 
 	r.GET("/", remoteIP)
-	r.POST("/", remoteIP)
 	r.GET("/reloadext", func(c *gin.Context) {
 		urlConf.Reload()
 		pageWebTV = loadWebTVPage()
 		c.String(200, "done")
 	})
-	r.GET("/givemenewuuid4", newUUID4)
 	// kod共享
 	r.GET("/m/:name", func(c *gin.Context) {
 		urlConf.Reload()
@@ -71,7 +70,7 @@ func NewHTTPService(port int) {
 			c.String(200, err.Error())
 			return
 		}
-		s := "https://kod.xyzjdays.xyz:10043/index.php?share/" + gopsu.DecodeString(n)
+		s := "https://office.shwlst.com:20081/index.php?share/" + gopsu.DecodeString(n)
 		c.Redirect(http.StatusTemporaryRedirect, s)
 	})
 	r.GET("/share/add", ginmiddleware.ReadParams(), func(c *gin.Context) {
@@ -105,21 +104,6 @@ func NewHTTPService(port int) {
 	// vps相关
 	g1 := r.Group("/vps")
 	g1.GET("v4info", vps4info)
-	// homecloud服务
-	g2 := r.Group("/wt")
-	g2.GET("/", ipCache)
-	g2.GET("/:name", wt)
-	// 公司跳转
-	g3 := r.Group("/soho")
-	g3.GET("/", func(c *gin.Context) {
-		c.String(200, "180.167.245.233")
-	})
-	g3.GET("/kod", func(c *gin.Context) {
-		c.Redirect(http.StatusTemporaryRedirect, "http://office.shwlst.com:20080")
-	})
-	g3.GET("/zd", func(c *gin.Context) {
-		c.Redirect(http.StatusTemporaryRedirect, "http://office.shwlst.com:5990")
-	})
 	// 证书管理
 	g4 := r.Group("/cert", ginmiddleware.ReadParams())
 	g4.GET("/sign/:name", certSign)
@@ -134,6 +118,12 @@ func NewHTTPService(port int) {
 	g5.GET("/ydl", ginmiddleware.ReadParams(), ydl)
 	g5.GET("/ydlb", ydlb)
 	g5.POST("/ydlb", ginmiddleware.ReadParams(), ydlb)
+	g5.GET("/cachedip", func(c *gin.Context) {
+		c.Header("Content-Type", "text/html")
+		c.Status(http.StatusOK)
+		render.WriteString(c.Writer, `<a style="color:white";>https://</a>`+ipCached+`<a style="color:white";>:60019/v/news</a>`, nil)
+	})
+	g5.POST("/updatecf/:who", ginmiddleware.ReadParams(), updateCFRecord)
 
 	r.HandleMethodNotAllowed = true
 	r.NoMethod(ginmiddleware.Page405)
@@ -142,19 +132,18 @@ func NewHTTPService(port int) {
 	// 在微线程中启动服务
 	go func() {
 		var err error
-		println("Starting HTTP(S) server at :" + strconv.Itoa((port)))
-		if EnableDebug || *forceHTTP { // 调试模式下使用http
-			err = ginmiddleware.ListenAndServe(port, r)
-		} else { // 生产模式下使用https,若设置了clientca，则会验证客户端证书
-			err = ginmiddleware.ListenAndServeTLS(port, r, filepath.Join(".", "ca", DomainName+".crt"), filepath.Join(".", "ca", DomainName+".key"), "")
+		if *web > 1000 {
+			err = ginmiddleware.ListenAndServe(*web, r)
+			if err != nil {
+				println("Failed start HTTP server at :" + strconv.Itoa(*web) + "|" + err.Error())
+				os.Exit(1)
+			}
 		}
-		if err != nil {
-			println("Failed start HTTP(S) server at :" + strconv.Itoa(port) + "|" + err.Error())
+		if *webs > 1000 && *domain != "" && gopsu.IsExist(filepath.Join(".", "ca", *domain+".crt")) && gopsu.IsExist(filepath.Join(".", "ca", *domain+".key")) {
+			err = ginmiddleware.ListenAndServeTLS(*webs, r, filepath.Join(".", "ca", *domain+".crt"), filepath.Join(".", "ca", *domain+".key"), "")
+			if err != nil {
+				println("Failed start HTTP server at :" + strconv.Itoa(*webs) + "|" + err.Error())
+			}
 		}
-		os.Exit(1)
 	}()
-	// 启动youtube下载控制
-	for i := 0; i < 5; i++ {
-		go downloadControl()
-	}
 }

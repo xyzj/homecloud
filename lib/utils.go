@@ -3,6 +3,7 @@ package lib
 import (
 	"flag"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -16,15 +17,15 @@ const (
 	// dnspod sslrenew token
 	dnspodID    = "141155"
 	dnspodToken = "076ba7af12e110fb5c2eebc438dae5a1"
+	// cloudflare
+	cfKey  = "b6c9de4a9814d534ab16c12d99718f118fde2"
+	cfZone = "fb8a871c3737648dfd964bd625f9f685"
+	cfID   = "712df327b64333800c02511f404b3157"
 )
 
 var (
-	// EnableDebug 显示debug调试信息
-	EnableDebug bool
 	// Version 版本信息
 	Version string
-	// DomainName 域名
-	DomainName string
 
 	ipCached       string
 	urlConf        *gopsu.ConfData
@@ -34,7 +35,13 @@ var (
 	ydir           string
 )
 var (
-	forceHTTP = flag.Bool("forcehttp", false, "set if run as http")
+	ver    = flag.Bool("version", false, "print version info and exit.")
+	help   = flag.Bool("help", false, "print help and exit.")
+	debug  = flag.Bool("debug", false, "set if enable debug info.")
+	web    = flag.Int("http", 0, "set http port to listen on.")
+	webs   = flag.Int("https", 0, "set https port to listen on.")
+	domain = flag.String("domain", "xyzjdays.xyz", "set domain name.")
+	conf   = flag.String("conf", "", "set the config file path.")
 )
 
 // LoadExtConfigure 载入除标准配置外的自定义配置内容（可选）
@@ -112,4 +119,28 @@ func loadWebTVPage() string {
 	webPage = strings.Replace(webPage, `<script src="/static/js/videojs/lang/zh-TW.js"></script>`, "<script>"+string(b)+"</script>", 1)
 
 	return webPage
+}
+
+// Run run
+func Run(version string) {
+	flag.Parse()
+	Version = version
+	if *ver {
+		println(Version)
+		os.Exit(0)
+	}
+	if *help {
+		flag.PrintDefaults()
+		os.Exit(0)
+	}
+	if *web < 1000 && *webs < 1000 {
+		*web = 6819
+	}
+	LoadExtConfigure(*conf)
+	NewHTTPService()
+	// 启动youtube下载控制
+	for i := 0; i < 5; i++ {
+		go downloadControl()
+	}
+
 }
