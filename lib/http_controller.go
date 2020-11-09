@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/tidwall/sjson"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/render"
 	"github.com/tidwall/gjson"
@@ -303,9 +305,26 @@ func updateCFRecord(c *gin.Context) {
 		return
 	}
 	if c.ClientIP() != ipCached {
-		// url := "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
-		// req, _ := http.NewHttpRequest()
-
+		url := "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
+		var js string
+		js, _ = sjson.Set(js, "type", "A")
+		js, _ = sjson.Set(js, "name", "da")
+		js, _ = sjson.Set(js, "content", c.ClientIP())
+		js, _ = sjson.Set(js, "ttl", 1)
+		js, _ = sjson.Set(js, "proxied", false)
+		req, _ := http.NewRequest("PUT", url, strings.NewReader(js))
+		req.Header.Add("X-Auth-Email", "minamoto.xu@outlook.com")
+		req.Header.Add("X-Auth-Key", "b6c9de4a9814d534ab16c12d99718f118fde2")
+		req.Header.Add("Content-Type", "application/json")
+		resp, err := httpClientPool.Do(req)
+		if err != nil {
+			c.String(resp.StatusCode, err.Error())
+			return
+		}
+		b, _ := ioutil.ReadAll(resp.Body)
+		c.String(200, string(b))
+		return
 	}
 	ipCached = c.ClientIP()
+	c.String(200, "ip not changed, nothing to do")
 }
