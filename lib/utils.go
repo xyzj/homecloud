@@ -1,11 +1,14 @@
 package lib
 
 import (
+	"crypto/tls"
 	"flag"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/xyzj/gopsu"
 )
@@ -25,14 +28,27 @@ const (
 
 var (
 	// Version 版本信息
-	Version string
-
+	Version        string
+	crtFile        string
+	keyFile        string
 	ipCached       string
 	urlConf        *gopsu.ConfData
 	linuxSSLCopy   = filepath.Join(gopsu.GetExecDir(), "sslcopy.sh")
 	windowsSSLCopy = filepath.Join(gopsu.GetExecDir(), "sslcopy.bat")
 	domainList     = []string{"wlst.vip,shwlst.com"}
 	ydir           string
+	httpClientPool = &http.Client{
+		Timeout: time.Duration(time.Second * 15),
+		Transport: &http.Transport{
+			IdleConnTimeout:     time.Second * 15,
+			MaxConnsPerHost:     10,
+			MaxIdleConns:        1,
+			MaxIdleConnsPerHost: 1,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
 )
 var (
 	ver    = flag.Bool("version", false, "print version info and exit.")
@@ -136,6 +152,8 @@ func Run(version string) {
 	if *web < 1000 && *webs < 1000 {
 		*web = 6819
 	}
+	crtFile = filepath.Join(gopsu.GetExecDir(), "ca", *domain+".crt")
+	keyFile = filepath.Join(gopsu.GetExecDir(), "ca", *domain+".key")
 	LoadExtConfigure(*conf)
 	NewHTTPService()
 	// 启动youtube下载控制
