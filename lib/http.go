@@ -3,9 +3,9 @@ package lib
 import (
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-contrib/multitemplate"
@@ -45,11 +45,13 @@ func multiRender() multitemplate.Renderer {
 
 // NewHTTPService NewHTTPService
 func NewHTTPService() {
-	gin.SetMode(gin.ReleaseMode)
-	if *debug {
-		gin.DefaultWriter = os.Stdout
+	if !*debug {
+		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.New()
+	if *debug {
+		r.Use(ginmiddleware.LoggerWithRolling(gopsu.GetExecDir(), "", 3))
+	}
 	r.Use(ginmiddleware.Recovery())
 	// 渲染模板
 	r.HTMLRender = multiRender()
@@ -130,20 +132,29 @@ func NewHTTPService() {
 	r.NoRoute(ginmiddleware.Page404)
 
 	// 在微线程中启动服务
+	var wl sync.WaitGroup
+	var err error
 	go func() {
-		var err error
+		wl.Add(1)
+		defer wl.Done()
 		if *web > 1000 {
 			err = ginmiddleware.ListenAndServe(*web, r)
 			if err != nil {
 				println("Failed start HTTP server at :" + strconv.Itoa(*web) + "|" + err.Error())
-				os.Exit(1)
-			}
-		}
-		if *webs > 1000 && *domain != "" && gopsu.IsExist(filepath.Join(".", "ca", *domain+".crt")) && gopsu.IsExist(filepath.Join(".", "ca", *domain+".key")) {
-			err = ginmiddleware.ListenAndServeTLS(*webs, r, filepath.Join(".", "ca", *domain+".crt"), filepath.Join(".", "ca", *domain+".key"), "")
-			if err != nil {
-				println("Failed start HTTP server at :" + strconv.Itoa(*webs) + "|" + err.Error())
 			}
 		}
 	}()
+	go func() {
+		wl.Add(1)
+		defer wl.Done()
+		if *webs > 1000 && *domain != "" && gopsu.IsExist(crtFile) && gopsu.IsExist(keyFile) {
+			err = ginmiddleware.ListenAndServeTLS(*webs, r, crtFile, keyFile, "")
+			if err != nil {
+				println("Failed start HTTPS server at :" + strconv.Itoa(*webs) + "|" + err.Error())
+			}
+		}
+	}()
+	time.Sleep(time.Second)
+	wl.Wait()
+	os.Exit(2)
 }
