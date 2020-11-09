@@ -155,7 +155,7 @@ func Run(version string) {
 	crtFile = filepath.Join(gopsu.GetExecDir(), "ca", *domain+".crt")
 	keyFile = filepath.Join(gopsu.GetExecDir(), "ca", *domain+".key")
 	LoadExtConfigure(*conf)
-	NewHTTPService()
+	go NewHTTPService()
 	// 启动youtube下载控制
 	for i := 0; i < 5; i++ {
 		go downloadControl()
