@@ -337,7 +337,7 @@ RUN:
 				scmd.WriteString("-o '" + ydir + videoName + ".%(ext)s' ")
 				// scmd.WriteString("-o '" + ydir + "%(title)s.%(ext)s' ")
 				if vi.format == "" {
-					vi.format = "242+250/242+251/133+250/133+251/133+140/18"
+					vi.format = "133+140/242+250/242+251/133+250/133+251/18"
 				}
 				scmd.WriteString("-f '" + vi.format + "' ")
 				if strings.HasPrefix(vi.url, "http") {
