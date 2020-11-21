@@ -304,6 +304,7 @@ func updateCFRecord(c *gin.Context) {
 		c.String(403, " I don't know you")
 		return
 	}
+
 	if c.ClientIP() != ipCached {
 		url := "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
 		var js string
@@ -323,8 +324,8 @@ func updateCFRecord(c *gin.Context) {
 		}
 		b, _ := ioutil.ReadAll(resp.Body)
 		c.String(200, string(b))
+		ipCached = c.ClientIP()
 		return
 	}
-	ipCached = c.ClientIP()
 	c.String(200, "ip not changed, nothing to do")
 }
