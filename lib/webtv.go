@@ -345,9 +345,7 @@ RUN:
 				} else {
 					scmd.WriteString("-- " + vi.url)
 				}
-				scmd.WriteString(" && \\\n\\\nrm $0")
-				scmd.WriteString(" && \\\n\\\nping -c 3 127.0.0.1")
-				scmd.WriteString(" && \\\n\\\nrm $0.log\n")
+				scmd.WriteString(" && \\\n\\\nrm $0\n")
 				ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
 			DOWN:
 				time.Sleep(time.Second * time.Duration(rand.Int31n(5)+10))
@@ -363,6 +361,8 @@ RUN:
 						vi.try++
 					}
 					chanDownloadControl <- vi
+				} else {
+					os.Remove(shellName + ".log")
 				}
 			}
 		}
