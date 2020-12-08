@@ -157,7 +157,7 @@ func Run(version string) {
 	LoadExtConfigure(*conf)
 	go NewHTTPService()
 	// 启动youtube下载控制
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 3; i++ {
 		go downloadControl()
 	}
 
