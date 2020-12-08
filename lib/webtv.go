@@ -346,6 +346,7 @@ RUN:
 					scmd.WriteString("-- " + vi.url)
 				}
 				scmd.WriteString(" && \\\n\\\nrm $0")
+				scmd.WriteString(" && \\\n\\\nping -c 3 127.0.0.1")
 				scmd.WriteString(" && \\\n\\\nrm $0.log\n")
 				ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
 			DOWN:
