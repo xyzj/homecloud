@@ -345,22 +345,23 @@ RUN:
 				} else {
 					scmd.WriteString("-- " + vi.url)
 				}
-				scmd.WriteString(" && \\\n\\\nrm $0\n")
+				scmd.WriteString(" && \\\n\\\nrm $0")
+				scmd.WriteString(" && \\\n\\\nrm $0.log\n")
 				ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
 			DOWN:
-				time.Sleep(time.Second * time.Duration(rand.Int31n(5)))
+				time.Sleep(time.Second * time.Duration(rand.Int31n(5)+10))
 				cmd = exec.Command(shellName)
 				b, err := cmd.CombinedOutput()
 				if err != nil {
 					b = append(b, []byte("\n"+err.Error()+"\n")...)
 					ioutil.WriteFile(shellName+".log", b, 0664)
 				}
+				time.Sleep(time.Second * time.Duration(rand.Int31n(5)+3))
 				if gopsu.IsExist(shellName) {
-					time.Sleep(time.Second * time.Duration(rand.Int31n(5)+5))
-					vi.try++
+					if !strings.Contains(string(b), "Unable to extract video data") {
+						vi.try++
+					}
 					chanDownloadControl <- vi
-				} else {
-					os.Remove(shellName + ".log")
 				}
 			}
 		}
