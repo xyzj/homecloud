@@ -83,7 +83,7 @@ func (fis byModTime) Less(i, j int) bool {
 var (
 	pageWebTV           string
 	chanDownloadControl = make(chan *videoinfo, 100)
-	extreplacer         = strings.NewReplacer(".dur", "", ".smi", "", ".png", "", ".jpg", "", ".zh-Hans", "", ".zh-Hant", "", ".vtt", "", ".en", "", ".en-US", "")
+	extreplacer         = strings.NewReplacer(".webp", "", ".dur", "", ".smi", "", ".png", "", ".jpg", "", ".zh-Hans", "", ".zh-Hant", "", ".vtt", "", ".en", "", ".en-US", "")
 	namereplacer        = strings.NewReplacer("#", "", "%", "")
 	subTypes            = []string{".zh-Hant", ".zh-Hans", ".en", ".en-US"}
 )
@@ -125,7 +125,7 @@ func runVideojs(c *gin.Context) {
 		}
 		fileext = strings.ToLower(filepath.Ext(filename))
 		filebase = strings.TrimSuffix(filename, fileext)
-		if strings.Contains(".f242.f251.f250.f133.f140", filebase[len(filebase)-5:]) {
+		if strings.Contains(".f242.f251.f250.f133.f140", filebase) {
 			continue
 		}
 		switch fileext {
@@ -158,7 +158,7 @@ func runVideojs(c *gin.Context) {
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
 		case ".mp4", ".mkv", ".webm": // 视频
 			filesrc = filepath.Join(dst, filename)
-			filethumb = filepath.Join(dst, "."+filename+".jpg")
+			filethumb = filepath.Join(dst, "."+filename+".webp")
 			filedur = filepath.Join(dst, "."+filename+".dur")
 			fileSmi = filepath.Join(dst, filebase+".smi")
 			fileVtt = filepath.Join(dst, "."+filename+".vtt")
@@ -194,21 +194,25 @@ func runVideojs(c *gin.Context) {
 				playitem, _ = sjson.Set(playitem, "sources.0.type", "video/"+fileext[1:])
 			}
 			// 缩略图
-			if !gopsu.IsExist(filethumb) || gopsu.IsExist(strings.TrimSuffix(filesrc, fileext)+".jpg") {
+			if !gopsu.IsExist(filethumb) || gopsu.IsExist(strings.TrimSuffix(filesrc, fileext)+".webp") {
 				go func(in, out, ext string) {
 					thumblocker.Add(1)
 					defer thumblocker.Done()
 					if gopsu.IsExist(strings.TrimSuffix(in, ext) + ".jpg") {
-						cmd := exec.Command("mogrify", "-resize", "256x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".jpg")
+						cmd := exec.Command("mogrify", "-resize", "168x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".jpg")
 						cmd.Run()
 						os.Remove(strings.TrimSuffix(in, ext) + ".jpg")
+					} else if gopsu.IsExist(strings.TrimSuffix(in, ext) + ".webp") {
+						cmd := exec.Command("mogrify", "-resize", "168x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".webp")
+						cmd.Run()
+						os.Remove(strings.TrimSuffix(in, ext) + ".webp")
 					} else {
-						cmd := exec.Command("ffmpeg", "-i", in, "-ss", "00:00:03", "-s", "256:144", "-vframes", "1", out)
+						cmd := exec.Command("ffmpeg", "-i", in, "-ss", "00:00:03", "-s", "168:94", "-vframes", "1", out)
 						cmd.Run()
 					}
 				}(filesrc, filethumb, fileext)
 			}
-			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"."+filename+".jpg")
+			playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"."+filename+".webp")
 			// 字幕
 			var idx = 0
 			for _, v := range subTypes {
@@ -241,12 +245,13 @@ func runVideojs(c *gin.Context) {
 				}
 			}
 			playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
-		case ".dur", ".png", ".jpg", ".vtt":
+		case ".dur", ".png", ".jpg", ".vtt", ".webp":
 			if strings.HasPrefix(filename, ".") {
 				if !gopsu.IsExist(filepath.Join(dst, extreplacer.Replace(filename[1:]))) {
 					os.Remove(filepath.Join(dst, filename))
 				}
 			}
+			// os.Remove(filepath.Join(dst, filename))
 		// case ".vtt":
 		// 	if strings.HasPrefix(filename, ".") {
 		// 		if !gopsu.IsExist(filepath.Join(dst, extreplacer.Replace(filename[1:])) + ".mp4") {
@@ -325,14 +330,15 @@ RUN:
 
 				scmd.WriteString("youtube-dl ")
 				scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
+				scmd.WriteString("--continue ")
 				scmd.WriteString("--write-thumbnail ")
 				scmd.WriteString("--write-sub --write-auto-sub --sub-lang 'en,en-US,zh-Hant' ")
-				scmd.WriteString("--mark-watched ")
+				// scmd.WriteString("--mark-watched ")
 				// scmd.WriteString("--youtube-skip-dash-manifest ")
 				scmd.WriteString("--skip-unavailable-fragments ")
 				// scmd.WriteString("--abort-on-unavailable-fragment ")
-				scmd.WriteString("--no-mtime ")
-				scmd.WriteString("--buffer-size 64k ")
+				// scmd.WriteString("--no-mtime ")
+				scmd.WriteString("--buffer-size 128k ")
 				// scmd.WriteString("--recode-video mp4 ")
 				scmd.WriteString("-o '" + ydir + videoName + ".%(ext)s' ")
 				// scmd.WriteString("-o '" + ydir + "%(title)s.%(ext)s' ")
