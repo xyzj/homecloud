@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/render"
@@ -49,6 +50,16 @@ func NewHTTPService() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.New()
+	//cors
+	r.Use(cors.New(cors.Config{
+		MaxAge:           time.Hour * 24,
+		AllowAllOrigins:  true,
+		AllowCredentials: true,
+		AllowWildcard:    true,
+		AllowMethods:     []string{"*"},
+		AllowHeaders:     []string{"*"},
+	}))
+
 	if *debug {
 		r.Use(ginmiddleware.LoggerWithRolling(gopsu.GetExecDir(), "", 3))
 	}
@@ -57,6 +68,10 @@ func NewHTTPService() {
 	r.HTMLRender = multiRender()
 
 	r.Static("/static", gopsu.JoinPathFromHere("static"))
+
+	// font css
+	r.GET("/css", ginmiddleware.ReadParams(), getCSS)
+	r.Static("/fonts", gopsu.JoinPathFromHere("fonts"))
 
 	r.GET("/", remoteIP)
 	r.GET("/reloadext", func(c *gin.Context) {

@@ -1,5 +1,0 @@
-{
-	"domain": "*.xyzjdays.xyz",
-	"certUrl": "https://acme-v02.api.letsencrypt.org/acme/cert/032a0d25977d72c0c298ba983c05002e933e",
-	"certStableUrl": "https://acme-v02.api.letsencrypt.org/acme/cert/032a0d25977d72c0c298ba983c05002e933e"
-}
