@@ -125,7 +125,11 @@ func runVideojs(c *gin.Context) {
 		}
 		fileext = strings.ToLower(filepath.Ext(filename))
 		filebase = strings.TrimSuffix(filename, fileext)
-		if strings.Contains(".f242.f251.f250.f133.f140", filebase) {
+		if strings.HasSuffix(filebase, "f133") ||
+			strings.HasSuffix(filebase, "f242") ||
+			strings.HasSuffix(filebase, "f251") ||
+			strings.HasSuffix(filebase, "f250") ||
+			strings.HasSuffix(filebase, "f140") {
 			continue
 		}
 		switch fileext {
