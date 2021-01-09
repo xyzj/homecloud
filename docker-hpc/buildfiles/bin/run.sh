@@ -1,7 +1,7 @@
 #!/bin/bash
 
 pkill -9 -f sslrenew
-pkill -9 -f deluge
+pkill -9 -f deluge-web
 pkill -9 -f mlnet
 # pkill -9 -f frpc
 
@@ -16,7 +16,7 @@ sleep 1
 service php7.4-fpm start
 
 start-stop-daemon --start --name mlnet -d /root --background --exec /usr/bin/mlnet
-/usr/bin/deluge-web -i 0.0.0.0 -p 10046
+/usr/bin/deluge-web -i 0.0.0.0 -p 60046
 
 service nginx start
 
