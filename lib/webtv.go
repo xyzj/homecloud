@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,7 +14,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/render"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"github.com/xyzj/gopsu"
@@ -24,12 +22,6 @@ import (
 
 func init() {
 	rand.Seed(time.Now().Unix())
-}
-
-type videoinfo struct {
-	url    string
-	format string
-	try    int
 }
 
 type videoformat struct {
@@ -81,11 +73,10 @@ func (fis byModTime) Less(i, j int) bool {
 }
 
 var (
-	pageWebTV           string
-	chanDownloadControl = make(chan *videoinfo, 100)
-	extreplacer         = strings.NewReplacer(".webp", "", ".dur", "", ".smi", "", ".png", "", ".jpg", "", ".zh-Hans", "", ".zh-Hant", "", ".vtt", "", ".en", "", ".en-US", "")
-	namereplacer        = strings.NewReplacer("#", "", "%", "")
-	subTypes            = []string{".zh-Hant", ".zh-Hans", ".en", ".en-US"}
+	pageWebTV    string
+	extreplacer  = strings.NewReplacer(".webp", "", ".dur", "", ".smi", "", ".png", "", ".jpg", "", ".zh-Hans", "", ".zh-Hant", "", ".vtt", "", ".en", "", ".en-US", "")
+	namereplacer = strings.NewReplacer("#", "", "%", "")
+	subTypes     = []string{".zh-Hant", ".zh-Hans", ".en", ".en-US"}
 )
 
 func runVideojs(c *gin.Context) {
@@ -268,116 +259,10 @@ func runVideojs(c *gin.Context) {
 	}
 
 	tpl := strings.Replace(pageWebTV, "playlist_data_here", gjson.Parse(playlist).Get("pl").String(), 1)
-	c.Header("Content-Type", "text/html")
-	c.Status(http.StatusOK)
 
 	thumblocker.Wait()
-	render.WriteString(c.Writer, tpl, nil)
-}
-
-func ydl(c *gin.Context) {
-	var v string
-	var ok bool
-	if v, ok = c.Params.Get("v"); !ok {
-		c.String(200, "need param v to set video url")
-		return
-	}
-	chanDownloadControl <- &videoinfo{url: v, format: strings.ReplaceAll(c.Param("f"), " ", "+")}
-	c.String(200, "The video file has started downloading... ")
-}
-
-func ydlb(c *gin.Context) {
-	switch c.Request.Method {
-	case "GET":
-		c.Header("Content-Type", "text/html")
-		c.Status(http.StatusOK)
-		render.WriteString(c.Writer, tplydl, nil)
-	case "POST":
-		vlist := strings.Split(c.Param("vlist"), "\n")
-		for _, vl := range vlist {
-			if strings.Contains(vl, "&") {
-				x := strings.Split(gopsu.TrimString(vl), "&")
-				chanDownloadControl <- &videoinfo{url: x[0], format: x[1]}
-			} else {
-				chanDownloadControl <- &videoinfo{url: vl, format: ""}
-			}
-		}
-		c.String(200, "These videos have been added to the download queue...")
-	}
-}
-
-func downloadControl() {
-	var dlock sync.WaitGroup
-RUN:
-	go func() {
-		dlock.Add(1)
-		defer func() {
-			recover()
-			dlock.Done()
-		}()
-		var scmd bytes.Buffer
-		var cmd *exec.Cmd
-		var shellName string
-		var videoName = "%(title)s"
-		for {
-			select {
-			case vi := <-chanDownloadControl:
-				if gopsu.TrimString(vi.url) == "" || vi.try >= 3 {
-					continue
-				}
-				shellName = "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + ".sh"
-				if gopsu.IsExist(shellName) && vi.format == "" {
-					goto DOWN
-				}
-				scmd.Reset()
-				scmd.WriteString("#!/bin/bash\n\n")
-
-				scmd.WriteString("youtube-dl ")
-				scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
-				scmd.WriteString("--continue ")
-				scmd.WriteString("--write-thumbnail ")
-				scmd.WriteString("--write-sub --write-auto-sub --sub-lang 'en,en-US,zh-Hant' ")
-				// scmd.WriteString("--mark-watched ")
-				// scmd.WriteString("--youtube-skip-dash-manifest ")
-				scmd.WriteString("--skip-unavailable-fragments ")
-				// scmd.WriteString("--abort-on-unavailable-fragment ")
-				scmd.WriteString("--no-mtime ")
-				scmd.WriteString("--buffer-size 256k ")
-				// scmd.WriteString("--recode-video mp4 ")
-				scmd.WriteString("-o '" + ydir + videoName + ".%(ext)s' ")
-				// scmd.WriteString("-o '" + ydir + "%(title)s.%(ext)s' ")
-				if vi.format == "" {
-					vi.format = "133+140/242+250/242+251/133+250/133+251/18"
-				}
-				scmd.WriteString("-f '" + vi.format + "' ")
-				if strings.HasPrefix(vi.url, "http") {
-					scmd.WriteString(vi.url)
-				} else {
-					scmd.WriteString("-- " + vi.url)
-				}
-				scmd.WriteString(" && \\\n\\\nrm $0\n")
-				ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
-			DOWN:
-				time.Sleep(time.Second * time.Duration(rand.Int31n(5)+10))
-				cmd = exec.Command(shellName)
-				b, err := cmd.CombinedOutput()
-				if err != nil {
-					b = append(b, []byte("\n"+err.Error()+"\n")...)
-					ioutil.WriteFile(shellName+".log", b, 0664)
-				}
-				time.Sleep(time.Second * time.Duration(rand.Int31n(5)+3))
-				if gopsu.IsExist(shellName) {
-					if !strings.Contains(string(b), "Unable to extract video data") {
-						vi.try++
-					}
-					chanDownloadControl <- vi
-				} else {
-					os.Remove(shellName + ".log")
-				}
-			}
-		}
-	}()
-	time.Sleep(time.Second)
-	dlock.Wait()
-	goto RUN
+	c.Header("Content-Type", "text/html")
+	c.String(200, tpl)
+	// c.Status(http.StatusOK)
+	// render.WriteString(c.Writer, tpl, nil)
 }

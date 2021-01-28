@@ -14,7 +14,6 @@ import (
 	"github.com/tidwall/sjson"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/render"
 	"github.com/tidwall/gjson"
 	"github.com/xyzj/gopsu"
 )
@@ -26,8 +25,9 @@ func codeString(c *gin.Context) {
 	}
 	// web页面
 	c.Header("Content-Type", "text/html")
-	c.Status(http.StatusOK)
-	render.WriteString(c.Writer, tplCodeStr, nil)
+	c.String(200, tplCodeStr)
+	// c.Status(http.StatusOK)
+	// render.WriteString(c.Writer, tplCodeStr, nil)
 }
 
 // login 登录
