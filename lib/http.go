@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -12,7 +11,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/render"
 	"github.com/xyzj/gopsu"
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
 )
@@ -135,29 +133,21 @@ func NewHTTPService() {
 	g5.GET("/codestr", codeString)
 	g5.POST("/codestr", ginmiddleware.ReadParams(), codeString)
 	// youtube 下载
-	g5.GET("/ydl", ginmiddleware.ReadParams(), ydl)
-	g5.GET("/ydlb", ydlb)
-	g5.POST("/ydlb", ginmiddleware.ReadParams(), ydlb)
+	// g5.GET("/ydl", ginmiddleware.ReadParams(), ydl)
+	g5.GET("/ydl", ydlb)
+	g5.POST("/ydl", ginmiddleware.ReadParams(), ydlb)
 	// 查看缓存的ip
 	g5.GET("/cachedip", func(c *gin.Context) {
 		c.Header("Content-Type", "text/html")
-		c.Status(http.StatusOK)
-		render.WriteString(c.Writer, `<a style="color:white";>https://</a>`+ipCached+`<a style="color:white";>:60019/v/news</a>`, nil)
+		c.String(200, `<a style="color:white";>https://</a>`+ipCached+`<a style="color:white";>:60019/v/news</a>`)
+		// c.Status(http.StatusOK)
+		// render.WriteString(c.Writer, `<a style="color:white";>https://</a>`+ipCached+`<a style="color:white";>:60019/v/news</a>`, nil)
 	})
 	// 向cf更新home的最新ip
 	g5.POST("/updatecf/:who", ginmiddleware.ReadParams(), updateCFRecord)
-	g5.GET("/ariang", func(c *gin.Context) {
-		if gopsu.IsExist("ariang.html") {
-			a, err := ioutil.ReadFile("ariang.html")
-			if err == nil {
-				c.Header("Content-Type", "text/html")
-				c.String(200, string(a))
-				return
-			}
-		}
-		c.String(200, "AriaNg not found")
-	})
-	g5.Static("/aria2web", "/home/xy/bin/aria2web/docs")
+	// 迅雷/bt/http下载,支持youtube
+	g5.GET("/dl", tdlb)
+	g5.POST("/dl", ginmiddleware.ReadParams(), tdlb)
 
 	r.HandleMethodNotAllowed = true
 	r.NoMethod(ginmiddleware.Page405)

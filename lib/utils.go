@@ -37,6 +37,7 @@ var (
 	windowsSSLCopy = filepath.Join(gopsu.GetExecDir(), "sslcopy.bat")
 	domainList     = []string{"wlst.vip,shwlst.com"}
 	ydir           string
+	tdir           string
 	httpClientPool = &http.Client{
 		Timeout: time.Duration(time.Second * 15),
 		Transport: &http.Transport{
@@ -70,6 +71,10 @@ func LoadExtConfigure(f string) {
 		ydir, _ = urlConf.GetItem("ydl_dir")
 		if ydir != "" && !strings.HasSuffix(ydir, "/") {
 			ydir += "/"
+		}
+		tdir, _ = urlConf.GetItem("tdl_dir")
+		if tdir != "" && !strings.HasSuffix(tdir, "/") {
+			tdir += "/"
 		}
 	}
 	// domainList = strings.Split(urlConf.GetItemDefault("dnspod_list", "wlst.vip,shwlst.com", "要管理的dnspod域名列表"), ",")
@@ -158,7 +163,8 @@ func Run(version string) {
 	go NewHTTPService()
 	// 启动youtube下载控制
 	for i := 0; i < 3; i++ {
-		go downloadControl()
+		go httpControl()
+		go youtubeControl()
 	}
 
 }
