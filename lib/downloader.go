@@ -37,6 +37,9 @@ func tdlb(c *gin.Context) {
 	case "POST":
 		vlist := strings.Split(c.Param("vlist"), "\n")
 		for _, vl := range vlist {
+			if gopsu.TrimString(vl) == "" {
+				continue
+			}
 		START:
 			s := strings.Split(vl, ":")
 			switch s[0] {
@@ -54,29 +57,34 @@ func tdlb(c *gin.Context) {
 						chanYoutubeDownloader <- &videoinfo{url: vl, format: ""}
 					}
 				} else {
-					chanHTTPDownloader <- &videoinfo{url: vl}
+					rpcToAria2(vl)
+					// chanHTTPDownloader <- &videoinfo{url: vl}
 				}
 			case "magnet":
-				s, _ := sjson.SetBytes([]byte{}, "jsonrpc", "2.0")
-				s, _ = sjson.SetBytes(s, "id", fmt.Sprintf("%d", time.Now().UnixNano()))
-				s, _ = sjson.SetBytes(s, "method", "aria2.addUri")
-				s, _ = sjson.SetBytes(s, "params.0.0", vl)
-				ss := strings.ReplaceAll(base64.URLEncoding.EncodeToString(s), "=", "%3D")
-				req, _ := http.NewRequest("GET", "http://127.0.0.1:60090/jsonrpc?params="+ss, strings.NewReader(""))
-				resp, err := httpClientPool.Do(req)
-				shellName := "/tmp/" + gopsu.CalcCRC32String([]byte(vl)) + ".aria2.log"
-				if err != nil {
-					ioutil.WriteFile(shellName, []byte(vl+"\n\n"+err.Error()), 0664)
-				} else {
-					body, _ := ioutil.ReadAll(resp.Body)
-					if strings.Contains(string(body), "error") {
-						ioutil.WriteFile(shellName, []byte(vl+"\n\n"+string(body)), 0664)
-					}
-				}
+				rpcToAria2(vl)
 			}
 			// magnet:?xt=urn:btih:6f2359c12381e22c2fc0ea0b86fb9754c0ca999d
 		}
 		c.String(200, "These links have been added to the download queue...")
+	}
+}
+
+func rpcToAria2(vl string) {
+	s, _ := sjson.SetBytes([]byte{}, "jsonrpc", "2.0")
+	s, _ = sjson.SetBytes(s, "id", fmt.Sprintf("%d", time.Now().UnixNano()))
+	s, _ = sjson.SetBytes(s, "method", "aria2.addUri")
+	s, _ = sjson.SetBytes(s, "params.0.0", vl)
+	ss := strings.ReplaceAll(base64.URLEncoding.EncodeToString(s), "=", "%3D")
+	req, _ := http.NewRequest("GET", "http://127.0.0.1:60090/jsonrpc?params="+ss, strings.NewReader(""))
+	resp, err := httpClientPool.Do(req)
+	shellName := "/tmp/" + gopsu.CalcCRC32String([]byte(vl)) + ".aria2.log"
+	if err != nil {
+		ioutil.WriteFile(shellName, []byte(vl+"\n\n"+err.Error()), 0664)
+	} else {
+		body, _ := ioutil.ReadAll(resp.Body)
+		if strings.Contains(string(body), "error") {
+			ioutil.WriteFile(shellName, []byte(vl+"\n\n"+string(body)), 0664)
+		}
 	}
 }
 
