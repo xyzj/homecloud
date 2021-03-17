@@ -3,18 +3,19 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 var (
-	dir  = flag.String("dir", ".", "set the dir to serve")
-	http = flag.Int("http", 8060, "set http port")
+	dir  = flag.String("d", ".", "set the dir to serve")
+	port = flag.Int("p", 8060, "set http port")
 )
 
 func main() {
 	flag.Parse()
 	r := gin.New()
-	r.StaticFile("/", *dir)
-	r.Run(fmt.Sprintf(":%d", *http))
+	r.StaticFS("/", http.Dir(*dir))
+	r.Run(fmt.Sprintf(":%d", *port))
 }
