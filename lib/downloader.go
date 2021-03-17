@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -57,8 +58,12 @@ func tdlb(c *gin.Context) {
 						chanYoutubeDownloader <- &videoinfo{url: vl, format: ""}
 					}
 				} else {
-					rpcToAria2(vl)
-					// chanHTTPDownloader <- &videoinfo{url: vl}
+					furl := vl
+					if !strings.Contains(vl, "%") {
+						idx := strings.LastIndex(vl, "/")
+						furl = vl[:idx+1] + url.QueryEscape(vl[idx+1:])
+					}
+					rpcToAria2(furl)
 				}
 			case "magnet":
 				rpcToAria2(vl)

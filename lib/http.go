@@ -148,6 +148,8 @@ func NewHTTPService() {
 	// 迅雷/bt/http下载,支持youtube
 	g5.GET("/dl", tdlb)
 	g5.POST("/dl", ginmiddleware.ReadParams(), tdlb)
+	// aria2 web ui
+	g5.Static("/aria2", gopsu.JoinPathFromHere("static", "aria2web", "docs"))
 
 	r.HandleMethodNotAllowed = true
 	r.NoMethod(ginmiddleware.Page405)
