@@ -169,6 +169,20 @@ RUN:
 			if gopsu.TrimString(vi.url) == "" || vi.try >= 3 {
 				continue
 			}
+			shellName = "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + "-name.sh"
+			scmd.Reset()
+			scmd.WriteString("#!/bin/bash\n\n")
+			scmd.WriteString("youtube-dl ")
+			scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
+			scmd.WriteString("--get-filename ")
+			scmd.WriteString("-o '%(title)s' ")
+			scmd.WriteString(vi.url)
+			scmd.WriteString(" && \\\n\\\nrm $0\n")
+			ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
+			cmd = exec.Command(shellName)
+			if b, err := cmd.CombinedOutput(); err == nil {
+				videoName = string(b)[:240]
+			}
 			shellName = "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + ".sh"
 			if gopsu.IsExist(shellName) && vi.format == "" {
 				goto DOWN
@@ -189,7 +203,6 @@ RUN:
 			scmd.WriteString("--buffer-size 256k ")
 			// scmd.WriteString("--recode-video mp4 ")
 			scmd.WriteString("-o '" + ydir + videoName + ".%(ext)s' ")
-			// scmd.WriteString("-o '" + ydir + "%(title)s.%(ext)s' ")
 			if vi.format == "" {
 				vi.format = "133+140/242+250/242+251/133+250/133+251/18"
 			}
