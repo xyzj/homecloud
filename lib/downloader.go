@@ -153,11 +153,13 @@ func rpcToAria2(vl string) {
 func youtubeControl() {
 	var dlock sync.WaitGroup
 RUN:
-	videoNameReplacer := strings.NewReplacer("；", ";", "：", ":", "（", "(", "）", ")", "？", "", " ", "_", "《", "<", "》", ">", "！", "!", "，", ",", "。", ".")
+	videoNameReplacer := strings.NewReplacer("\n", "", "\r", "", "；", ";", "：", ":", "（", "", "）", "", "？", "", " ", "_", "《", "<", "》", ">", "！", "", "，", ",", "。", "")
 	dlock.Add(1)
 	go func() {
 		defer func() {
-			recover()
+			if err := recover(); err != nil {
+				println(err.(error).Error())
+			}
 			dlock.Done()
 		}()
 		var scmd bytes.Buffer
@@ -165,6 +167,7 @@ RUN:
 		var shellName string
 		var videoName = "%(title)s"
 		for vi := range chanYoutubeDownloader {
+			videoName = "%(title)s"
 			// select {
 			// case vi := <-chanYoutubeDownloader:
 			if gopsu.TrimString(vi.url) == "" || vi.try >= 3 {
@@ -182,7 +185,10 @@ RUN:
 			ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
 			cmd = exec.Command(shellName)
 			if b, err := cmd.CombinedOutput(); err == nil {
-				videoName = videoNameReplacer.Replace(string(b))[:230]
+				videoName = videoNameReplacer.Replace(string(b))
+				if len(videoName) > 230 {
+					videoName = videoName[:230]
+				}
 			}
 			shellName = "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + ".sh"
 			if gopsu.IsExist(shellName) && vi.format == "" {
