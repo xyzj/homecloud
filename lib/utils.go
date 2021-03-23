@@ -18,12 +18,12 @@ const (
 	bwhAPIKey    = "yfCUSxAg5fs9DMzQntChzNkPneEsvMm5bMo+iuDt9Zr0itwcP3vSrMDOfeCovNA0igyKy2z1bKy8CxsQTYCNexa"
 	bwhVeid      = "979913"
 	// dnspod sslrenew token
-	dnspodID    = "141155"
-	dnspodToken = "076ba7af12e110fb5c2eebc438dae5a1"
+	// dnspodID    = "141155"
+	// dnspodToken = "076ba7af12e110fb5c2eebc438dae5a1"
 	// cloudflare
-	cfKey  = "b6c9de4a9814d534ab16c12d99718f118fde2"
-	cfZone = "fb8a871c3737648dfd964bd625f9f685"
-	cfID   = "712df327b64333800c02511f404b3157"
+	// cfKey  = "b6c9de4a9814d534ab16c12d99718f118fde2"
+	// cfZone = "fb8a871c3737648dfd964bd625f9f685"
+	// cfID   = "712df327b64333800c02511f404b3157"
 )
 
 var (
@@ -33,9 +33,6 @@ var (
 	keyFile        string
 	ipCached       string
 	urlConf        *gopsu.ConfData
-	linuxSSLCopy   = filepath.Join(gopsu.GetExecDir(), "sslcopy.sh")
-	windowsSSLCopy = filepath.Join(gopsu.GetExecDir(), "sslcopy.bat")
-	domainList     = []string{"wlst.vip,shwlst.com"}
 	ydir           string
 	tdir           string
 	httpClientPool = &http.Client{
@@ -163,7 +160,7 @@ func Run(version string) {
 	go NewHTTPService()
 	// 启动youtube下载控制
 	for i := 0; i < 3; i++ {
-		go httpControl()
+		// go httpControl()
 		go youtubeControl()
 	}
 
