@@ -30,26 +30,6 @@ func codeString(c *gin.Context) {
 	// render.WriteString(c.Writer, tplCodeStr, nil)
 }
 
-// login 登录
-func movies(c *gin.Context) {
-	urlConf.Reload()
-	// if ipCached == "" {
-	// 	b, err := ioutil.ReadFile(".ipcache")
-	// 	if err != nil {
-	// 		c.String(200, err.Error())
-	// 		return
-	// 	}
-	// 	ipCached = strings.TrimSpace((string(b)))
-	// }
-	n, err := urlConf.GetItem(c.Param("name"))
-	if err != nil {
-		c.String(200, err.Error())
-		return
-	}
-	s := "https://kod.xyzjdays.xyz:10043/index.php?share/" + gopsu.DecodeString(n)
-	c.Redirect(http.StatusTemporaryRedirect, s)
-}
-
 func vps4info(c *gin.Context) {
 
 	// use golang net

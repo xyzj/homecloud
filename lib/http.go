@@ -15,26 +15,6 @@ import (
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
 )
 
-// 该文件为
-// statusCheck 状态检查
-func statusCheck(c *gin.Context) {
-	var d = gin.H{
-		"timer": gopsu.Stamp2Time(time.Now().Unix()),
-		"ver":   strings.Split(Version, "\n")[1:],
-	}
-
-	switch c.Request.Method {
-	case "GET":
-		c.HTML(200, "status", d)
-	case "POST":
-		c.PureJSON(200, d)
-	}
-}
-
-func test(c *gin.Context) {
-	gopsu.ZIPFiles("aaa.zip", []string{".ipcache", "build.py", "hcloud.conf"}, "ca")
-}
-
 // multiRender 预置模板
 func multiRender() multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
@@ -158,8 +138,8 @@ func NewHTTPService() {
 	// 在微线程中启动服务
 	var wl sync.WaitGroup
 	var err error
+	wl.Add(1)
 	go func() {
-		wl.Add(1)
 		defer wl.Done()
 		if *web > 1000 {
 			err = ginmiddleware.ListenAndServe(*web, r)
@@ -168,8 +148,8 @@ func NewHTTPService() {
 			}
 		}
 	}()
+	wl.Add(1)
 	go func() {
-		wl.Add(1)
 		defer wl.Done()
 		if *webs > 1000 && *domain != "" && gopsu.IsExist(crtFile) && gopsu.IsExist(keyFile) {
 			err = ginmiddleware.ListenAndServeTLS(*webs, r, crtFile, keyFile, "")

@@ -24,40 +24,6 @@ func init() {
 	rand.Seed(time.Now().Unix())
 }
 
-type videoformat struct {
-	audio250 bool
-	audio251 bool
-	audio140 bool
-	video242 bool
-	video133 bool
-	video18  bool
-}
-
-func (vf *videoformat) Format() string {
-	s := make([]string, 0)
-	//"242+250/133+250/133+140/18"
-	if vf.video242 {
-		if vf.audio250 {
-			s = append(s, "242+250")
-		} else if vf.audio251 {
-			s = append(s, "242+251")
-		} else if vf.audio140 {
-			s = append(s, "242+140")
-		}
-	} else if vf.video133 {
-		if vf.audio250 {
-			s = append(s, "133+250")
-		} else if vf.audio251 {
-			s = append(s, "133+251")
-		} else if vf.audio140 {
-			s = append(s, "133+140")
-		}
-	} else if vf.video18 {
-		s = append(s, "18")
-	}
-	return strings.Join(s, "/")
-}
-
 type byModTime []os.FileInfo
 
 func (fis byModTime) Len() int {
@@ -130,8 +96,8 @@ func runVideojs(c *gin.Context) {
 			dur = 0
 			if showdur {
 				if !gopsu.IsExist(filedur) {
+					thumblocker.Add(1)
 					go func(in, out string) {
-						thumblocker.Add(1)
 						defer thumblocker.Done()
 						cmd := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", "-i", in)
 						b, err := cmd.CombinedOutput()
@@ -161,8 +127,8 @@ func runVideojs(c *gin.Context) {
 			dur = 0
 			if showdur {
 				if !gopsu.IsExist(filedur) {
+					thumblocker.Add(1)
 					go func(in, out string) {
-						thumblocker.Add(1)
 						defer thumblocker.Done()
 						cmd := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", "-i", in)
 						b, err := cmd.CombinedOutput()
@@ -190,8 +156,8 @@ func runVideojs(c *gin.Context) {
 			}
 			// 缩略图
 			if !gopsu.IsExist(filethumb) || gopsu.IsExist(strings.TrimSuffix(filesrc, fileext)+".webp") {
+				thumblocker.Add(1)
 				go func(in, out, ext string) {
-					thumblocker.Add(1)
 					defer thumblocker.Done()
 					if gopsu.IsExist(strings.TrimSuffix(in, ext) + ".jpg") {
 						cmd := exec.Command("mogrify", "-resize", "168x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".jpg")
