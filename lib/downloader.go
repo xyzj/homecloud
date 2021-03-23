@@ -153,6 +153,7 @@ func rpcToAria2(vl string) {
 func youtubeControl() {
 	var dlock sync.WaitGroup
 RUN:
+	videoNameReplacer := strings.NewReplacer("；", ";", "：", ":", "（", "(", "）", ")", "？", "", " ", "_", "《", "<", "》", ">", "！", "!", "，", ",", "。", ".")
 	dlock.Add(1)
 	go func() {
 		defer func() {
@@ -181,7 +182,7 @@ RUN:
 			ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
 			cmd = exec.Command(shellName)
 			if b, err := cmd.CombinedOutput(); err == nil {
-				videoName = string(b)[:240]
+				videoName = videoNameReplacer.Replace(string(b))[:230]
 			}
 			shellName = "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + ".sh"
 			if gopsu.IsExist(shellName) && vi.format == "" {
