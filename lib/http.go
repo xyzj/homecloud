@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -57,33 +56,6 @@ func NewHTTPService() {
 		urlConf.Reload()
 		pageWebTV = loadWebTVPage()
 		c.String(200, "done")
-	})
-	// kod共享
-	r.GET("/m/:name", func(c *gin.Context) {
-		urlConf.Reload()
-		n, err := urlConf.GetItem(c.Param("name"))
-		if err != nil {
-			c.String(200, err.Error())
-			return
-		}
-		s := "https://office.shwlst.com:20081/index.php?share/" + gopsu.DecodeString(n)
-		c.Redirect(http.StatusTemporaryRedirect, s)
-	})
-	r.GET("/share/add", ginmiddleware.ReadParams(), func(c *gin.Context) {
-		if !urlConf.SetItem(c.Param("src"), strings.ReplaceAll(c.Param("dst"), " ", "+"), "kod share") {
-			c.String(200, "failed")
-			return
-		}
-		urlConf.Save()
-		c.String(200, "ok")
-	})
-	r.GET("/share/del", ginmiddleware.ReadParams(), func(c *gin.Context) {
-		urlConf.DelItem(c.Param("src"))
-		urlConf.Save()
-		c.String(200, "ok")
-	})
-	r.GET("/share/query", func(c *gin.Context) {
-		c.String(200, urlConf.GetAll())
 	})
 	// 视频播放
 	r.GET("/v/:dir", ginmiddleware.ReadParams(), runVideojs)
