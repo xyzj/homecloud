@@ -153,7 +153,7 @@ func rpcToAria2(vl string) {
 func youtubeControl() {
 	var dlock sync.WaitGroup
 RUN:
-	videoNameReplacer := strings.NewReplacer("%", "", "\n", "", "\r", "", "；", ";", "：", ":", "（", "", "）", "", "？", "", " ", "_", "《", "<", "》", ">", "！", "", "，", ",", "。", "")
+	videoNameReplacer := strings.NewReplacer("、", ";", "%", "", "\n", "", "\r", "", "；", ";", "：", ":", "（", "", "）", "", "？", "", " ", "", "《", "<", "》", ">", "！", "", "，", ",", "。", "")
 	dlock.Add(1)
 	go func() {
 		defer func() {
