@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -23,7 +22,6 @@ var (
 	mainDomain  = "wgq.shwlst.com:40001"
 	debugDomain = "v4.xyzjdays.xyz"
 
-	urlSign        = "https://%s/cert/sign/%s"
 	urlDownload    = "https://%s/cert/download/%s"
 	domainList     = []string{"wlst.vip"} //, "shwlst.com"}
 	linuxSSLCopy   = filepath.Join(gopsu.GetExecDir(), "sslcopy.sh")
@@ -43,32 +41,6 @@ var (
 	}
 )
 
-func localSign(domain string) string {
-	sign, err := ioutil.ReadFile(domain + ".sign")
-	if err != nil {
-		return ""
-	}
-	dlog.Println("Checking local sign for " + domain + " ... Done.")
-	return string(sign)
-}
-func remoteSign(domain string) string {
-	req, _ := http.NewRequest("GET", fmt.Sprintf(urlSign, mainDomain, domain), strings.NewReader(""))
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return "1"
-	}
-	defer resp.Body.Close()
-	sign, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "1"
-	}
-	if resp.StatusCode == 200 {
-		ioutil.WriteFile(domain+".sign", sign, 0664)
-		dlog.Println("Checking remote sign for " + domain + " ... Done.")
-		return string(sign)
-	}
-	return "1"
-}
 func downloadCert(domain string) bool {
 	req, _ := http.NewRequest("GET", fmt.Sprintf(urlDownload, mainDomain, domain), strings.NewReader(""))
 	resp, err := httpClient.Do(req)
@@ -105,7 +77,6 @@ func renew() {
 		// 	} else {
 		// 		dlog.Println("Can not get cert file info:" + v)
 		// 	}
-		// }
 		println("-------")
 	}
 	var cmd *exec.Cmd
