@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -45,6 +46,7 @@ func NewHTTPService() {
 	// 渲染模板
 	r.HTMLRender = multiRender()
 
+	r.StaticFS("/emb", http.FS(stat))
 	r.Static("/static", gopsu.JoinPathFromHere("static"))
 
 	// font css
@@ -57,8 +59,18 @@ func NewHTTPService() {
 		pageWebTV = loadWebTVPage()
 		c.String(200, "done")
 	})
+
 	// 视频播放
-	r.GET("/v/:dir", ginmiddleware.ReadParams(), runVideojs)
+	var vg *gin.RouterGroup
+	if *vauth {
+		vg = r.Group("/v", gin.BasicAuth(gin.Accounts{
+			"personal": "hwadame",
+			"video":    "letmesee",
+		}))
+	} else {
+		vg = r.Group("/v")
+	}
+	vg.GET("/:dir", ginmiddleware.ReadParams(), runVideojs)
 	keys := urlConf.GetKeys()
 	for _, key := range keys {
 		if strings.HasPrefix(key, "tv-") {
@@ -101,7 +113,7 @@ func NewHTTPService() {
 	g5.GET("/dl", tdlb)
 	g5.POST("/dl", ginmiddleware.ReadParams(), tdlb)
 	// aria2 web ui
-	g5.Static("/aria2", gopsu.JoinPathFromHere("static", "aria2web", "docs"))
+	g5.Static("/aria2", gopsu.JoinPathFromHere("static", "aria2web"))
 
 	r.HandleMethodNotAllowed = true
 	r.NoMethod(ginmiddleware.Page405)
