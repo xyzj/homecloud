@@ -2,6 +2,7 @@ package lib
 
 import (
 	"crypto/tls"
+	"embed"
 	"flag"
 	"io/ioutil"
 	"net/http"
@@ -12,6 +13,9 @@ import (
 
 	"github.com/xyzj/gopsu"
 )
+
+//go:embed static
+var stat embed.FS
 
 const (
 	bwhStatusURL = "https://api.64clouds.com/v1/getServiceInfo?veid=%s&api_key=%s"
@@ -52,6 +56,7 @@ var (
 	ver    = flag.Bool("version", false, "print version info and exit.")
 	help   = flag.Bool("help", false, "print help and exit.")
 	debug  = flag.Bool("debug", false, "set if enable debug info.")
+	vauth  = flag.Bool("vauth", false, "set if enable http auth for video group.")
 	web    = flag.Int("http", 0, "set http port to listen on.")
 	webs   = flag.Int("https", 0, "set https port to listen on.")
 	domain = flag.String("domain", "xyzjdays.xyz", "set domain name.")
@@ -80,61 +85,52 @@ func LoadExtConfigure(f string) {
 }
 
 func loadWebTVPage() string {
-	var webPage string
 	// html页面
 	b, err := ioutil.ReadFile(gopsu.JoinPathFromHere("static", "tpl", "webtv.html"))
 	if err != nil {
-		return tplVideojs
+		b, _ = stat.ReadFile("static/tpl/webtv.html")
 	}
-	webPage = string(b)
+	var webPage = string(b)
 	//videojs css
 	b, err = ioutil.ReadFile(gopsu.JoinPathFromHere("static", "css", "video-js.min.css"))
-	if err != nil {
-		return tplVideojs
+	if err == nil {
+		webPage = strings.Replace(webPage, `<link rel="stylesheet" href="/static/css/video-js.min.css" />`, "<style>"+string(b)+"</style>", 1)
 	}
-	webPage = strings.Replace(webPage, `<link rel="stylesheet" href="/static/css/video-js.min.css" />`, "<style>"+string(b)+"</style>", 1)
 	//playlist-ui css
 	b, err = ioutil.ReadFile(gopsu.JoinPathFromHere("static", "css", "videojs-playlist-ui.custom.css"))
-	if err != nil {
-		return tplVideojs
+	if err == nil {
+		webPage = strings.Replace(webPage, `<link rel="stylesheet" href="/static/css/videojs-playlist-ui.custom.css" />`, "<style>"+string(b)+"</style>", 1)
 	}
-	webPage = strings.Replace(webPage, `<link rel="stylesheet" href="/static/css/videojs-playlist-ui.custom.css" />`, "<style>"+string(b)+"</style>", 1)
 	//video.min.js
 	b, err = ioutil.ReadFile(gopsu.JoinPathFromHere("static", "js", "videojs", "video.min.js"))
-	if err != nil {
-		return tplVideojs
+	if err == nil {
+		webPage = strings.Replace(webPage, `<script src="/static/js/videojs/video.min.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	}
-	webPage = strings.Replace(webPage, `<script src="/static/js/videojs/video.min.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	//videojs.hotkeys.min.js
 	b, err = ioutil.ReadFile(gopsu.JoinPathFromHere("static", "js", "videojs-hotkeys", "videojs.hotkeys.min.js"))
-	if err != nil {
-		return tplVideojs
+	if err == nil {
+		webPage = strings.Replace(webPage, `<script src="/static/js/videojs-hotkeys/videojs.hotkeys.min.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	}
-	webPage = strings.Replace(webPage, `<script src="/static/js/videojs-hotkeys/videojs.hotkeys.min.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	//videojs-playlist.min.js
 	b, err = ioutil.ReadFile(gopsu.JoinPathFromHere("static", "js", "videojs-playlist", "videojs-playlist.min.js"))
-	if err != nil {
-		return tplVideojs
+	if err == nil {
+		webPage = strings.Replace(webPage, `<script src="/static/js/videojs-playlist/videojs-playlist.min.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	}
-	webPage = strings.Replace(webPage, `<script src="/static/js/videojs-playlist/videojs-playlist.min.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	//videojs-flash.js
 	b, err = ioutil.ReadFile(gopsu.JoinPathFromHere("static", "js", "videojs-flash", "videojs-flash.min.js"))
-	if err != nil {
-		return tplVideojs
+	if err == nil {
+		webPage = strings.Replace(webPage, `<script src="/static/js/videojs-flash/videojs-flash.min.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	}
-	webPage = strings.Replace(webPage, `<script src="/static/js/videojs-flash/videojs-flash.min.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	//videojs-playlist-ui.js
 	b, err = ioutil.ReadFile(gopsu.JoinPathFromHere("static", "js", "videojs-playlist", "videojs-playlist-ui.js"))
-	if err != nil {
-		return tplVideojs
+	if err == nil {
+		webPage = strings.Replace(webPage, `<script src="/static/js/videojs-playlist/videojs-playlist-ui.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	}
-	webPage = strings.Replace(webPage, `<script src="/static/js/videojs-playlist/videojs-playlist-ui.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	//zh-TW.js
 	b, err = ioutil.ReadFile(gopsu.JoinPathFromHere("static", "js", "videojs", "lang", "zh-TW.js"))
-	if err != nil {
-		return tplVideojs
+	if err == nil {
+		webPage = strings.Replace(webPage, `<script src="/static/js/videojs/lang/zh-TW.js"></script>`, "<script>"+string(b)+"</script>", 1)
 	}
-	webPage = strings.Replace(webPage, `<script src="/static/js/videojs/lang/zh-TW.js"></script>`, "<script>"+string(b)+"</script>", 1)
 
 	return webPage
 }
