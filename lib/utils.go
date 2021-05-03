@@ -17,6 +17,12 @@ import (
 //go:embed static
 var stat embed.FS
 
+//go:embed ca/localhost.pem
+var caCert []byte
+
+//go:embed ca/localhost-key.pem
+var caKey []byte
+
 const (
 	bwhStatusURL = "https://api.64clouds.com/v1/getServiceInfo?veid=%s&api_key=%s"
 	bwhAPIKey    = "yfCUSxAg5fs9DMzQntChzNkPneEsvMm5bMo+iuDt9Zr0itwcP3vSrMDOfeCovNA0igyKy2z1bKy8CxsQTYCNexa"
@@ -152,6 +158,13 @@ func Run(version string) {
 	}
 	crtFile = filepath.Join(gopsu.GetExecDir(), "ca", *domain+".crt")
 	keyFile = filepath.Join(gopsu.GetExecDir(), "ca", *domain+".key")
+	if !gopsu.IsExist(crtFile) || !gopsu.IsExist(keyFile) {
+		crtFile = filepath.Join(gopsu.GetExecDir(), "ca", "localhost.pem")
+		keyFile = filepath.Join(gopsu.GetExecDir(), "ca", "localhost-key.pem")
+		os.MkdirAll(filepath.Join(gopsu.GetExecDir(), "ca"), 0755)
+		ioutil.WriteFile(crtFile, caCert, 0644)
+		ioutil.WriteFile(keyFile, caKey, 0644)
+	}
 	LoadExtConfigure(*conf)
 	go NewHTTPService()
 	// 启动youtube下载控制
