@@ -3,10 +3,8 @@ package main
 import (
 	"bytes"
 	"crypto/tls"
-	"encoding/base64"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -148,31 +146,7 @@ func checkCode(b bool) string {
 }
 
 func main() {
-	s, _ := sjson.SetBytes([]byte{}, "jsonrpc", "2.0")
-	s, _ = sjson.SetBytes(s, "id", fmt.Sprintf("%d", time.Now().UnixNano()))
-	s, _ = sjson.SetBytes(s, "method", "aria2.addUri")
-	s, _ = sjson.SetBytes(s, "params.0.0", "magnet:?xt=urn:btih:DF3AB14B1A87453F04FC2930CFA8971DF8E6F45A&dn=nancy.drew.2019.s02e01.1080p.web.h264-cakes.chs.eng.mp4&tr=udp%3a%2f%2ftracker.openbittorrent.com%3a80%2fannounce&tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce")
-	ss := strings.ReplaceAll(base64.URLEncoding.EncodeToString(s), "=", "%3D")
-	println(ss)
-	client := &http.Client{
-		Timeout: time.Duration(time.Second * 15),
-		Transport: &http.Transport{
-			IdleConnTimeout:     time.Second * 15,
-			MaxConnsPerHost:     10,
-			MaxIdleConns:        1,
-			MaxIdleConnsPerHost: 1,
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		},
-	}
-	req, _ := http.NewRequest("GET", "http://da.xyzjdays.xyz:60090/jsonrpc?params="+ss, strings.NewReader(""))
-	resp, err := client.Do(req)
-	if err != nil {
-		println("resp err " + err.Error())
-		return
-	}
-	body, _ := ioutil.ReadAll(resp.Body)
-	println(string(body))
-
+	s := "WptE1IZXBE+UhJZOislo2UM1BiokJVt1OraV1Vk5ywkghKS0imoMdVFTlwa/2I1SOw"
+	s1 := "WzaAISXKin1ogGFnyniMxTWiRwYUIHczRpjI1GMLiqawKHDL4mgUwH4fBk2geH6ulu"
+	println(gopsu.DecodeString(s), gopsu.DecodeString(s1))
 }
