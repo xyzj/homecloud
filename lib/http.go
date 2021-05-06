@@ -63,7 +63,7 @@ func NewHTTPService() {
 	// 视频播放
 	var vg *gin.RouterGroup
 	if *vauth {
-		vg = r.Group("/v", gin.BasicAuth(gin.Accounts{
+		vg = r.Group("/v", ginmiddleware.RateLimit(1, 1), gin.BasicAuth(gin.Accounts{
 			"personal": "hwadame",
 			"video":    "letmesee",
 		}))
