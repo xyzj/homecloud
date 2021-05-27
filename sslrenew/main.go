@@ -122,6 +122,6 @@ func main() {
 			}
 		}
 		renew()
-		time.Sleep(time.Hour * time.Duration(24+rand.Int31n(24)))
+		time.Sleep(time.Hour * time.Duration(2+rand.Int31n(12)))
 	}
 }
