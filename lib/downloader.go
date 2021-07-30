@@ -51,8 +51,8 @@ func tdlb(c *gin.Context) {
 				goto START
 			case "http", "https":
 				if strings.Contains(vl, "www.youtube.com") {
-					if strings.Contains(vl, "&") {
-						x := strings.Split(gopsu.TrimString(vl), "&")
+					if strings.Contains(vl, "&&") {
+						x := strings.Split(gopsu.TrimString(vl), "&&")
 						chanYoutubeDownloader <- &videoinfo{url: x[0], format: x[1]}
 					} else {
 						chanYoutubeDownloader <- &videoinfo{url: vl, format: ""}
