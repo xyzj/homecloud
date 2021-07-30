@@ -146,7 +146,6 @@ func checkCode(b bool) string {
 }
 
 func main() {
-	s := "WptE1IZXBE+UhJZOislo2UM1BiokJVt1OraV1Vk5ywkghKS0imoMdVFTlwa/2I1SOw"
-	s1 := "WzaAISXKin1ogGFnyniMxTWiRwYUIHczRpjI1GMLiqawKHDL4mgUwH4fBk2geH6ulu"
-	println(gopsu.DecodeString(s), gopsu.DecodeString(s1))
+	s := "https://www.youtube.com/watch?v=7cWzOKSsrTs&pp=sAQA&18"
+	println(gopsu.LastSlice(s, "&"))
 }
