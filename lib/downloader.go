@@ -170,7 +170,7 @@ RUN:
 			videoName = "%(title)s"
 			// select {
 			// case vi := <-chanYoutubeDownloader:
-			if gopsu.TrimString(vi.url) == "" || vi.try >= 3 {
+			if gopsu.TrimString(vi.url) == "" || vi.try >= 5 {
 				continue
 			}
 			shellName = "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + "-name.sh"
@@ -180,11 +180,11 @@ RUN:
 			scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
 			scmd.WriteString("--get-filename ")
 			scmd.WriteString("-o '%(title)s' ")
-			scmd.WriteString(vi.url)
-			scmd.WriteString(" && \\\n\\\nrm $0\n")
+			scmd.WriteString("'" + vi.url + "'")
+			scmd.WriteString(" && \\\nrm $0\n")
 			ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
 			cmd = exec.Command(shellName)
-			if b, err := cmd.CombinedOutput(); err == nil {
+			if b, err := cmd.CombinedOutput(); err == nil && !strings.Contains(string(b), "urlopenerror") {
 				videoName = videoNameReplacer.Replace(string(b))
 				if len(videoName) > 230 {
 					videoName = videoName[:230]
@@ -215,11 +215,11 @@ RUN:
 			}
 			scmd.WriteString("-f '" + vi.format + "' ")
 			if strings.HasPrefix(vi.url, "http") {
-				scmd.WriteString(vi.url)
+				scmd.WriteString("'" + vi.url + "'")
 			} else {
 				scmd.WriteString("-- " + vi.url)
 			}
-			scmd.WriteString(" && \\\n\\\nrm $0\n")
+			scmd.WriteString(" && \\\nrm $0\n")
 			ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
 		DOWN:
 			time.Sleep(time.Second * time.Duration(rand.Int31n(5)+10))
@@ -231,7 +231,7 @@ RUN:
 			}
 			time.Sleep(time.Second * time.Duration(rand.Int31n(5)+3))
 			if gopsu.IsExist(shellName) {
-				if !strings.Contains(string(b), "Unable to extract video data") {
+				if !strings.Contains(strings.ToLower(string(b)), "error") {
 					vi.try++
 				}
 				chanYoutubeDownloader <- vi
