@@ -11,7 +11,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -51,6 +50,7 @@ func tdlb(c *gin.Context) {
 				goto START
 			case "http", "https":
 				if strings.Contains(vl, "www.youtube.com") {
+					vl = strings.ReplaceAll(vl, "&pp=sAQA", "")
 					if strings.Contains(vl, "&&") {
 						x := strings.Split(gopsu.TrimString(vl), "&&")
 						chanYoutubeDownloader <- &videoinfo{url: x[0], format: x[1]}
@@ -151,16 +151,18 @@ func rpcToAria2(vl string) {
 // }
 
 func youtubeControl() {
-	var dlock sync.WaitGroup
+	// var dlock sync.WaitGroup
+	videoNameReplacer := strings.NewReplacer("WARNING:Unabletodownloadwebpage:Nostatuslinereceived-theserverhasclosedtheconnection", "",
+		"、", ";", "%", "", "\n", "", "\r", "", "；", ";", "：", ":", "（", "", "）", "", "？", "", " ", "", "《", "<", "》", ">", "！", "", "，", ",", "。", "")
 RUN:
-	videoNameReplacer := strings.NewReplacer("、", ";", "%", "", "\n", "", "\r", "", "；", ";", "：", ":", "（", "", "）", "", "？", "", " ", "", "《", "<", "》", ">", "！", "", "，", ",", "。", "")
-	dlock.Add(1)
-	go func() {
+	// dlock.Add(1)
+	// go func() {
+	func() {
 		defer func() {
 			if err := recover(); err != nil {
 				println(err.(error).Error())
 			}
-			dlock.Done()
+			// dlock.Done()
 		}()
 		var scmd bytes.Buffer
 		var cmd *exec.Cmd
@@ -242,7 +244,7 @@ RUN:
 		}
 	}()
 	time.Sleep(time.Second)
-	dlock.Wait()
+	// dlock.Wait()
 	goto RUN
 }
 
