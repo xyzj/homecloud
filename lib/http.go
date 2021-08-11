@@ -96,6 +96,9 @@ func NewHTTPService() {
 	// 字符串编码解码
 	g5.GET("/codestr", codeString)
 	g5.POST("/codestr", ginmiddleware.ReadParams(), codeString)
+	// md5编码解码
+	g5.GET("/md5", md5String)
+	g5.POST("/md5", ginmiddleware.ReadParams(), md5String)
 	// youtube 下载
 	// g5.GET("/ydl", ginmiddleware.ReadParams(), ydl)
 	g5.GET("/ydl", ydlb)
