@@ -23,6 +23,18 @@ func codeString(c *gin.Context) {
 	// render.WriteString(c.Writer, tplCodeStr, nil)
 }
 
+func md5String(c *gin.Context) {
+	if c.Request.Method == "POST" {
+		c.String(200, gopsu.GetMD5(c.Param("rawstr")))
+		return
+	}
+	// web页面
+	c.Header("Content-Type", "text/html")
+	c.String(200, tplMD5Str)
+	// c.Status(http.StatusOK)
+	// render.WriteString(c.Writer, tplCodeStr, nil)
+}
+
 func vps4info(c *gin.Context) {
 
 	// use golang net
