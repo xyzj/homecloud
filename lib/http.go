@@ -39,8 +39,8 @@ func NewHTTPService() {
 		AllowHeaders:     []string{"*"},
 	}))
 
-	if *debug {
-		r.Use(ginmiddleware.LoggerWithRolling(gopsu.GetExecDir(), "", 3))
+	if *filelogon {
+		r.Use(ginmiddleware.LoggerWithRolling(gopsu.GetExecDir(), "hcloud", 3))
 	}
 	r.Use(ginmiddleware.Recovery())
 	// 渲染模板

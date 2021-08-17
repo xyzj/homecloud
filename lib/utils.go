@@ -59,14 +59,15 @@ var (
 	}
 )
 var (
-	ver    = flag.Bool("version", false, "print version info and exit.")
-	help   = flag.Bool("help", false, "print help and exit.")
-	debug  = flag.Bool("debug", false, "set if enable debug info.")
-	vauth  = flag.Bool("vauth", false, "set if enable http auth for video group.")
-	web    = flag.Int("http", 0, "set http port to listen on.")
-	webs   = flag.Int("https", 0, "set https port to listen on.")
-	domain = flag.String("domain", "xyzjdays.xyz", "set domain name.")
-	conf   = flag.String("conf", "", "set the config file path.")
+	ver       = flag.Bool("version", false, "print version info and exit.")
+	help      = flag.Bool("help", false, "print help and exit.")
+	debug     = flag.Bool("debug", false, "set if enable debug info.")
+	vauth     = flag.Bool("vauth", false, "set if enable http auth for video group.")
+	filelogon = flag.Bool("filelogon", false, "set if enable log to a file.")
+	web       = flag.Int("http", 0, "set http port to listen on.")
+	webs      = flag.Int("https", 0, "set https port to listen on.")
+	domain    = flag.String("domain", "xyzjdays.xyz", "set domain name.")
+	conf      = flag.String("conf", "", "set the config file path.")
 )
 
 // LoadExtConfigure 载入除标准配置外的自定义配置内容（可选）
