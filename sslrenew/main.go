@@ -41,7 +41,16 @@ var (
 	}
 )
 
+func getExecDir() string {
+	a, _ := os.Executable()
+	execdir := filepath.Dir(a)
+	if strings.Contains(execdir, "go-build") {
+		execdir, _ = filepath.Abs(".")
+	}
+	return execdir
+}
 func downloadCert(domain string) bool {
+	p := filepath.Join(getExecDir(), "domain"+".zip")
 	req, _ := http.NewRequest("GET", fmt.Sprintf(urlDownload, mainDomain, domain), strings.NewReader(""))
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -49,14 +58,14 @@ func downloadCert(domain string) bool {
 		return false
 	}
 	defer resp.Body.Close()
-	f, err := os.Create(domain + ".zip")
+	f, err := os.Create(p)
 	if err != nil {
 		dlog.Println("save error:" + err.Error())
 		return false
 	}
 	defer f.Close()
 	io.Copy(f, resp.Body)
-	err = gopsu.UnZIPFile(domain+".zip", "ca")
+	err = gopsu.UnZIPFile(p, "ca")
 	if err != nil {
 		dlog.Println("unzip file error:" + err.Error())
 	}
@@ -67,6 +76,10 @@ func downloadCert(domain string) bool {
 func renew() {
 	// var oldsign, newsign string
 	for _, v := range domainList {
+		err := os.Remove(filepath.Join(getExecDir(), v+".zip"))
+		if err != nil {
+			dlog.Println("clean zip files error: " + err.Error())
+		}
 		// oldsign = localSign(v)
 		// newsign = remoteSign(v)
 		// if newsign != "1" && oldsign != newsign {
@@ -114,14 +127,11 @@ func main() {
 		domainList = []string{"xyzjdays.xyz"}
 	}
 	rand.Seed(time.Now().UnixNano())
+	renew()
 	for {
-		for _, v := range domainList {
-			err := os.Remove(filepath.Join(gopsu.GetExecDir(), v+".zip"))
-			if err != nil {
-				dlog.Println("clean zip files error: " + err.Error())
-			}
+		time.Sleep(time.Hour * 3)
+		if time.Now().Hour() < 3 {
+			renew()
 		}
-		renew()
-		time.Sleep(time.Hour * time.Duration(2+rand.Int31n(12)))
 	}
 }
