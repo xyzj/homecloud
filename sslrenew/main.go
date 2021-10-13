@@ -50,7 +50,7 @@ func getExecDir() string {
 	return execdir
 }
 func downloadCert(domain string) bool {
-	p := filepath.Join(getExecDir(), "domain"+".zip")
+	p := filepath.Join(getExecDir(), domain+".zip")
 	req, _ := http.NewRequest("GET", fmt.Sprintf(urlDownload, mainDomain, domain), strings.NewReader(""))
 	resp, err := httpClient.Do(req)
 	if err != nil {
