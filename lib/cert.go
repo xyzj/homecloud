@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"bytes"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -14,23 +13,16 @@ import (
 	"github.com/xyzj/gopsu"
 )
 
-func certSign(c *gin.Context) {
-	name := c.Param("name")
-	crtdst := filepath.Join("ca", name+".crt")
-	keydst := filepath.Join("ca", name+".key")
-	if gopsu.IsExist(crtdst) && gopsu.IsExist(keydst) {
-		var b bytes.Buffer
-		a, err := ioutil.ReadFile(crtdst)
+func certView(c *gin.Context) {
+	crtdst := filepath.Join(gopsu.GetExecDir(), "ca", c.Param("name")+".crt")
+	if gopsu.IsExist(crtdst) {
+		xcmd := exec.Command("openssl", "x509", "-in", crtdst, "-noout", "-text")
+		b, err := xcmd.CombinedOutput()
 		if err != nil {
-			c.String(400, "load cert file sign error:"+err.Error())
+			c.String(400, err.Error())
+			return
 		}
-		b.Write(a)
-		a, err = ioutil.ReadFile(keydst)
-		if err != nil {
-			c.String(200, "load key file sign error:"+err.Error())
-		}
-		b.Write(a)
-		c.String(200, gopsu.GetMD5(b.String()))
+		c.String(200, gopsu.String(b))
 	} else {
 		c.String(400, "no certificate files found")
 	}
@@ -66,7 +58,7 @@ func certNamesilo(c *gin.Context) {
 
 	switch c.Param("do") {
 	case "run": // 创建新证书
-		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --dns.resolvers ns2.dnsowl.com --domains *.xyzjdays.xyz --email minamoto.xu@hotmail.com -a run", " ")
+		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --dns.resolvers ns2.dnsowl.com --domains *.xyzjdays.xyz --email beunknow@outlook.com -a run", " ")
 		c.Writer.WriteString(cmd.String() + "\n")
 		go func() {
 			out, err := cmd.CombinedOutput()
@@ -90,7 +82,7 @@ func certNamesilo(c *gin.Context) {
 		}()
 		c.String(200, "Processing, you can try to download cert and key file 20 minutes later")
 	case "renew": // 更新证书
-		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --dns.resolvers ns2.dnsowl.com --domains *.xyzjdays.xyz --email minamoto.xu@hotmail.com -a renew", " ")
+		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns namesilo --dns.resolvers ns2.dnsowl.com --domains *.xyzjdays.xyz --email beunknow@outlook.com -a renew", " ")
 		c.Writer.WriteString(cmd.String() + "\n")
 		go func() {
 			out, err := cmd.CombinedOutput()
@@ -191,7 +183,7 @@ func certCloudflare(c *gin.Context) {
 	var out []byte
 	switch c.Param("do") {
 	case "run":
-		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains *.xyzjdays.xyz --email minamoto.xu@hotmail.com -a run", " ")
+		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains *.xyzjdays.xyz --email beunknow@outlook.com -a run", " ")
 		c.Writer.WriteString(cmd.String() + "\n")
 		out, err = cmd.CombinedOutput()
 		if err != nil {
@@ -200,7 +192,7 @@ func certCloudflare(c *gin.Context) {
 		}
 		c.Writer.WriteString(string(out) + "\n")
 	case "renew":
-		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains *.xyzjdays.xyz --email minamoto.xu@hotmail.com -a renew", " ")
+		cmd.Args = strings.Split(filepath.Join(gopsu.GetExecDir(), "lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains *.xyzjdays.xyz --email beunknow@outlook.com -a renew", " ")
 		c.Writer.WriteString(cmd.String() + "\n")
 		out, err = cmd.CombinedOutput()
 		if err != nil {

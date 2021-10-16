@@ -12,6 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"github.com/xyzj/gopsu"
@@ -146,6 +147,42 @@ func checkCode(b bool) string {
 }
 
 func main() {
-	s := "https://www.youtube.com/watch?v=7cWzOKSsrTs&pp=sAQA&18"
-	println(gopsu.LastSlice(s, "&"))
+	r := gin.New()
+	r.Use(func() gin.HandlerFunc {
+		return func(c *gin.Context) {
+			c.Set("s1", "use start 1")
+			c.Next()
+			c.Set("e1", "use end 1")
+		}
+	}())
+	r.Use(func(a int) gin.HandlerFunc {
+		if a == 1 {
+			return func(c *gin.Context) {
+			}
+		}
+		return func(c *gin.Context) {
+			c.Set("s2", "use start 2")
+			c.Next()
+			c.Set("e2", "use end 2")
+		}
+	}(1))
+	r.GET("/aaa", func(c *gin.Context) {
+		c.PureJSON(200, c.Keys)
+	})
+
+	r.Use(func() gin.HandlerFunc {
+		return func(c *gin.Context) {
+			c.Set("s3", "use start 3")
+			c.Next()
+			c.Set("e3", "use end 3")
+		}
+	}())
+	s := &http.Server{
+		Addr:         fmt.Sprintf(":%d", 1234),
+		ReadTimeout:  time.Minute,
+		WriteTimeout: time.Minute,
+		IdleTimeout:  time.Minute,
+		Handler:      r,
+	}
+	s.ListenAndServe()
 }

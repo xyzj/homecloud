@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
+
 	"github.com/xyzj/gopsu"
 )
 
@@ -23,28 +25,12 @@ var caCert []byte
 //go:embed ca/localhost-key.pem
 var caKey []byte
 
-const (
-	bwhStatusURL = "https://api.64clouds.com/v1/getServiceInfo?veid=%s&api_key=%s"
-	bwhAPIKey    = "yfCUSxAg5fs9DMzQntChzNkPneEsvMm5bMo+iuDt9Zr0itwcP3vSrMDOfeCovNA0igyKy2z1bKy8CxsQTYCNexa"
-	bwhVeid      = "979913"
-	// dnspod sslrenew token
-	// dnspodID    = "141155"
-	// dnspodToken = "076ba7af12e110fb5c2eebc438dae5a1"
-	// cloudflare
-	// cfKey  = "b6c9de4a9814d534ab16c12d99718f118fde2"
-	// cfZone = "fb8a871c3737648dfd964bd625f9f685"
-	// cfID   = "712df327b64333800c02511f404b3157"
-)
-
 var (
 	// Version 版本信息
 	Version        string
-	crtFile        string
-	keyFile        string
 	ipCached       string
 	urlConf        *gopsu.ConfData
 	ydir           string
-	tdir           string
 	httpClientPool = &http.Client{
 		Timeout: time.Duration(time.Second * 15),
 		Transport: &http.Transport{
@@ -52,6 +38,7 @@ var (
 			MaxConnsPerHost:     10,
 			MaxIdleConns:        1,
 			MaxIdleConnsPerHost: 1,
+			DisableCompression:  true,
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
 			},
@@ -63,10 +50,11 @@ var (
 	help      = flag.Bool("help", false, "print help and exit.")
 	debug     = flag.Bool("debug", false, "set if enable debug info.")
 	vauth     = flag.Bool("vauth", false, "set if enable http auth for video group.")
-	filelogon = flag.Bool("filelogon", false, "set if enable log to a file.")
+	filelogon = flag.Bool("logfile", false, "set if enable log to a file.")
 	web       = flag.Int("http", 0, "set http port to listen on.")
 	webs      = flag.Int("https", 0, "set https port to listen on.")
-	domain    = flag.String("domain", "xyzjdays.xyz", "set domain name.")
+	certfile  = flag.String("cert", "./ca/xyzjdays.xyz.crt", "set cert file path.")
+	keyfile   = flag.String("key", "./ca/xyzjdays.xyz.key", "set key file path.")
 	conf      = flag.String("conf", "", "set the config file path.")
 )
 
@@ -80,10 +68,6 @@ func LoadExtConfigure(f string) {
 		ydir, _ = urlConf.GetItem("ydl_dir")
 		if ydir != "" && !strings.HasSuffix(ydir, "/") {
 			ydir += "/"
-		}
-		tdir, _ = urlConf.GetItem("tdl_dir")
-		if tdir != "" && !strings.HasSuffix(tdir, "/") {
-			tdir += "/"
 		}
 	}
 	// domainList = strings.Split(urlConf.GetItemDefault("dnspod_list", "wlst.vip,shwlst.com", "要管理的dnspod域名列表"), ",")
@@ -154,24 +138,28 @@ func Run(version string) {
 		flag.PrintDefaults()
 		os.Exit(0)
 	}
-	if *web < 1000 && *webs < 1000 {
-		*web = 6819
-	}
-	crtFile = filepath.Join(gopsu.GetExecDir(), "ca", *domain+".crt")
-	keyFile = filepath.Join(gopsu.GetExecDir(), "ca", *domain+".key")
-	if !gopsu.IsExist(crtFile) || !gopsu.IsExist(keyFile) {
-		crtFile = filepath.Join(gopsu.GetExecDir(), "ca", "localhost.pem")
-		keyFile = filepath.Join(gopsu.GetExecDir(), "ca", "localhost-key.pem")
+	if !gopsu.IsExist(*certfile) || !gopsu.IsExist(*keyfile) {
 		os.MkdirAll(filepath.Join(gopsu.GetExecDir(), "ca"), 0755)
-		ioutil.WriteFile(crtFile, caCert, 0644)
-		ioutil.WriteFile(keyFile, caKey, 0644)
+		*certfile = filepath.Join(gopsu.GetExecDir(), "ca", "localhost.pem")
+		*keyfile = filepath.Join(gopsu.GetExecDir(), "ca", "localhost-key.pem")
+		ioutil.WriteFile(*certfile, caCert, 0644)
+		ioutil.WriteFile(*keyfile, caKey, 0644)
 	}
 	LoadExtConfigure(*conf)
-	go NewHTTPService()
+
 	// 启动youtube下载控制
 	for i := 0; i < 3; i++ {
 		// go httpControl()
 		go youtubeControl()
 	}
-
+	// 启动http服务
+	opt := &ginmiddleware.ServiceOption{
+		HTTPPort:   *web,
+		HTTPSPort:  *webs,
+		CertFile:   *certfile,
+		KeyFile:    *keyfile,
+		Debug:      *debug,
+		EngineFunc: routeEngine,
+	}
+	ginmiddleware.ListenAndServeWithOption(opt)
 }

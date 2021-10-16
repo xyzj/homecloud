@@ -1,14 +1,20 @@
 package lib
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"github.com/xyzj/gopsu"
+)
+
+const (
+	bwhStatusURL = "https://api.64clouds.com/v1/getServiceInfo?veid=%s&api_key=%s"
+	bwhAPIKey    = "yfCUSxAg5fs9DMzQntChzNkPneEsvMm5bMo+iuDt9Zr0itwcP3vSrMDOfeCovNA0igyKy2z1bKy8CxsQTYCNexa"
+	bwhVeid      = "979913"
 )
 
 func codeString(c *gin.Context) {
@@ -36,14 +42,17 @@ func md5String(c *gin.Context) {
 }
 
 func vps4info(c *gin.Context) {
-
+	req, _ := http.NewRequest("GET", fmt.Sprintf(bwhStatusURL, bwhVeid, gopsu.DecodeString(bwhAPIKey)), strings.NewReader(""))
+	resp, ex := httpClientPool.Do(req)
 	// use golang net
-	tr := &http.Transport{
-		TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
-		DisableCompression: true,
-	}
-	client := &http.Client{Transport: tr}
-	resp, ex := client.Get(fmt.Sprintf(bwhStatusURL, bwhVeid, gopsu.DecodeString(bwhAPIKey)))
+	/*
+		tr := &http.Transport{
+			TLSClientConfig:    &tls.Config{InsecureSkipVerify: true},
+			DisableCompression: true,
+		}
+		client := &http.Client{Transport: tr}
+		resp, ex := client.Get(fmt.Sprintf(bwhStatusURL, bwhVeid, gopsu.DecodeString(bwhAPIKey)))
+	*/
 	if ex == nil {
 		if d, ex := ioutil.ReadAll(resp.Body); ex == nil {
 			a := gjson.ParseBytes(d)
