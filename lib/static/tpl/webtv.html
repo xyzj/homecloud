@@ -14,13 +14,14 @@
     <script src="/emb/static/js/videojs/lang/zh-TW.js"></script>
     <style>
         /*暂停时显示播放按钮*/
-        
+
         .vjs-paused .vjs-big-play-button,
         .vjs-paused.vjs-has-started .vjs-big-play-button {
             display: block;
         }
+
         /*****START 播放按钮变○圆形 START*****/
-        
+
         .video-js .vjs-big-play-button {
             font-size: 2.5em;
             line-height: 2.3em;
@@ -35,17 +36,19 @@
             margin-top: -1.25em;
             margin-left: -1.75em;
         }
-        
+
         .video-js.vjs-error .vjs-big-play-button {
             display: none;
         }
+
         /* 中间的播放箭头 */
-        
+
         .vjs-big-play-button .vjs-icon-placeholder {
             font-size: 1.63em;
         }
+
         /* 加载圆圈 */
-        
+
         .vjs-loading-spinner {
             font-size: 2.5em;
             width: 2em;
@@ -61,7 +64,7 @@
             font-size: 13px;
             text-align: center;
         }
-        
+
         .video-js .vjs-time-control {
             display: block;
             flex: none;
@@ -70,52 +73,54 @@
             min-width: 0em;
             width: auto;
         }
-        
+
         .video-js .vjs-remaining-time {
             display: block;
         }
-        
+
         .video-js .vjs-time-divider {
             display: none;
         }
-        
+
         .video-js .vjs-duration-display {
             display: none;
         }
+
         /* .video-js .vjs-load-progress {
             background: rgba(120, 150, 103, 0.8);
         } */
-        
+
         .vjs-progress-control .vjs-play-progress {
             background-color: rgba(68, 231, 131, 0.6)
         }
-        
+
         .vjs-progress-control .vjs-play-progress:before {
             display: none
         }
+
         /* .vjs-progress-control .vjs-slider {
             background-color: rgba(125, 160, 185, 0.5)
         } */
         /* .vjs-progress-control .vjs-load-progress div {
             background: hsla(0, 0%, 100%, .5)
         } */
-        
+
         .vjs-progress-control .vjs-progress-holder {
             margin: 0;
             padding: 0;
             height: 80%
         }
-        
+
         .vjs-progress-control .vjs-time-tooltip {
             background-color: rgba(65, 118, 188, .7);
             color: #fff
         }
-        
+
         .vjs-progress-control .vjs-mouse-display .vjs-time-tooltip {
             background-color: hsla(0, 0%, 100%, .7);
             color: #4176bc
         }
-        
+
         .player-container {
             background: #505050;
             overflow: auto;
@@ -127,7 +132,7 @@
             top: 8px;
             bottom: 8px
         }
-        
+
         .playlist-container {
             background: #505050;
             overflow: auto;
@@ -138,12 +143,12 @@
             top: 8px;
             right: 0px;
         }
-        
+
         .video-js {
             width: 100%;
             height: 100%
         }
-        
+
         .vjs-playlist {
             width: 100%;
             height: 98.5%;
@@ -197,13 +202,15 @@
             'playbackRateMenuButton': {
                 'playbackRates': [0.7, 1.0, 1.5, 2.0]
             }
+            // 'AudioTrackButton': {}
         }
     };
     var player = videojs("mytv", options);
+
     player.playlist(playlist_data_here);
     player.playlist.autoadvance(1);
     player.playlistUi();
-    player.ready(function() {
+    player.ready(function () {
         this.hotkeys({
             volumeStep: 0.1,
             seekStep: 15,
