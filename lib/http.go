@@ -2,6 +2,7 @@ package lib
 
 import (
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/gin-contrib/multitemplate"
@@ -26,7 +27,7 @@ func routeEngine() *gin.Engine {
 		logname = "hcloud"
 		logdays = 5
 	}
-	r := ginmiddleware.LiteEngine(logdir, logname, logdays)
+	r := ginmiddleware.LiteEngine(filepath.Join(logdir, logname), logdays)
 	// 渲染模板
 	r.HTMLRender = multiRender()
 	// 功能路由

@@ -72,7 +72,12 @@ func LoadExtConfigure(f string) {
 	}
 	// domainList = strings.Split(urlConf.GetItemDefault("dnspod_list", "wlst.vip,shwlst.com", "要管理的dnspod域名列表"), ",")
 	// urlConf.Save()
-	pageWebTV = loadWebTVPage()
+	b, _ := stat.ReadFile("static/tpl/webtv.html")
+	if len(b) > 0 {
+		pageWebTV = gopsu.String(b)
+	} else {
+		pageWebTV = loadWebTVPage()
+	}
 }
 
 func loadWebTVPage() string {
