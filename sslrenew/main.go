@@ -124,7 +124,7 @@ func main() {
 	flag.Parse()
 	if *enableDebug {
 		mainDomain = debugDomain
-		domainList = []string{"xyzjdays.xyz"}
+		domainList = append(domainList, "xyzjdays.xyz")
 	}
 	rand.Seed(time.Now().UnixNano())
 	renew()
