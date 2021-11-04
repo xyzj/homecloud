@@ -38,8 +38,8 @@ func (f *sliceFlag) Set(value string) error {
 }
 
 var (
-	dir   = flag.String("d", ".", "set the dir to serve")
-	port  = flag.Int("p", 8060, "set http port")
+	port  = flag.Int("http", 8019, "set http port")
+	ports = flag.Int("https", 0, "set https port")
 	cert  = flag.String("cert", "", "cert file path")
 	key   = flag.String("key", "", "key file path")
 	auth  = flag.Bool("auth", false, "enable basicauth")
@@ -282,7 +282,7 @@ func isExist(p string) bool {
 }
 func main() {
 	// http 静态目录
-	flag.Var(&dirs, "moredir", "example: -moredir=name:path -moredir name2:path2")
+	flag.Var(&dirs, "dir", "example: -dir=name:path -dir name2:path2")
 	// web gallery 目录
 	flag.Var(&wtv, "wtv", "example: -wtv=name:path -wtv name2:path2")
 	flag.Parse()
@@ -290,6 +290,9 @@ func main() {
 	if *help {
 		flag.PrintDefaults()
 		os.Exit(0)
+	}
+	if len(dirs) == 0 {
+		dirs = []string{"ls:."}
 	}
 
 	if !*debug {
@@ -313,14 +316,12 @@ func main() {
 	if *auth {
 		r.Use(gin.BasicAuth(gin.Accounts{
 			"golang":     "based",
-			"thewhyofgo": "simple",
+			"thewhyofgo": "simple&fast",
 		}))
 	}
 	// 静态资源
 	r.StaticFS("/emb", http.FS(stat))
-	// 主静态资源
-	r.StaticFS("/ls", http.Dir(*dir))
-	// 额外静态资源
+	// 静态资源
 	for _, v := range dirs {
 		if strings.Contains(v, ":") {
 			r.StaticFS("/"+strings.Split(v, ":")[0], http.Dir(strings.Split(v, ":")[1]))
@@ -337,8 +338,10 @@ func main() {
 	if !*debug {
 		println(fmt.Sprintf("=== server start on :%d ===", *port))
 	}
-	if *cert != "" && *key != "" {
-		r.RunTLS(fmt.Sprintf(":%d", *port), *cert, *key)
+	if *cert != "" && *key != "" && *ports > 0 {
+		go func() {
+			r.RunTLS(fmt.Sprintf(":%d", *ports), *cert, *key)
+		}()
 	}
 	r.Run(fmt.Sprintf(":%d", *port))
 }
