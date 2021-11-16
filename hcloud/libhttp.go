@@ -111,9 +111,9 @@ func routeEngine() *gin.Engine {
 		gv = r.Group("/v", gin.BasicAuth(gin.Accounts{
 			"golang":     "based",
 			"thewhyofgo": "simple&fast",
-		}))
+		}), ginmiddleware.ReadParams())
 	} else {
-		gv = r.Group("/v")
+		gv = r.Group("/v", ginmiddleware.ReadParams())
 	}
 	for _, v := range wtv {
 		if strings.Contains(v, ":") {
