@@ -85,10 +85,10 @@ func routeEngine() *gin.Engine {
 	// 查看缓存ip
 	r.GET("/tools/cachedip", func(c *gin.Context) {
 		c.Header("Content-Type", "text/html")
-		c.String(200, `<a style="color:white";>https://</a>`+ipCached+`<a style="color:white";>:60011/v/news</a>`)
+		c.String(200, `<a style="color:white";>https://</a>`+ipCached+`<a style="color:white";></a>`)
 	})
 	// 向cf更新home的最新ip
-	r.POST("/updatecf/:who", ginmiddleware.ReadParams(), updateCFRecord)
+	r.POST("/tools/updatecf/:who/:proxied", ginmiddleware.ReadParams(), updateCFRecord)
 
 	// 证书管理
 	gcert := r.Group("/cert", ginmiddleware.ReadParams())

@@ -31,7 +31,7 @@ func (f *sliceFlag) Set(value string) error {
 }
 
 var (
-	port  = flag.Int("http", 8019, "set http port")
+	port  = flag.Int("http", 2082, "set http port")
 	ports = flag.Int("https", 0, "set https port")
 	cert  = flag.String("cert", "", "cert file path")
 	key   = flag.String("key", "", "key file path")
@@ -41,7 +41,7 @@ var (
 	ydir  = flag.String("ydir", "", "set youtube download dir")
 	aria2 = flag.String("aria2", "", "set aria2 json rpc url")
 	// 帮助信息
-	help = flag.Bool("help", false, "print help message and exit.")
+	help = flag.Bool("help", false, "print help message and exit")
 	dirs sliceFlag
 	wtv  sliceFlag
 )
@@ -64,9 +64,13 @@ func main() {
 	// web gallery 目录
 	flag.Var(&wtv, "wtv", "example: -wtv=name:path -wtv name2:path2")
 	flag.Parse()
+	if *help {
+		flag.PrintDefaults()
+		os.Exit(0)
+	}
 	// 参数处理
 	if *aria2 == "" {
-		*aria2 = "http://192.168.1.99:2052"
+		*aria2 = "http://127.0.0.1:2052"
 	}
 	if *ydir == "" {
 		*ydir = "/home/xy/mm/tv/news/"
