@@ -115,14 +115,15 @@ func smi2Vtt(in, out string) error {
 	return ioutil.WriteFile(out, []byte("WEBVTT\r\n\r\n"+bOut.String()), 0644)
 }
 
-func runVideojs(url, dst string) gin.HandlerFunc {
+func runVideojs(url, urldst string) gin.HandlerFunc {
 	srcdir := "/v-" + url + "/"
 	return func(c *gin.Context) {
 		subdir := c.Param("sub")
 		name := c.Param("name")
-		dst = filepath.Join(dst, subdir)
+		dst := filepath.Join(urldst, subdir)
 		flist, err := ioutil.ReadDir(dst)
 		if err != nil {
+			println(dst, err.Error())
 			c.String(200, "wrong way")
 			return
 		}
@@ -155,7 +156,7 @@ func runVideojs(url, dst string) gin.HandlerFunc {
 			}
 			switch fileext {
 			case ".wav", ".m4a": // 音频
-				filesrc = filepath.Join(dst, filename)
+				// filesrc = filepath.Join(dst, filename)
 				playitem, _ = sjson.Set("", "name", filename)
 				playitem, _ = sjson.Set(playitem, "sources.0.src", srcdir+filename)
 				playitem, _ = sjson.Set(playitem, "sources.0.type", "audio/"+fileext[1:])

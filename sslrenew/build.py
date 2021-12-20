@@ -6,7 +6,7 @@ import os
 import platform
 
 
-def build(outname,  goos, goarch, enableups):
+def build(outname, goos, goarch, enableups):
     x = time.localtime()
     y = x[3] * 60 * 60 + x[4] * 60 + x[5]
     mainver = "1.0.0.{0}.{1}".format(
@@ -22,8 +22,8 @@ def build(outname,  goos, goarch, enableups):
             outpath = "dist_win"
     else:
         outpath = "dist_linux"
-    outname = outpath + "/"+outname
-    buildcmd = 'GOOS={5} GOARCH={6} go build -tags=jsoniter -ldflags="-s -w -X main.version={1} -X \'main.buildDate={2}\' -X \'main.goVersion={3}\' -X \'main.platform={4}\'" -o {0} main.go'.format(
+    outname = outpath + "/" + outname
+    buildcmd = 'GOOS={5} GOARCH={6} go build -ldflags="-s -w -X main.version={1} -X \'main.buildDate={2}\' -X \'main.goVersion={3}\' -X \'main.platform={4}\'" -o {0} main.go'.format(
         outname, mainver, time.ctime(time.time()), gover, pf, goos, goarch)
     # print(buildcmd)
     os.system(buildcmd)
@@ -47,8 +47,8 @@ def build_service(outname, goos, goarch, enableups):
             outpath = "dist_win"
     else:
         outpath = "dist_linux"
-    outname = outpath + "/"+outname
-    buildcmd = 'GOOS={5} GOARCH={6} go build -tags=jsoniter -ldflags="-s -w -H windowsgui -X main.version={1} -X \'main.buildDate={2}\' -X \'main.goVersion={3}\' -X \'main.platform={4}\'" -o {0} main.go'.format(
+    outname = outpath + "/" + outname
+    buildcmd = 'GOOS={5} GOARCH={6} go build -ldflags="-s -w -H windowsgui -X main.version={1} -X \'main.buildDate={2}\' -X \'main.goVersion={3}\' -X \'main.platform={4}\'" -o {0} main.go'.format(
         outname, mainver, time.ctime(time.time()), gover, pf, goos, goarch)
     # print(buildcmd)
     os.system(buildcmd)

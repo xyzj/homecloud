@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -189,6 +190,7 @@ func updateCFRecord(c *gin.Context) {
 		c.String(403, " I don't know you")
 		return
 	}
+	proxied, _ := strconv.ParseBool(c.Param("proxied"))
 
 	if c.ClientIP() != ipCached {
 		url := "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
@@ -197,7 +199,7 @@ func updateCFRecord(c *gin.Context) {
 		js, _ = sjson.Set(js, "name", "da")
 		js, _ = sjson.Set(js, "content", c.ClientIP())
 		js, _ = sjson.Set(js, "ttl", 1)
-		js, _ = sjson.Set(js, "proxied", false)
+		js, _ = sjson.Set(js, "proxied", proxied)
 		req, _ := http.NewRequest("PUT", url, strings.NewReader(js))
 		req.Header.Add("X-Auth-Email", "minamoto.xu@outlook.com")
 		req.Header.Add("X-Auth-Key", "b6c9de4a9814d534ab16c12d99718f118fde2")
