@@ -83,10 +83,7 @@ func routeEngine() *gin.Engine {
 	r.GET("/tools/dl", tdlb)
 	r.POST("/tools/dl", ginmiddleware.ReadParams(), tdlb)
 	// 查看缓存ip
-	r.GET("/tools/cachedip", func(c *gin.Context) {
-		c.Header("Content-Type", "text/html")
-		c.String(200, `<a style="color:white";>https://</a>`+ipCached+`<a style="color:white";></a>`)
-	})
+	r.GET("/tools/cachedip", func(c *gin.Context) { c.String(200, ipCached) })
 	// 向cf更新home的最新ip
 	r.POST("/tools/updatecf/:who/:proxied", ginmiddleware.ReadParams(), updateCFRecord)
 
