@@ -116,8 +116,8 @@ func smi2Vtt(in, out string) error {
 }
 
 func runVideojs(url, urldst string) gin.HandlerFunc {
-	srcdir := "/v-" + url + "/"
 	return func(c *gin.Context) {
+		srcdir := "/v-" + url + "/"
 		subdir := c.Param("sub")
 		name := c.Param("name")
 		dst := filepath.Join(urldst, subdir)
