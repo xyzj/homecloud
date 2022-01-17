@@ -77,8 +77,10 @@ func routeEngine() *gin.Engine {
 	})
 	// md5编码
 	r.GET("/tools/md5", md5String)
+	r.POST("/tools/md5", md5String)
 	// 自定义编码
 	r.GET("/tools/coder", codeString)
+	r.POST("/tools/coder", codeString)
 	// 资源下载，youtubedl，aria2
 	r.GET("/tools/dl", tdlb)
 	r.POST("/tools/dl", ginmiddleware.ReadParams(), tdlb)
