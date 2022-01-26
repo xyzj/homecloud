@@ -163,7 +163,7 @@ var (
 		$('button').on('click',function(){
 			if($('#v1').text())return
 			$.ajax({
-				url:"/tools/codestr",
+				url:"/tools/coder",
 				method:"post",
 				data:{rawstr:$('#v1').val()},
 				success:function(res){
