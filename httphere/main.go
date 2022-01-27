@@ -412,7 +412,7 @@ func runVideojs(url, urldst string) http.HandlerFunc {
 				// }
 				// 缩略图
 				if isExist(strings.TrimSuffix(filesrc, fileext) + ".webp") {
-					resize(filesrc, filethumb)
+					resize(strings.TrimSuffix(filesrc, fileext)+".webp", filethumb)
 				}
 				// if runtime.GOARCH == "amd64" {
 				// 	if !isExist(filethumb) || isExist(strings.TrimSuffix(filesrc, fileext)+".webp") {
@@ -522,6 +522,9 @@ type psrc struct {
 }
 
 func resize(filein, fileout string) {
+	if filepath.Ext(filein) != ".webp" {
+		return
+	}
 	fin, err := os.Open(filein)
 	if err != nil {
 		println(err.Error())
