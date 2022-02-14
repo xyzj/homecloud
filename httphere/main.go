@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"embed"
 	"encoding/json"
 	"flag"
@@ -129,6 +130,8 @@ func main() {
 		http.HandleFunc("/v-"+strings.Split(wtv, ":")[0]+"/", dirHandler("v-"+strings.Split(wtv, ":")[0], http.Dir(strings.Split(wtv, ":")[1])))
 		println(fmt.Sprintf("wtv %d. /%s/", k+1, strings.Split(wtv, ":")[0]))
 	}
+	// showroutes
+	http.HandleFunc("/showroutes", showroutes())
 	// 证书，https
 	if *cert != "" && *key != "" {
 		println("===== start https server on: " + *port + " =====")
@@ -141,6 +144,23 @@ func main() {
 	// http
 	println("\n===== start http server on: " + *port + " =====")
 	http.ListenAndServe(":"+*port, nil)
+}
+
+func showroutes() http.HandlerFunc {
+	s := `<a href="%s/">%s</a><br>`
+	return func(w http.ResponseWriter, r *http.Request) {
+		tpl := &bytes.Buffer{}
+		w.WriteHeader(200)
+		w.Header().Set("Content-Type", "text/html")
+		for _, dir := range dirs {
+			tpl.WriteString(fmt.Sprintf(s, url.PathEscape(strings.Split(dir, ":")[0]), "dir : "+strings.Split(dir, ":")[0]))
+		}
+		tpl.WriteString("<br>")
+		for _, dir := range wtvs {
+			tpl.WriteString(fmt.Sprintf(s, url.PathEscape(strings.Split(dir, ":")[0]), "wtv : "+strings.Split(dir, ":")[0]))
+		}
+		w.Write(tpl.Bytes())
+	}
 }
 
 func basicAuth(f http.HandlerFunc) http.HandlerFunc {
