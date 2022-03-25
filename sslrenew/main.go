@@ -2,11 +2,13 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -19,7 +21,12 @@ import (
 )
 
 var (
-	mainDomain  = "wgq.shwlst.com:40001"
+	enableDebug = flag.Bool("debug", false, "set if enable debug info.")
+	show        = flag.String("show", "", "show crt file info")
+)
+
+var (
+	mainDomain  = []string{"wgq.shwlst.com:40001"}
 	debugDomain = "v4.xyzjdays.xyz"
 
 	urlDownload    = "https://%s/cert/download/%s"
@@ -29,8 +36,7 @@ var (
 
 	dlog *log.Logger
 
-	enableDebug = flag.Bool("debug", false, "set if enable debug info.")
-	httpClient  = &http.Client{
+	httpClient = &http.Client{
 		Timeout: time.Duration(time.Second * 300),
 		Transport: &http.Transport{
 			IdleConnTimeout: time.Minute,
@@ -49,9 +55,9 @@ func getExecDir() string {
 	}
 	return execdir
 }
-func downloadCert(domain string) bool {
+func downloadCert(url, domain string) bool {
 	p := filepath.Join(getExecDir(), domain+".zip")
-	req, _ := http.NewRequest("GET", fmt.Sprintf(urlDownload, mainDomain, domain), strings.NewReader(""))
+	req, _ := http.NewRequest("GET", fmt.Sprintf(urlDownload, url, domain), strings.NewReader(""))
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		dlog.Println("download error:" + err.Error())
@@ -69,13 +75,13 @@ func downloadCert(domain string) bool {
 	if err != nil {
 		dlog.Println("unzip file error:" + err.Error())
 	}
-	dlog.Println("Download success. start copy ...")
+	dlog.Println("Download " + domain + " success. start copy ...")
 	return true
 }
 
 func renew() {
 	// var oldsign, newsign string
-	for _, v := range domainList {
+	for k, v := range domainList {
 		err := os.Remove(filepath.Join(getExecDir(), v+".zip"))
 		if err != nil {
 			dlog.Println("clean zip files error: " + err.Error())
@@ -83,7 +89,7 @@ func renew() {
 		// oldsign = localSign(v)
 		// newsign = remoteSign(v)
 		// if newsign != "1" && oldsign != newsign {
-		downloadCert(v)
+		downloadCert(mainDomain[k], v)
 		// } else {
 		// 	if oldsign == newsign {
 		// 		dlog.Println("Same signature, no update needed.")
@@ -119,14 +125,33 @@ func renew() {
 }
 
 func main() {
+	flag.Parse()
+	if *show != "" {
+		//加载PEM格式证书到字节数组
+		certPEMBlock, err := ioutil.ReadFile(*show + ".crt")
+		if err != nil {
+			println(err.Error())
+			return
+		}
+		certblock, _ := pem.Decode(certPEMBlock)
+		if certblock == nil {
+			println("can not decode")
+			return
+		}
+		x509crt, err := x509.ParseCertificate(certblock.Bytes)
+		if err != nil {
+			println(err.Error())
+			return
+		}
+		println(x509crt.NotAfter.Format("2006-01-02 15:04:05"), fmt.Sprintf("%+v", x509crt.DNSNames))
+		return
+	}
 	fd, _ := os.OpenFile("sslrenew.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0664)
 	dlog = log.New(io.MultiWriter(fd, os.Stdout), "", log.LstdFlags)
-	flag.Parse()
 	if *enableDebug {
-		mainDomain = debugDomain
+		mainDomain = append(mainDomain, debugDomain)
 		domainList = append(domainList, "xyzjdays.xyz")
 	}
-	rand.Seed(time.Now().UnixNano())
 	renew()
 	for {
 		time.Sleep(time.Hour * 3)
