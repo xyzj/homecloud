@@ -71,6 +71,6 @@ if __name__ == "__main__":
     # print("\n=== start build windows x64 service ...")
     # build("sampled.exe", "windows", "amd64")
     print("\n=== start build linux x64 ...")
-    build("hcloud", "linux", "amd64")
+    build("vpstools", "linux", "amd64")
 
     # os.system("cp -f distwin/ecms*.exe ../../python/mwsc/dist/bin/")

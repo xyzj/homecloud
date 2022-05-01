@@ -1,0 +1,108 @@
+{
+    "log": {
+        "loglevel": "error"
+    },
+    "inbounds": [{
+            "port": 8119,
+            "listen": "0.0.0.0",
+            "protocol": "http",
+            "settings": {
+                "timeout": 0,
+                "accounts": [],
+                "allowTransparent": false,
+                "userLevel": 0
+            },
+            "settings": {
+                "auth": "noauth",
+                "udp": false
+            }
+        }
+    ],
+    "outbounds": [{
+            "tag": "proxy",
+            "protocol": "vmess",
+            "settings": {
+                "vnext": [{
+                    "address": "v2cf.xyzjdays.xyz",
+                    "port": 443,
+                    "users": [{
+                        "id": "f30c9b1a-ce1c-11ea-b97b-1ffc83514f09",
+                        "alterId": 0,
+                        "security": "aes-128-gcm"
+                    }]
+                }]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "tls",
+                "wsSettings": {
+                    "path": "/xx"
+                }
+            }
+        },
+        {
+            "tag": "direct",
+            "protocol": "freedom",
+            "settings": {
+                "vnext": null,
+                "servers": null,
+                "response": null
+            },
+            "streamSettings": null,
+            "mux": null
+        },
+        {
+            "tag": "block",
+            "protocol": "blackhole",
+            "settings": {
+                "vnext": null,
+                "servers": null,
+                "response": {
+                    "type": "http"
+                }
+            },
+            "streamSettings": null,
+            "mux": null
+        }
+    ],
+    "routing": {
+        "domainStrategy": "IPOnDemand",
+        "rules": [{
+                "type": "field",
+                "port": null,
+                "outboundTag": "block",
+                "ip": null,
+                "domain": [
+                    "geosite:category-ads"
+                ]
+            },
+            {
+                "type": "field",
+                "port": null,
+                "outboundTag": "direct",
+                "ip": [
+                    "geoip:private"
+                ],
+                "domain": null
+            },
+            {
+                "type": "field",
+                "port": null,
+                "outboundTag": "direct",
+                "ip": [
+                    "geoip:cn"
+                ],
+                "domain": null
+            },
+            {
+                "type": "field",
+                "port": null,
+                "outboundTag": "direct",
+                "ip": null,
+                "domain": [
+                    "geosite:cn"
+                ]
+            }
+        ]
+    }
+}

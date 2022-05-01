@@ -71,7 +71,7 @@ func downloadCert(url, domain string) bool {
 	}
 	defer f.Close()
 	io.Copy(f, resp.Body)
-	err = gopsu.UnZIPFile(p, "ca")
+	err = gopsu.UnZIPFile(p, filepath.Join(getExecDir(), "ca"))
 	if err != nil {
 		dlog.Println("unzip file error:" + err.Error())
 	}
@@ -146,7 +146,7 @@ func main() {
 		println(x509crt.NotAfter.Format("2006-01-02 15:04:05"), fmt.Sprintf("%+v", x509crt.DNSNames))
 		return
 	}
-	fd, _ := os.OpenFile("sslrenew.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0664)
+	fd, _ := os.OpenFile(filepath.Join(getExecDir(), "sslrenew.log"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0664)
 	dlog = log.New(io.MultiWriter(fd, os.Stdout), "", log.LstdFlags)
 	if *enableDebug {
 		mainDomain = append(mainDomain, debugDomain)

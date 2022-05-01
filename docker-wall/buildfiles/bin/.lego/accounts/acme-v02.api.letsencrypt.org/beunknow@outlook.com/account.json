@@ -1,0 +1,12 @@
+{
+	"email": "beunknow@outlook.com",
+	"registration": {
+		"body": {
+			"status": "valid",
+			"contact": [
+				"mailto:beunknow@outlook.com"
+			]
+		},
+		"uri": "https://acme-v02.api.letsencrypt.org/acme/acct/241303680"
+	}
+}

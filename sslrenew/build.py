@@ -23,7 +23,7 @@ def build(outname, goos, goarch, enableups):
     else:
         outpath = "dist_linux"
     outname = outpath + "/" + outname
-    buildcmd = 'GOOS={5} GOARCH={6} go build -ldflags="-s -w -X main.version={1} -X \'main.buildDate={2}\' -X \'main.goVersion={3}\' -X \'main.platform={4}\'" -o {0} main.go'.format(
+    buildcmd = 'CGO_ENABLED=0 GOOS={5} GOARCH={6} go build -ldflags="-s -w -X main.version={1} -X \'main.buildDate={2}\' -X \'main.goVersion={3}\' -X \'main.platform={4}\'" -o {0} main.go'.format(
         outname, mainver, time.ctime(time.time()), gover, pf, goos, goarch)
     # print(buildcmd)
     os.system(buildcmd)

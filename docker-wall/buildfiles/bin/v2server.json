@@ -1,0 +1,47 @@
+{
+    "log": {
+        "loglevel": "error"
+    },
+    "inbounds": [
+        {
+            "port": 6891,
+            "address": "127.0.0.1",
+            "protocol": "vmess",
+            "settings": {
+                "clients": [{
+                    "id": "f30c9b1a-ce1c-11ea-b97b-1ffc83514f09",
+                    "alterId": 0,
+                    "security": "aes-128-gcm"
+                }]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "wsSettings": {
+                    "path": "/xx",
+                    "connectionReuse": true
+                }
+            }
+        }
+    ],
+    "outbounds": [{
+            "tag": "direct",
+            "protocol": "freedom",
+            "settings": {}
+        },
+        {
+            "tag": "blocked",
+            "protocol": "blackhole",
+            "settings": {}
+        }
+    ],
+    "routing": {
+        "domainStrategy": "AsIs",
+        "rules": [{
+            "type": "field",
+            "ip": [
+                "geoip:private"
+            ],
+            "outboundTag": "blocked"
+        }]
+    }
+}
