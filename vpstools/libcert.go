@@ -149,13 +149,16 @@ func certDNSPod(c *gin.Context) {
 func certCloudflareTools(do string) string {
 	b := &bytes.Buffer{}
 	cmd := exec.Command(gopsu.JoinPathFromHere("lego"))
-	cmd.Env = append(cmd.Env, "CLOUDFLARE_DNS_API_TOKEN=XbWUwbGAxQgC_BgATXVehBh6lwl9dDVt8cI2zvSC")
+	// cmd.Env = append(cmd.Env, "CF_API_MAIL=minamoto.xu@outlook.com")
+	// cmd.Env = append(cmd.Env, "CF_API_KEY=8cb93b12199336e7de160eeac0f304dd")
+	cmd.Env = append(cmd.Env, "CLOUDFLARE_DNS_API_TOKEN=JIhbdkh3eBZz0ml2b2KS3mlCX-KLiQCnzOabDQ8U")
+	// cmd.Env = append(cmd.Env, "CLOUDFLARE_DNS_API_TOKEN=XbWUwbGAxQgC_BgATXVehBh6lwl9dDVt8cI2zvSC")
 	cmd.Dir = gopsu.GetExecDir()
 	var err error
 	var out []byte
 	switch do {
 	case "run":
-		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains *.xyzjdays.xyz --email beunknow@outlook.com -a run", " ")
+		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com--domains xyzjx.xyz --domains *.xyzjx.xyz --domains *.xyzjdays.xyz --email beunknow@outlook.com -a run", " ")
 		b.WriteString(cmd.String() + "\n")
 		out, err = cmd.CombinedOutput()
 		if err != nil {
@@ -164,7 +167,7 @@ func certCloudflareTools(do string) string {
 		}
 		b.WriteString(string(out) + "\n")
 	case "renew":
-		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains *.xyzjdays.xyz --email beunknow@outlook.com -a renew", " ")
+		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains xyzjx.xyz --domains *.xyzjx.xyz --domains *.xyzjdays.xyz --email beunknow@outlook.com -a renew", " ")
 		b.WriteString(cmd.String() + "\n")
 		out, err = cmd.CombinedOutput()
 		if err != nil {
@@ -199,7 +202,7 @@ func updateCFRecord(c *gin.Context) {
 	proxied, _ := strconv.ParseBool(c.Param("proxied"))
 
 	if c.ClientIP() != ipCached {
-		url := "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
+		url := "https://api.cloudflare.com/client/v4/zones/599ee9a1156a799fd3ad7038828a7743/dns_records/7d5d79ba86df16771703181947c3635d"
 		var js string
 		js, _ = sjson.Set(js, "type", "A")
 		js, _ = sjson.Set(js, "name", "da")
