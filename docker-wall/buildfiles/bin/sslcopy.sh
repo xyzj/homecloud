@@ -1,6 +1,16 @@
 #!/bin/ash
-cp -f .lego/certificates/_.xyzjdays.xyz.crt /root/bin/ca/xyzjdays.xyz.crt
-cp -f .lego/certificates/_.xyzjdays.xyz.key /root/bin/ca/xyzjdays.xyz.key
-rc-service nginx restart
+
+cp -f /root/bin/.lego/certificates/xyzjx.xyz.crt /root/bin/ca/xyzjx.xyz.crt
+cp -f /root/bin/.lego/certificates/xyzjx.xyz.key /root/bin/ca/xyzjx.xyz.key
+
+sleep 1
+
+start-stop-daemon --stop -p /run/caddy.pid
+
+sleep 1
+
+start-stop-daemon --start --background -m -p /run/caddy.pid --exec /usr/sbin/caddy -- run --config /etc/caddy/Caddyfile
+
+#rc-service nginx restart
 
 

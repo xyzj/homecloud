@@ -52,12 +52,16 @@ func routeEngine() *gin.Engine {
 		AllowMethods:     []string{"*"},
 		AllowHeaders:     []string{"*"},
 	}))
+	// 渲染模板
+	r.HTMLRender = multiRender()
+
 	// 主页
 	r.GET("/", remoteIP)
 	// 工具路由
+	// 短地址编码
+	r.GET("/short/:do", ginmiddleware.ReadParams(), shortURL)
 	// vps信息
 	r.GET("/tools/vpsinfo", vps4info)
-
 	// md5编码
 	r.GET("/tools/md5", md5String)
 	r.POST("/tools/md5", ginmiddleware.ReadParams(), md5String)

@@ -1,0 +1,46 @@
+# Caddy's configuration file
+# see: https://caddyserver.com/docs/caddyfile
+
+(common_headers) {
+  encode gzip
+}
+(tls_conf) {
+  tls /root/bin/ca/xyzjx.xyz.crt /root/bin/ca/xyzjx.xyz.key
+}
+(log_conf) {
+  log {
+    output file "/var/log/caddy.log" {
+      roll_size 10mb
+      roll_keep 1
+      roll_keep_for 3d
+    }  
+  }
+}
+http://v2cf.xyzjx.xyz, http://v4.xyzjx.xyz, http://xyzjx.xyz {
+    redir https://{host}{uri}
+}
+
+v2cf.xyzjx.xyz {
+#  import common_headers
+  import tls_conf
+#  import log_conf
+  @v2ray_ws {
+      path /xx
+      header Connection Upgrade
+      header Upgrade websocket
+  }
+  reverse_proxy @v2ray_ws localhost:6891
+}
+v4.xyzjx.xyz {
+#  import common_headers
+#  import log_conf
+  import tls_conf
+  reverse_proxy localhost:2052
+}
+
+xyzjx.xyz {
+#  import common_headers
+#  import log_conf
+  import tls_conf
+  redir https://v4.xyzjx.xyz/short{uri} 302
+}

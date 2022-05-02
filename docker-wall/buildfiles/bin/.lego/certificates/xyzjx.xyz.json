@@ -1,0 +1,5 @@
+{
+	"domain": "xyzjx.xyz",
+	"certUrl": "https://acme-v02.api.letsencrypt.org/acme/cert/03f9adb5350d55e678d757634fe6da67c353",
+	"certStableUrl": "https://acme-v02.api.letsencrypt.org/acme/cert/03f9adb5350d55e678d757634fe6da67c353"
+}

@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -16,6 +18,15 @@ const (
 	bwhAPIKey    = "yfCUSxAg5fs9DMzQntChzNkPneEsvMm5bMo+iuDt9Zr0itwcP3vSrMDOfeCovNA0igyKy2z1bKy8CxsQTYCNexa"
 	bwhVeid      = "979913"
 )
+
+var (
+	shortconf *gopsu.ConfData
+	skey      = "0987654321qwertyuiopQWERTYUIOPasdfghjklASDFGHJKLzxcvbnmZXCVBNM"
+)
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 func codeString(c *gin.Context) {
 	if c.Request.Method == "POST" {
@@ -58,6 +69,8 @@ func vps4info(c *gin.Context) {
 			println(ex.Error())
 		}
 	}
+	// c.Header("Content-Type", "text/html")
+	// c.String(200, tplVpsinfo, c.Keys)
 	c.HTML(200, "vpsinfo", c.Keys)
 }
 
@@ -68,5 +81,38 @@ func remoteIP(c *gin.Context) {
 	case "POST":
 		ioutil.WriteFile(".ipcache", []byte(c.ClientIP()), 0644)
 		c.String(200, "success")
+	}
+}
+
+func shortURL(c *gin.Context) {
+	do := c.Param("do")
+	surl := c.Param("v")
+	switch do {
+	case "add":
+		_, err := http.Get(surl)
+		if err != nil {
+			c.String(400, "this url can not be get "+err.Error())
+			return
+		}
+		b := []byte(surl)
+		v := fmt.Sprintf("%04x", gopsu.CountCrc16VB(&b))
+		if _, err := shortconf.GetItem(v); err == nil {
+			v += string(skey[int(rand.Int31n(int32(len(skey))))])
+		}
+		shortconf.SetItem(v, surl, "short url")
+		shortconf.Save()
+		c.String(200, "https://xyzjdays.xyz/%s", v)
+	case "del":
+		shortconf.DelItem(surl)
+		shortconf.Save()
+	case "show":
+		c.PureJSON(200, gjson.Parse(shortconf.GetAll()).Value())
+	default: // redir
+		url, err := shortconf.GetItem(do)
+		if err != nil {
+			c.String(400, err.Error())
+			return
+		}
+		c.Redirect(http.StatusTemporaryRedirect, url)
 	}
 }

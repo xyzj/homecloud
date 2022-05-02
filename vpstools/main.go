@@ -66,6 +66,7 @@ func main() {
 		ioutil.WriteFile(gopsu.JoinPathFromHere("cfrenew.log"), []byte(certCloudflareTools("renew")), 0664)
 		time.Sleep(time.Hour * 240)
 	}()
+	shortconf, _ = gopsu.LoadConfig(gopsu.JoinPathFromHere("short.conf"))
 	opt := &ginmiddleware.ServiceOption{
 		HTTPPort:   *port,
 		HTTPSPort:  *ports,

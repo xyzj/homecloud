@@ -26,11 +26,12 @@ var (
 )
 
 var (
-	mainDomain  = []string{"wgq.shwlst.com:40001"}
-	debugDomain = "v4.xyzjdays.xyz"
+	// mainDomain  = []string{"wgq.shwlst.com:40001"}
+	// debugDomain = "v4.xyzjdays.xyz"
+	mapDomain = make(map[string]string)
 
-	urlDownload    = "https://%s/cert/download/%s"
-	domainList     = []string{"wlst.vip"} //, "shwlst.com"}
+	urlDownload = "https://%s/cert/download/%s"
+	// domainList     = []string{"wlst.vip"} //, "shwlst.com"}
 	linuxSSLCopy   = filepath.Join(gopsu.GetExecDir(), "sslcopy.sh")
 	windowsSSLCopy = filepath.Join(gopsu.GetExecDir(), "sslcopy.bat")
 
@@ -81,15 +82,15 @@ func downloadCert(url, domain string) bool {
 
 func renew() {
 	// var oldsign, newsign string
-	for k, v := range domainList {
-		err := os.Remove(filepath.Join(getExecDir(), v+".zip"))
+	for k, v := range mapDomain {
+		err := os.Remove(filepath.Join(getExecDir(), k+".zip"))
 		if err != nil {
 			dlog.Println("clean zip files error: " + err.Error())
 		}
 		// oldsign = localSign(v)
 		// newsign = remoteSign(v)
 		// if newsign != "1" && oldsign != newsign {
-		downloadCert(mainDomain[k], v)
+		downloadCert(v, k)
 		// } else {
 		// 	if oldsign == newsign {
 		// 		dlog.Println("Same signature, no update needed.")
@@ -148,9 +149,11 @@ func main() {
 	}
 	fd, _ := os.OpenFile(filepath.Join(getExecDir(), "sslrenew.log"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0664)
 	dlog = log.New(io.MultiWriter(fd, os.Stdout), "", log.LstdFlags)
+	mapDomain["wlst.vip"] = "wgq.shwlst.com:40001"
 	if *enableDebug {
-		mainDomain = append(mainDomain, debugDomain)
-		domainList = append(domainList, "xyzjdays.xyz")
+		mapDomain["xyzjx.xyz"] = "v4.xyzjdays.xyz"
+		// mainDomain = append(mainDomain, debugDomain)
+		// domainList = append(domainList, "xyzjdays.xyz")
 	}
 	renew()
 	for {
