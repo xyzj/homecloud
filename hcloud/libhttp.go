@@ -10,6 +10,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
+	game "github.com/xyzj/gopsu/games"
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
 )
 
@@ -65,6 +66,7 @@ func routeEngine() *gin.Engine {
 	}
 	// 主页
 	r.GET("/", remoteIP)
+	r.GET("/game/:game", game.GameGroup)
 	// 静态资源
 	r.StaticFS("/emb", http.FS(stat))
 
