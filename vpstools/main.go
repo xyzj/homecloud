@@ -40,6 +40,7 @@ var (
 	key   = flag.String("key", "", "key file path")
 	auth  = flag.Bool("auth", false, "enable basicauth")
 	debug = flag.Bool("debug", false, "run in debug mode")
+	renew = flag.String("renew", "xyzjx.xyz", "auto renew cert files for domain")
 	// 帮助信息
 	help = flag.Bool("help", false, "print help message and exit")
 )
@@ -63,8 +64,13 @@ func main() {
 		os.Exit(0)
 	}
 	go func() {
-		ioutil.WriteFile(gopsu.JoinPathFromHere("cfrenew.log"), []byte(certCloudflareTools("renew")), 0664)
-		time.Sleep(time.Hour * 240)
+		switch *renew {
+		case "xyzjx.xyz":
+			ioutil.WriteFile(gopsu.JoinPathFromHere("cfrenew.log"), []byte(certCloudflareTools("renew")), 0664)
+		case "wlst.vip":
+			ioutil.WriteFile(gopsu.JoinPathFromHere("cfrenew.log"), []byte(certDNSPodTools("renew")), 0664)
+		}
+		time.Sleep(time.Hour * 216)
 	}()
 	shortconf, _ = gopsu.LoadConfig(gopsu.JoinPathFromHere("short.conf"))
 	opt := &ginmiddleware.ServiceOption{

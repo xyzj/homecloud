@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -101,8 +102,7 @@ func certNamesilo(c *gin.Context) {
 	}
 }
 
-func certDNSPod(c *gin.Context) {
-	os.Mkdir(gopsu.JoinPathFromHere("ca"), 0775)
+func certDNSPodTools(do string) string {
 	cmd := exec.Command(gopsu.JoinPathFromHere("lego"))
 	cmd.Env = append(cmd.Env, "DNSPOD_API_KEY=141155,076ba7af12e110fb5c2eebc438dae5a1")
 	cmd.Env = append(cmd.Env, "DNSPOD_HTTP_TIMEOUT=60")
@@ -112,45 +112,50 @@ func certDNSPod(c *gin.Context) {
 	cmd.Dir = gopsu.GetExecDir()
 	var err error
 	var out []byte
-	switch c.Param("do") {
+	var b = &bytes.Buffer{}
+	switch do {
 	case "run":
 		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns dnspod --domains *.wlst.vip --domains *.shwlst.com --email xuyuan8720@189.cn -a run", " ")
-		c.Writer.WriteString(cmd.String() + "\n")
+		b.WriteString(cmd.String() + "\n")
 		out, err = cmd.CombinedOutput()
 		if err != nil {
-			c.Writer.WriteString(err.Error() + "\n")
-			return
+			b.WriteString(err.Error() + "\n")
+			return b.String()
 		}
-		c.Writer.WriteString(string(out) + "\n")
+		b.WriteString(string(out) + "\n")
 	case "renew":
 		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns dnspod --domains *.wlst.vip --domains *.shwlst.com --email xuyuan8720@189.cn -a renew", " ")
-		c.Writer.WriteString(cmd.String() + "\n")
+		b.WriteString(cmd.String() + "\n")
 		out, err = cmd.CombinedOutput()
 		if err != nil {
-			c.Writer.WriteString(err.Error() + "\n")
-			return
+			b.WriteString(err.Error() + "\n")
+			return b.String()
 		}
-		c.Writer.WriteString(string(out) + "\n")
+		b.WriteString(string(out) + "\n")
 		if strings.Contains(string(out), "no renew") {
-			return
+			return b.String()
 		}
 	default:
-		c.String(200, "Don't understand")
-		return
+		b.WriteString("Don't understand")
+		return b.String()
 	}
 	cmd = exec.Command(gopsu.JoinPathFromHere("sslcopy.sh"))
 	err = cmd.Run()
 	if err != nil {
-		c.Writer.WriteString("run sslcopy.sh error: " + err.Error())
+		b.WriteString("run sslcopy.sh error: " + err.Error())
 	}
+	return b.String()
+}
+func certDNSPod(c *gin.Context) {
+	c.Writer.WriteString(certCloudflareTools(c.Param("do")))
 	c.String(200, "\nDone, you can download cert files now.")
 }
 
 func certCloudflareTools(do string) string {
 	b := &bytes.Buffer{}
 	cmd := exec.Command(gopsu.JoinPathFromHere("lego"))
-	// cmd.Env = append(cmd.Env, "CF_API_MAIL=minamoto.xu@outlook.com")
-	// cmd.Env = append(cmd.Env, "CF_API_KEY=8cb93b12199336e7de160eeac0f304dd")
+	cmd.Env = append(cmd.Env, "CF_API_MAIL=minamoto.xu@outlook.com")
+	cmd.Env = append(cmd.Env, "CF_API_KEY=8cb93b12199336e7de160eeac0f304dd")
 	cmd.Env = append(cmd.Env, "CLOUDFLARE_DNS_API_TOKEN=JIhbdkh3eBZz0ml2b2KS3mlCX-KLiQCnzOabDQ8U")
 	// cmd.Env = append(cmd.Env, "CLOUDFLARE_DNS_API_TOKEN=XbWUwbGAxQgC_BgATXVehBh6lwl9dDVt8cI2zvSC")
 	cmd.Dir = gopsu.GetExecDir()
@@ -158,7 +163,7 @@ func certCloudflareTools(do string) string {
 	var out []byte
 	switch do {
 	case "run":
-		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com--domains xyzjx.xyz --domains *.xyzjx.xyz --domains *.xyzjdays.xyz --email beunknow@outlook.com -a run", " ")
+		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains xyzjx.xyz --domains *.xyzjx.xyz --domains *.xyzjdays.xyz --email beunknow@outlook.com -a run", " ")
 		b.WriteString(cmd.String() + "\n")
 		out, err = cmd.CombinedOutput()
 		if err != nil {
@@ -199,14 +204,38 @@ func updateCFRecord(c *gin.Context) {
 		c.String(403, " I don't know you")
 		return
 	}
+	var ip string
+	if ip = c.Request.Header.Get("CF-Connecting-IP"); ip == "" {
+		ip = c.ClientIP()
+	}
 	proxied, _ := strconv.ParseBool(c.Param("proxied"))
+	domain := c.Param("domain")
+	var js, url string
+	switch domain {
+	case "xyzjdays":
+		if ip != ipCachedXyzjdays {
+			url = "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
+			ipCachedXyzjdays = ip
+		}
+	default:
+		domain = "xyzjx"
+		if ip != ipCachedXyzjx {
+			url = "https://api.cloudflare.com/client/v4/zones/599ee9a1156a799fd3ad7038828a7743/dns_records/7d5d79ba86df16771703181947c3635d"
+			ipCachedXyzjx = ip
+		}
+	}
 
-	if c.ClientIP() != ipCached {
-		url := "https://api.cloudflare.com/client/v4/zones/599ee9a1156a799fd3ad7038828a7743/dns_records/7d5d79ba86df16771703181947c3635d"
-		var js string
+	// if c.ClientIP() != ipCached {
+	// 	switch c.Param("domain") {
+	// 	case "xyzjdays":
+	// 		url = "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
+	// 	default:
+	// 		url = "https://api.cloudflare.com/client/v4/zones/599ee9a1156a799fd3ad7038828a7743/dns_records/7d5d79ba86df16771703181947c3635d"
+	// 	}
+	if url != "" {
 		js, _ = sjson.Set(js, "type", "A")
 		js, _ = sjson.Set(js, "name", "da")
-		js, _ = sjson.Set(js, "content", c.ClientIP())
+		js, _ = sjson.Set(js, "content", ip)
 		js, _ = sjson.Set(js, "ttl", 1)
 		js, _ = sjson.Set(js, "proxied", proxied)
 		req, _ := http.NewRequest("PUT", url, strings.NewReader(js))
@@ -220,8 +249,9 @@ func updateCFRecord(c *gin.Context) {
 		}
 		b, _ := ioutil.ReadAll(resp.Body)
 		c.String(200, string(b))
-		ipCached = c.ClientIP()
+
+		// ipCached = c.ClientIP() + c.Param("domain")
 		return
 	}
-	c.String(200, "ip not changed, nothing to do")
+	c.String(200, fmt.Sprintf("ip %s not changed, nothing to do", ip))
 }

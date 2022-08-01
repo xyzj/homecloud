@@ -151,7 +151,7 @@ func main() {
 	dlog = log.New(io.MultiWriter(fd, os.Stdout), "", log.LstdFlags)
 	mapDomain["wlst.vip"] = "wgq.shwlst.com:40001"
 	if *enableDebug {
-		mapDomain["xyzjx.xyz"] = "v4.xyzjdays.xyz"
+		mapDomain["xyzjx.xyz"] = "v4.xyzjx.xyz"
 		// mainDomain = append(mainDomain, debugDomain)
 		// domainList = append(domainList, "xyzjdays.xyz")
 	}

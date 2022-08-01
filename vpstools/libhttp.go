@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/xyzj/gopsu"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
@@ -12,8 +14,10 @@ import (
 )
 
 var (
-	ipCached       string
-	httpClientPool = &http.Client{
+	ipCachedXyzjx    string
+	ipCachedXyzjdays string
+	ipCached         string
+	httpClientPool   = &http.Client{
 		Timeout: time.Duration(time.Second * 15),
 		Transport: &http.Transport{
 			IdleConnTimeout:     time.Second * 15,
@@ -54,9 +58,10 @@ func routeEngine() *gin.Engine {
 	}))
 	// 渲染模板
 	r.HTMLRender = multiRender()
-
+	r.Use(ginmiddleware.CFConnectingIP())
 	// 主页
-	r.GET("/", remoteIP)
+	r.GET("/", ginmiddleware.PageAbort)
+	r.GET("/whoami", remoteIP)
 	// 工具路由
 	// 短地址编码
 	r.GET("/short/:do", ginmiddleware.ReadParams(), shortURL)
@@ -77,6 +82,7 @@ func routeEngine() *gin.Engine {
 	gcert := r.Group("/cert", ginmiddleware.ReadParams())
 	gcert.GET("/view/:name", certView)
 	gcert.GET("/download/:name", certDownload)
+	gcert.Static("/cadir", gopsu.JoinPathFromHere("ca"))
 	gcert.GET("/namesilo/:do", certNamesilo)
 	gcert.GET("/dnspod/:do", certDNSPod)
 	gcert.GET("/cloudflare/:do", certCloudflare)

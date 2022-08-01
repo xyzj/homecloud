@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8
 
 COPY buildfiles /root
 
-RUN	/sbin/apk update && \
+RUN /sbin/apk update && \
 	/sbin/apk upgrade && \
 	/sbin/apk add caddy v2ray openrc && \
 	/bin/cp /root/bin/localtime /etc/localtime && \
@@ -13,3 +13,5 @@ RUN	/sbin/apk update && \
 	/bin/echo "net.ipv4.tcp_fastopen = 3" >>/etc/sysctl.conf && \
 	/bin/echo "net.ipv4.ip_forward=1" >>/etc/sysctl.conf && \
 	/bin/echo "net.ipv6.ip_forward=1" >>/etc/sysctl.conf
+
+#ENTRYPOINT ["/root/bin/run.sh"]

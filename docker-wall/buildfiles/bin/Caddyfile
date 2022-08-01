@@ -13,7 +13,7 @@
       roll_size 10mb
       roll_keep 1
       roll_keep_for 3d
-    }  
+    }
   }
 }
 http://v2cf.xyzjx.xyz, http://v4.xyzjx.xyz, http://xyzjx.xyz {
@@ -29,13 +29,13 @@ v2cf.xyzjx.xyz {
       header Connection Upgrade
       header Upgrade websocket
   }
-  reverse_proxy @v2ray_ws localhost:6891
+  reverse_proxy @v2ray_ws 127.0.0.1:6891
 }
 v4.xyzjx.xyz {
 #  import common_headers
 #  import log_conf
   import tls_conf
-  reverse_proxy localhost:2052
+  reverse_proxy http://127.0.0.1:2052
 }
 
 xyzjx.xyz {
