@@ -77,9 +77,17 @@ func vps4info(c *gin.Context) {
 func remoteIP(c *gin.Context) {
 	switch c.Request.Method {
 	case "GET":
-		c.String(200, c.ClientIP())
+		if ip := c.Request.Header.Get("CF-Connecting-IP"); ip != "" {
+			c.String(200, ip)
+		} else {
+			c.String(200, c.ClientIP())
+		}
 	case "POST":
-		ioutil.WriteFile(".ipcache", []byte(c.ClientIP()), 0644)
+		if ip := c.Request.Header.Get("CF-Connecting-IP"); ip != "" {
+			ioutil.WriteFile(".ipcache", []byte(ip), 0644)
+		} else {
+			ioutil.WriteFile(".ipcache", []byte(c.ClientIP()), 0644)
+		}
 		c.String(200, "success")
 	}
 }
