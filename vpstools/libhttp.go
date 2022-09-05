@@ -5,11 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/xyzj/gopsu"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
+	"github.com/xyzj/gopsu"
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
 )
 
@@ -36,7 +35,6 @@ var (
 func multiRender() multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
 	r.AddFromString("vpsinfo", tplVpsinfo)
-	r.AddFromString("uuidinfo", tpluuid)
 	return r
 }
 
@@ -84,7 +82,6 @@ func routeEngine() *gin.Engine {
 	gcert.GET("/download/:name", certDownload)
 	gcert.Static("/cadir", gopsu.JoinPathFromHere("ca"))
 	gcert.GET("/namesilo/:do", certNamesilo)
-	gcert.GET("/dnspod/:do", certDNSPod)
 	gcert.GET("/cloudflare/:do", certCloudflare)
 
 	return r

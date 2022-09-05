@@ -1,31 +1,6 @@
 package main
 
 var (
-	tpluuid = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-</head>
-<body>
-    <p>New UUID4: {{.newuuid4}}</p>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <p style="color:white;">id1: {{.uuid1}}</p>
-    <p style="color:white;">id2: {{.uuid2}}</p>
-    <p style="color:white;">id3: {{.uuid3}}</p>
-    <p style="color:white;">id4: {{.uuid4}}</p>
-    <p style="color:white;">id5: {{.uuid5}}</p>
-</body>
-</html>`
-
 	tplVpsinfo = `<!DOCTYPE html>
 <html>
 <head>

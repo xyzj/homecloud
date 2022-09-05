@@ -38,7 +38,7 @@ var (
 	dlog *log.Logger
 
 	httpClient = &http.Client{
-		Timeout: time.Duration(time.Second * 300),
+		Timeout: time.Duration(time.Second * 30),
 		Transport: &http.Transport{
 			IdleConnTimeout: time.Minute,
 			TLSClientConfig: &tls.Config{

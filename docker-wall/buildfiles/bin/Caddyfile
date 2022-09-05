@@ -5,7 +5,7 @@
   encode gzip
 }
 (tls_conf) {
-  tls /root/bin/ca/xyzjx.xyz.crt /root/bin/ca/xyzjx.xyz.key
+  tls /root/bin/ca/xyzjdays.xyz.crt /root/bin/ca/xyzjdays.xyz.key
 }
 (log_conf) {
   log {
@@ -16,11 +16,11 @@
     }
   }
 }
-http://v2cf.xyzjx.xyz, http://v4.xyzjx.xyz, http://xyzjx.xyz {
+http://v2cf.xyzjdays.xyz, http://v4.xyzjdays.xyz, http://xyzjdays.xyz {
     redir https://{host}{uri}
 }
 
-v2cf.xyzjx.xyz {
+v2cf.xyzjdays.xyz {
 #  import common_headers
   import tls_conf
 #  import log_conf
@@ -31,16 +31,16 @@ v2cf.xyzjx.xyz {
   }
   reverse_proxy @v2ray_ws 127.0.0.1:6891
 }
-v4.xyzjx.xyz {
+v4.xyzjdays.xyz {
 #  import common_headers
 #  import log_conf
   import tls_conf
   reverse_proxy http://127.0.0.1:2052
 }
 
-xyzjx.xyz {
+xyzjdays.xyz {
 #  import common_headers
 #  import log_conf
   import tls_conf
-  redir https://v4.xyzjx.xyz/short{uri} 302
+  redir https://v4.xyzjdays.xyz/short{uri} 302
 }

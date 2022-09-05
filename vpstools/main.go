@@ -9,8 +9,8 @@ import (
 	"unsafe"
 
 	"github.com/xyzj/gopsu"
-
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
+	"github.com/xyzj/gopsu/loopfunc"
 )
 
 var (
@@ -38,9 +38,8 @@ var (
 	ports = flag.Int("https", 0, "set https port")
 	cert  = flag.String("cert", "", "cert file path")
 	key   = flag.String("key", "", "key file path")
-	auth  = flag.Bool("auth", false, "enable basicauth")
 	debug = flag.Bool("debug", false, "run in debug mode")
-	renew = flag.String("renew", "xyzjx.xyz", "auto renew cert files for domain")
+	renew = flag.String("renew", "", "auto renew cert files for domain")
 	// 帮助信息
 	help = flag.Bool("help", false, "print help message and exit")
 )
@@ -63,15 +62,12 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(0)
 	}
-	go func() {
-		switch *renew {
-		case "xyzjx.xyz":
+	go loopfunc.LoopFunc(func(params ...interface{}) {
+		for {
 			ioutil.WriteFile(gopsu.JoinPathFromHere("cfrenew.log"), []byte(certCloudflareTools("renew")), 0664)
-		case "wlst.vip":
-			ioutil.WriteFile(gopsu.JoinPathFromHere("cfrenew.log"), []byte(certDNSPodTools("renew")), 0664)
+			time.Sleep(time.Hour * 216)
 		}
-		time.Sleep(time.Hour * 216)
-	}()
+	}, "cert renew", nil)
 	shortconf, _ = gopsu.LoadConfig(gopsu.JoinPathFromHere("short.conf"))
 	opt := &ginmiddleware.ServiceOption{
 		HTTPPort:   *port,

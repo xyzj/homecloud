@@ -102,54 +102,54 @@ func certNamesilo(c *gin.Context) {
 	}
 }
 
-func certDNSPodTools(do string) string {
-	cmd := exec.Command(gopsu.JoinPathFromHere("lego"))
-	cmd.Env = append(cmd.Env, "DNSPOD_API_KEY=141155,076ba7af12e110fb5c2eebc438dae5a1")
-	cmd.Env = append(cmd.Env, "DNSPOD_HTTP_TIMEOUT=60")
-	cmd.Env = append(cmd.Env, "DNSPOD_POLLING_INTERVAL=30")
-	cmd.Env = append(cmd.Env, "DNSPOD_PROPAGATION_TIMEOUT=1500")
-	cmd.Env = append(cmd.Env, "DNSPOD_TTL=3600")
-	cmd.Dir = gopsu.GetExecDir()
-	var err error
-	var out []byte
-	var b = &bytes.Buffer{}
-	switch do {
-	case "run":
-		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns dnspod --domains *.wlst.vip --domains *.shwlst.com --email xuyuan8720@189.cn -a run", " ")
-		b.WriteString(cmd.String() + "\n")
-		out, err = cmd.CombinedOutput()
-		if err != nil {
-			b.WriteString(err.Error() + "\n")
-			return b.String()
-		}
-		b.WriteString(string(out) + "\n")
-	case "renew":
-		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns dnspod --domains *.wlst.vip --domains *.shwlst.com --email xuyuan8720@189.cn -a renew", " ")
-		b.WriteString(cmd.String() + "\n")
-		out, err = cmd.CombinedOutput()
-		if err != nil {
-			b.WriteString(err.Error() + "\n")
-			return b.String()
-		}
-		b.WriteString(string(out) + "\n")
-		if strings.Contains(string(out), "no renew") {
-			return b.String()
-		}
-	default:
-		b.WriteString("Don't understand")
-		return b.String()
-	}
-	cmd = exec.Command(gopsu.JoinPathFromHere("sslcopy.sh"))
-	err = cmd.Run()
-	if err != nil {
-		b.WriteString("run sslcopy.sh error: " + err.Error())
-	}
-	return b.String()
-}
-func certDNSPod(c *gin.Context) {
-	c.Writer.WriteString(certCloudflareTools(c.Param("do")))
-	c.String(200, "\nDone, you can download cert files now.")
-}
+// func certDNSPodTools(do string) string {
+// 	cmd := exec.Command(gopsu.JoinPathFromHere("lego"))
+// 	cmd.Env = append(cmd.Env, "DNSPOD_API_KEY=141155,076ba7af12e110fb5c2eebc438dae5a1")
+// 	cmd.Env = append(cmd.Env, "DNSPOD_HTTP_TIMEOUT=60")
+// 	cmd.Env = append(cmd.Env, "DNSPOD_POLLING_INTERVAL=30")
+// 	cmd.Env = append(cmd.Env, "DNSPOD_PROPAGATION_TIMEOUT=1500")
+// 	cmd.Env = append(cmd.Env, "DNSPOD_TTL=3600")
+// 	cmd.Dir = gopsu.GetExecDir()
+// 	var err error
+// 	var out []byte
+// 	var b = &bytes.Buffer{}
+// 	switch do {
+// 	case "run":
+// 		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns dnspod --domains *.wlst.vip --domains *.shwlst.com --email xuyuan8720@189.cn -a run", " ")
+// 		b.WriteString(cmd.String() + "\n")
+// 		out, err = cmd.CombinedOutput()
+// 		if err != nil {
+// 			b.WriteString(err.Error() + "\n")
+// 			return b.String()
+// 		}
+// 		b.WriteString(string(out) + "\n")
+// 	case "renew":
+// 		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns dnspod --domains *.wlst.vip --domains *.shwlst.com --email xuyuan8720@189.cn -a renew", " ")
+// 		b.WriteString(cmd.String() + "\n")
+// 		out, err = cmd.CombinedOutput()
+// 		if err != nil {
+// 			b.WriteString(err.Error() + "\n")
+// 			return b.String()
+// 		}
+// 		b.WriteString(string(out) + "\n")
+// 		if strings.Contains(string(out), "no renew") {
+// 			return b.String()
+// 		}
+// 	default:
+// 		b.WriteString("Don't understand")
+// 		return b.String()
+// 	}
+// 	cmd = exec.Command(gopsu.JoinPathFromHere("sslcopy.sh"))
+// 	err = cmd.Run()
+// 	if err != nil {
+// 		b.WriteString("run sslcopy.sh error: " + err.Error())
+// 	}
+// 	return b.String()
+// }
+// func certDNSPod(c *gin.Context) {
+// 	c.Writer.WriteString(certCloudflareTools(c.Param("do")))
+// 	c.String(200, "\nDone, you can download cert files now.")
+// }
 
 func certCloudflareTools(do string) string {
 	b := &bytes.Buffer{}
@@ -163,7 +163,7 @@ func certCloudflareTools(do string) string {
 	var out []byte
 	switch do {
 	case "run":
-		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains xyzjx.xyz --domains *.xyzjx.xyz --domains *.xyzjdays.xyz --email beunknow@outlook.com -a run", " ")
+		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains xyzjdays.xyz --domains *.xyzjdays.xyz --email beunknow@outlook.com -a run", " ")
 		b.WriteString(cmd.String() + "\n")
 		out, err = cmd.CombinedOutput()
 		if err != nil {
@@ -172,7 +172,7 @@ func certCloudflareTools(do string) string {
 		}
 		b.WriteString(string(out) + "\n")
 	case "renew":
-		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains xyzjx.xyz --domains *.xyzjx.xyz --domains *.xyzjdays.xyz --email beunknow@outlook.com -a renew", " ")
+		cmd.Args = strings.Split(gopsu.JoinPathFromHere("lego")+" --dns cloudflare --dns.resolvers harvey.ns.cloudflare.com --domains xyzjdays.xyz --domains *.xyzjdays.xyz --email beunknow@outlook.com -a renew", " ")
 		b.WriteString(cmd.String() + "\n")
 		out, err = cmd.CombinedOutput()
 		if err != nil {

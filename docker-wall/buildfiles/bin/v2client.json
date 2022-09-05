@@ -2,7 +2,8 @@
     "log": {
         "loglevel": "error"
     },
-    "inbounds": [{
+    "inbounds": [
+        {
             "port": 8119,
             "listen": "0.0.0.0",
             "protocol": "http",
@@ -10,27 +11,30 @@
                 "timeout": 0,
                 "accounts": [],
                 "allowTransparent": false,
-                "userLevel": 0
-            },
-            "settings": {
+                "userLevel": 0,
                 "auth": "noauth",
                 "udp": false
             }
         }
     ],
-    "outbounds": [{
+    "outbounds": [
+        {
             "tag": "proxy",
             "protocol": "vmess",
             "settings": {
-                "vnext": [{
-                    "address": "v2cf.xyzjx.xyz",
-                    "port": 443,
-                    "users": [{
-                        "id": "f30c9b1a-ce1c-11ea-b97b-1ffc83514f09",
-                        "alterId": 0,
-                        "security": "aes-128-gcm"
-                    }]
-                }]
+                "vnext": [
+                    {
+                        "address": "v2cf.xyzjdays.xyz",
+                        "port": 443,
+                        "users": [
+                            {
+                                "id": "f30c9b1a-ce1c-11ea-b97b-1ffc83514f09",
+                                "alterId": 0,
+                                "security": "aes-128-gcm"
+                            }
+                        ]
+                    }
+                ]
             },
             "streamSettings": {
                 "network": "ws",
@@ -67,7 +71,8 @@
     ],
     "routing": {
         "domainStrategy": "IPOnDemand",
-        "rules": [{
+        "rules": [
+            {
                 "type": "field",
                 "port": null,
                 "outboundTag": "block",
