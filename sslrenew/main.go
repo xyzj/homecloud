@@ -21,8 +21,7 @@ import (
 )
 
 var (
-	enableDebug = flag.Bool("debug", false, "set if enable debug info.")
-	show        = flag.String("show", "", "show crt file info")
+	show = flag.String("show", "", "show crt file info")
 )
 
 var (
@@ -87,16 +86,7 @@ func renew() {
 		if err != nil {
 			dlog.Println("clean zip files error: " + err.Error())
 		}
-		// oldsign = localSign(v)
-		// newsign = remoteSign(v)
-		// if newsign != "1" && oldsign != newsign {
 		downloadCert(v, k)
-		// } else {
-		// 	if oldsign == newsign {
-		// 		dlog.Println("Same signature, no update needed.")
-		// 	} else {
-		// 		dlog.Println("Can not get cert file info:" + v)
-		// 	}
 		println("-------")
 	}
 	var cmd *exec.Cmd
@@ -150,11 +140,6 @@ func main() {
 	fd, _ := os.OpenFile(filepath.Join(getExecDir(), "sslrenew.log"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0664)
 	dlog = log.New(io.MultiWriter(fd, os.Stdout), "", log.LstdFlags)
 	mapDomain["wlst.vip"] = "wgq.shwlst.com:40001"
-	if *enableDebug {
-		mapDomain["xyzjx.xyz"] = "v4.xyzjx.xyz"
-		// mainDomain = append(mainDomain, debugDomain)
-		// domainList = append(domainList, "xyzjdays.xyz")
-	}
 	renew()
 	for {
 		time.Sleep(time.Hour * 3)
