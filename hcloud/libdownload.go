@@ -94,8 +94,16 @@ func rpcToAria2(vl string) {
 }
 
 func youtubeControl() {
-	videoNameReplacer := strings.NewReplacer("WARNING:Unabletodownloadwebpage:Nostatuslinereceived-theserverhasclosedtheconnection", "",
-		"、", ";", "%", "", "\n", "", "\r", "", "；", ";", "：", ":", "（", "", "）", "", "？", "", " ", "", "《", "<", "》", ">", "！", "", "，", ",", "。", "")
+	videoNameReplacer := strings.NewReplacer(
+		"WARNING:", "",
+		"Failedtodownloadm3u8information:", "",
+		"FailedtodownloadMPDmanifest:", "",
+		"Unabletodownloadwebpage:", "",
+		"UnabletodownloadAPIpage:", "",
+		"<urlopenerror[Errno0]Error>", "",
+		"Nostatuslinereceived-theserverhasclosedtheconnection", "",
+		"HTTPError429:TooManyRequests", "",
+		"、", ";", "%", "", "\n", "", "\r", "", "；", ";", "：", ":", "（", "", "）", "", "？", "", " ", "", "《", "<", "》", ">", "！", "", "，", ",", "。", "", "“", "", "”", "")
 RUN:
 	func() {
 		defer func() {
@@ -123,10 +131,18 @@ RUN:
 			scmd.WriteString(" && \\\nrm $0\n")
 			ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
 			cmd = exec.Command(shellName)
-			if b, err := cmd.CombinedOutput(); err == nil && !strings.Contains(string(b), "urlopenerror") {
-				videoName = videoNameReplacer.Replace(string(b))
-				if len(videoName) > 230 {
-					videoName = videoName[:230]
+			if b, err := cmd.CombinedOutput(); err == nil {
+				s := gopsu.String(b)
+				idx := strings.Index(s, "\n")
+				x := ""
+				if idx > 0 {
+					x = videoNameReplacer.Replace(s[idx:])
+				}
+				if len(x) > 230 {
+					x = x[:230]
+				}
+				if len(x) > 0 {
+					videoName = x
 				}
 			}
 			shellName = "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + ".sh"
