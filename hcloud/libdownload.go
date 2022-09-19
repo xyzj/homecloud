@@ -103,7 +103,7 @@ func youtubeControl() {
 		"<urlopenerror[Errno0]Error>", "",
 		"Nostatuslinereceived-theserverhasclosedtheconnection", "",
 		"HTTPError429:TooManyRequests", "",
-		"、", ";", "%", "", "\n", "", "\r", "", "；", ";", "：", ":", "（", "", "）", "", "？", "", " ", "", "《", "<", "》", ">", "！", "", "，", ",", "。", "", "“", "", "”", "")
+		"、", ";", "%", "", "\n", "", "\r", "", "；", ";", "：", ":", "（", "", "）", "", "？", "", " ", "", " ", "", "《", "<", "》", ">", "！", "", "，", ",", "。", "", "“", "", "”", "")
 RUN:
 	func() {
 		defer func() {
@@ -120,7 +120,8 @@ RUN:
 			if gopsu.TrimString(vi.url) == "" || vi.try >= 5 {
 				continue
 			}
-			shellName = "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + "-name.sh"
+			fname := gopsu.CalcCRC32String([]byte(vi.url))
+			shellName = "/tmp/" + fname + "-name.sh"
 			scmd.Reset()
 			scmd.WriteString("#!/bin/bash\n\n")
 			scmd.WriteString("youtube-dl ")
@@ -132,23 +133,24 @@ RUN:
 			ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
 			cmd = exec.Command(shellName)
 			if b, err := cmd.CombinedOutput(); err == nil {
-				s := gopsu.String(b)
-				idx := strings.Index(s, "\n")
-				x := ""
-				if idx > 0 {
-					x = videoNameReplacer.Replace(s[idx:])
-				}
+				// s := gopsu.String(b)
+				x := videoNameReplacer.Replace(gopsu.String(b))
 				if len(x) > 230 {
-					x = x[:230]
+					for k := range x {
+						if k >= 230 {
+							x = x[:k]
+							break
+						}
+					}
 				}
 				if len(x) > 0 {
 					videoName = x
 				}
 			}
-			shellName = "/tmp/" + gopsu.CalcCRC32String([]byte(vi.url)) + ".sh"
-			if isExist(shellName) && vi.format == "" {
-				goto DOWN
-			}
+			shellName = "/tmp/" + fname + ".sh"
+			// if isExist(shellName) && vi.format == "" {
+			// 	goto DOWN
+			// }
 			scmd.Reset()
 			scmd.WriteString("#!/bin/bash\n\n")
 
@@ -176,7 +178,7 @@ RUN:
 			}
 			scmd.WriteString(" && \\\nrm $0\n")
 			ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
-		DOWN:
+			// DOWN:
 			time.Sleep(time.Second * time.Duration(rand.Int31n(5)+10))
 			cmd = exec.Command(shellName)
 			b, err := cmd.CombinedOutput()
