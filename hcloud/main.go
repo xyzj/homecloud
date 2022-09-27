@@ -7,6 +7,8 @@ import (
 	"strings"
 	"unsafe"
 
+	"github.com/xyzj/gopsu/godaemon"
+
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
 )
 
@@ -68,6 +70,7 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(0)
 	}
+	godaemon.Start(nil)
 	// 参数处理
 	if *aria2 == "" {
 		*aria2 = "http://127.0.0.1:2052"

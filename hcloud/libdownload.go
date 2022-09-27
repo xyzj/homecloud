@@ -16,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/sjson"
 	"github.com/xyzj/gopsu"
+	"github.com/xyzj/gopsu/txtcode"
 )
 
 type videoinfo struct {
@@ -45,7 +46,7 @@ func tdlb(c *gin.Context) {
 			switch s[0] {
 			case "thunder":
 				ss, _ := base64.StdEncoding.DecodeString(s[1][2:])
-				a, _ := gopsu.GbkToUtf8(ss[2 : len(ss)-2])
+				a, _ := txtcode.GbkToUtf8(ss[2 : len(ss)-2])
 				vl = string(a)
 				goto START
 			case "http", "https":
