@@ -1,0 +1,94 @@
+{
+    "log": {
+        "loglevel": "error"
+    },
+    "inbounds": [
+        {
+            "port": 40441,
+            "listen": "0.0.0.0",
+            "protocol": "http",
+            "settings": {
+                "timeout": 60,
+                "accounts": [],
+                "allowTransparent": false,
+                "userLevel": 0
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "tag": "proxy",
+            "protocol": "vmess",
+            "settings": {
+                "vnext": [
+                    {
+                        "address": "v2cf.xyzjdays.xyz",
+                        "port": 2096,
+                        "users": [
+                            {
+                                "id": "f30c9b1a-ce1c-11ea-b97b-1ffc83514f09",
+                                "alterId": 0,
+                                "security": "aes-128-gcm"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "tls",
+                "wsSettings": {
+                    "path": "/allmess"
+                }
+            }
+        },
+        {
+            "tag": "direct",
+            "protocol": "freedom",
+            "settings": {}
+        },
+        {
+            "tag": "block",
+            "protocol": "blackhole",
+            "settings": {
+                "response": {
+                    "type": "none"
+                }
+            }
+        }
+    ],
+    "routing": {
+        "domainStrategy": "IPOnDemand",
+        "domainMatcher": "mph",
+        "rules": [
+            {
+                "type": "field",
+                "outboundTag": "block",
+                "ip": [],
+                "domain": [
+                    "geosite:category-ads-all"
+                ]
+            },
+            {
+                "type": "field",
+                "outboundTag": "direct",
+                "ip": [
+                    "geoip:cn",
+                    "geoip:private"
+                ],
+                "domain": [
+                    "baidu.com",
+                    "ecosia.org",
+                    "geosite:cn"
+                ]
+            },
+            {
+                "type": "field",
+                "protocol": [
+                    "bittorrent"
+                ],
+                "outboundTag": "direct"
+            }
+        ]
+    }
+}

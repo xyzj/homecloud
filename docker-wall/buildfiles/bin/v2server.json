@@ -6,24 +6,50 @@
         {
             "port": 6891,
             "address": "127.0.0.1",
+            "protocol": "vless",
+            "settings": {
+                "decryption": "none",
+                "clients": [
+                    {
+                        "id": "99adedfc-2c6a-c727-3873-30b309a96f0b",
+                        "level": 0,
+                        "email": "whoami@abc.def"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "none",
+                "wsSettings": {
+                    "path": "/lessormore",
+                    "connectionReuse": true
+                }
+            }
+        },
+        {
+            "port": 6892,
+            "address": "127.0.0.1",
             "protocol": "vmess",
             "settings": {
-                "clients": [{
-                    "id": "f30c9b1a-ce1c-11ea-b97b-1ffc83514f09",
-                    "alterId": 0,
-                    "security": "aes-128-gcm"
-                }]
+                "clients": [
+                    {
+                        "id": "f30c9b1a-ce1c-11ea-b97b-1ffc83514f09",
+                        "alterId": 0,
+                        "security": "aes-128-gcm"
+                    }
+                ]
             },
             "streamSettings": {
                 "network": "ws",
                 "wsSettings": {
-                    "path": "/xx",
+                    "path": "/allmess",
                     "connectionReuse": true
                 }
             }
         }
     ],
-    "outbounds": [{
+    "outbounds": [
+        {
             "tag": "direct",
             "protocol": "freedom",
             "settings": {}
@@ -35,13 +61,16 @@
         }
     ],
     "routing": {
-        "domainStrategy": "AsIs",
-        "rules": [{
-            "type": "field",
-            "ip": [
-                "geoip:private"
-            ],
-            "outboundTag": "blocked"
-        }]
+        "domainStrategy": "IPOnDemand",
+        "domainMatcher": "mph",
+        "rules": [
+            {
+                "type": "field",
+                "ip": [
+                    "geoip:private"
+                ],
+                "outboundTag": "blocked"
+            }
+        ]
     }
 }

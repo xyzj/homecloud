@@ -2,45 +2,67 @@
 # see: https://caddyserver.com/docs/caddyfile
 
 (common_headers) {
-  encode gzip
+	encode gzip
 }
 (tls_conf) {
-  tls /root/bin/ca/xyzjdays.xyz.crt /root/bin/ca/xyzjdays.xyz.key
+	tls /root/bin/ca/xyzjdays.xyz.crt /root/bin/ca/xyzjdays.xyz.key
+}
+(tls_self) {
+	tls /root/bin/localhost.pem /root/bin/localhost-key.pem
 }
 (log_conf) {
-  log {
-    output file "/var/log/caddy.log" {
-      roll_size 10mb
-      roll_keep 1
-      roll_keep_for 3d
-    }
-  }
+	log {
+		output file "/var/log/caddy.log" {
+			roll_size 10mb
+			roll_keep 1
+			roll_keep_for 3d
+		}
+	}
 }
-http://v2cf.xyzjdays.xyz, http://v4.xyzjdays.xyz, http://xyzjdays.xyz {
-    redir https://{host}{uri}
+# wewillsee
+(ba_wall) {
+	basicauth /* {
+		outsidethewall JDJhJDE0JFY3ZGlKOTNHSEdYVGRiVTUwWnpzVC5MWndJaEdaMXouSXhpY3BWSGtYZlQxY29CbkZiZTdP
+	}
+}
+http://v4.xyzjdays.xyz, http://xyzjdays.xyz {
+	redir https://{host}{uri}
 }
 
-v2cf.xyzjdays.xyz {
-#  import common_headers
-  import tls_conf
-#  import log_conf
-  @v2ray_ws {
-      path /xx
-      header Connection Upgrade
-      header Upgrade websocket
-  }
-  reverse_proxy @v2ray_ws 127.0.0.1:6891
+:40443 {
+	# import tls_self
+	import ba_wall
+	reverse_proxy http://127.0.0.1:40441
+}
+v2cf.xyzjdays.xyz:2096 {
+	#  import common_headers
+	import tls_conf
+	#  import log_conf
+	@ws_less {
+		path /lessormore
+		header Connection Upgrade
+		header Upgrade websocket
+	}
+	@ws_mess {
+		path /allmess
+		header Connection Upgrade
+		header Upgrade websocket
+	}
+	route {
+		reverse_proxy @ws_less 127.0.0.1:6891
+		reverse_proxy @ws_mess 127.0.0.1:6892
+	}
+	abort
 }
 v4.xyzjdays.xyz {
-#  import common_headers
-#  import log_conf
-  import tls_conf
-  reverse_proxy http://127.0.0.1:2052
+	#  import common_headers
+	#  import log_conf
+	import tls_conf
+	reverse_proxy http://127.0.0.1:2052
 }
-
 xyzjdays.xyz {
-#  import common_headers
-#  import log_conf
-  import tls_conf
-  redir https://v4.xyzjdays.xyz/short{uri} 302
+	#  import common_headers
+	#  import log_conf
+	import tls_conf
+	redir https://v4.xyzjdays.xyz/short{uri} 302
 }

@@ -1,36 +1,34 @@
 {
     "log": {
-        "loglevel": "error"
+        "loglevel": "debug"
     },
     "inbounds": [
         {
-            "port": 8119,
+            "port": 40441,
             "listen": "0.0.0.0",
             "protocol": "http",
             "settings": {
-                "timeout": 0,
+                "timeout": 60,
                 "accounts": [],
                 "allowTransparent": false,
-                "userLevel": 0,
-                "auth": "noauth",
-                "udp": false
+                "userLevel": 0
             }
         }
     ],
     "outbounds": [
         {
             "tag": "proxy",
-            "protocol": "vmess",
+            "protocol": "vless",
             "settings": {
                 "vnext": [
                     {
                         "address": "v2cf.xyzjdays.xyz",
-                        "port": 443,
+                        "port": 2096,
                         "users": [
                             {
-                                "id": "f30c9b1a-ce1c-11ea-b97b-1ffc83514f09",
-                                "alterId": 0,
-                                "security": "aes-128-gcm"
+                                "id": "99adedfc-2c6a-c727-3873-30b309a96f0b",
+                                "level": 0,
+                                "encryption": "none"
                             }
                         ]
                     }
@@ -40,73 +38,56 @@
                 "network": "ws",
                 "security": "tls",
                 "wsSettings": {
-                    "path": "/xx"
+                    "path": "/lessormore"
                 }
             }
         },
         {
             "tag": "direct",
             "protocol": "freedom",
-            "settings": {
-                "vnext": null,
-                "servers": null,
-                "response": null
-            },
-            "streamSettings": null,
-            "mux": null
+            "settings": {}
         },
         {
             "tag": "block",
             "protocol": "blackhole",
             "settings": {
-                "vnext": null,
-                "servers": null,
                 "response": {
-                    "type": "http"
+                    "type": "none"
                 }
-            },
-            "streamSettings": null,
-            "mux": null
+            }
         }
     ],
     "routing": {
         "domainStrategy": "IPOnDemand",
+        "domainMatcher": "mph",
         "rules": [
             {
                 "type": "field",
-                "port": null,
                 "outboundTag": "block",
-                "ip": null,
+                "ip": [],
                 "domain": [
-                    "geosite:category-ads"
+                    "geosite:category-ads-all"
                 ]
             },
             {
                 "type": "field",
-                "port": null,
                 "outboundTag": "direct",
                 "ip": [
+                    "geoip:cn",
                     "geoip:private"
                 ],
-                "domain": null
-            },
-            {
-                "type": "field",
-                "port": null,
-                "outboundTag": "direct",
-                "ip": [
-                    "geoip:cn"
-                ],
-                "domain": null
-            },
-            {
-                "type": "field",
-                "port": null,
-                "outboundTag": "direct",
-                "ip": null,
                 "domain": [
+                    "baidu.com",
+                    "ecosia.org",
                     "geosite:cn"
                 ]
+            },
+            {
+                "type": "field",
+                "protocol": [
+                    "bittorrent"
+                ],
+                "outboundTag": "direct"
             }
         ]
     }
