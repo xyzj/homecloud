@@ -119,7 +119,7 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		srcdir := "/v-" + url + "/"
 		subdir := c.Param("sub")
-		name := c.Param("name")
+		name := strings.ToLower(c.Param("name"))
 		dst := filepath.Join(urldst, subdir)
 		flist, err := ioutil.ReadDir(dst)
 		if err != nil {
@@ -138,7 +138,7 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 			srcdir += subdir + "/"
 		}
 		for _, f := range flist {
-			if f.IsDir() || !strings.Contains(f.Name(), name) || strings.HasPrefix(f.Name(), ".fuse") {
+			if f.IsDir() || !strings.Contains(strings.ToLower(f.Name()), name) || strings.HasPrefix(f.Name(), ".fuse") {
 				continue
 			}
 			filename = namereplacer.Replace(f.Name())
