@@ -29,11 +29,6 @@ http://v4.xyzjdays.xyz, http://xyzjdays.xyz {
 	redir https://{host}{uri}
 }
 
-:40443 {
-	# import tls_self
-	import ba_wall
-	reverse_proxy http://127.0.0.1:40441
-}
 v2cf.xyzjdays.xyz:2096 {
 	#  import common_headers
 	import tls_conf

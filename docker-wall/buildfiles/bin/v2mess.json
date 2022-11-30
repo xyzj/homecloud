@@ -13,6 +13,22 @@
                 "allowTransparent": false,
                 "userLevel": 0
             }
+        },
+        {
+            "port": 40442,
+            "listen": "0.0.0.0",
+            "protocol": "http",
+            "settings": {
+                "timeout": 60,
+                "accounts": [
+                    {
+                        "user": "outsidethewall",
+                        "pass": "wewillSee"
+                    }
+                ],
+                "allowTransparent": false,
+                "userLevel": 0
+            }
         }
     ],
     "outbounds": [

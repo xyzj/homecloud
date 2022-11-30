@@ -8,4 +8,4 @@ start-stop-daemon --start --background -m -p /run/v2client.pid /root/bin/v2ray -
 
 sleep 1
 
-start-stop-daemon --start --background -m -p /run/caddy.pid --exec /usr/sbin/caddy -- run --config /etc/caddy/Caddyfile
+#start-stop-daemon --start --background -m -p /run/caddy.pid --exec /usr/sbin/caddy -- run --config /etc/caddy/Caddyfile
