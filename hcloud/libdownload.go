@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -95,16 +96,16 @@ func rpcToAria2(vl string) {
 }
 
 func youtubeControl() {
-	videoNameReplacer := strings.NewReplacer(
-		"WARNING:", "",
-		"Failedtodownloadm3u8information:", "",
-		"FailedtodownloadMPDmanifest:", "",
-		"Unabletodownloadwebpage:", "",
-		"UnabletodownloadAPIpage:", "",
-		"<urlopenerror[Errno0]Error>", "",
-		"Nostatuslinereceived-theserverhasclosedtheconnection", "",
-		"HTTPError429:TooManyRequests", "",
-		"\"", "", "'", "", "、", ";", "%", "", "\n", "", "\r", "", "；", ";", "：", ":", "（", "", "）", "", "？", "", " ", "", " ", "", "《", "<", "》", ">", "！", "", "，", ",", "。", "", "“", "", "”", "")
+	// videoNameReplacer := strings.NewReplacer(
+	// 	"WARNING:", "",
+	// 	"Failedtodownloadm3u8information:", "",
+	// 	"FailedtodownloadMPDmanifest:", "",
+	// 	"Unabletodownloadwebpage:", "",
+	// 	"UnabletodownloadAPIpage:", "",
+	// 	"<urlopenerror[Errno0]Error>", "",
+	// 	"Nostatuslinereceived-theserverhasclosedtheconnection", "",
+	// 	"HTTPError429:TooManyRequests", "",
+	// 	"\"", "", "'", "", "、", ";", "%", "", "\n", "", "\r", "", "；", ";", "：", ":", "（", "", "）", "", "？", "", " ", "", " ", "", "《", "<", "》", ">", "！", "", "，", ",", "。", "", "“", "", "”", "")
 RUN:
 	func() {
 		defer func() {
@@ -122,44 +123,51 @@ RUN:
 				continue
 			}
 			fname := gopsu.CalcCRC32String([]byte(vi.url))
-			shellName = "/tmp/" + fname + "-name.sh"
-			scmd.Reset()
-			scmd.WriteString("#!/bin/bash\n\n")
-			scmd.WriteString("youtube-dl ")
-			scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
-			scmd.WriteString("--get-filename ")
-			scmd.WriteString("-o '%(title)s' ")
-			scmd.WriteString("'" + vi.url + "'")
-			scmd.WriteString(" && \\\nrm $0\n")
-			ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
-			cmd = exec.Command(shellName)
-			if b, err := cmd.CombinedOutput(); err == nil {
-				// s := gopsu.String(b)
-				x := videoNameReplacer.Replace(gopsu.String(b))
-				if len(x) > 230 {
-					for k := range x {
-						if k >= 230 {
-							x = x[:k]
-							break
-						}
-					}
-				}
-				if len(x) > 0 {
-					videoName = x
-				}
-			}
+			// shellName = "/tmp/" + fname + "-name.sh"
+			// scmd.Reset()
+			// scmd.WriteString("#!/bin/bash\n\n")
+			// scmd.WriteString("/home/xy/xbin/yt-dlp_linux ")
+			// scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
+			// scmd.WriteString("--get-filename ")
+			// scmd.WriteString("-o '%(title)s' ")
+			// scmd.WriteString("'" + vi.url + "'")
+			// scmd.WriteString(" && \\\nrm $0\n")
+			// ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
+			// cmd = exec.Command(shellName)
+			// if b, err := cmd.CombinedOutput(); err == nil {
+			// 	// s := gopsu.String(b)
+			// 	x := videoNameReplacer.Replace(gopsu.String(b))
+			// 	if len(x) > 230 {
+			// 		for k := range x {
+			// 			if k >= 230 {
+			// 				x = x[:k]
+			// 				break
+			// 			}
+			// 		}
+			// 	}
+			// 	if len(x) > 0 {
+			// 		videoName = x
+			// 	}
+			// }
 			shellName = "/tmp/" + fname + ".sh"
 			// if isExist(shellName) && vi.format == "" {
 			// 	goto DOWN
 			// }
 			scmd.Reset()
-			scmd.WriteString("#!/bin/bash\n\n")
 
-			scmd.WriteString("youtube-dl ")
+			if runtime.GOARCH == "amd64" {
+				scmd.WriteString("#!/bin/bash\n\n")
+				scmd.WriteString("/home/xy/xbin/yt-dlp_linux ")
+			} else {
+				scmd.WriteString("#!/bin/ash\n\n")
+				scmd.WriteString("/usr/bin/yt-dlp ") //python3 -m pip install -U yt-dlp
+			}
 			scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
 			scmd.WriteString("--continue ")
+			scmd.WriteString("--trim-filenames 70 ")
+			scmd.WriteString("--retries 2 ")
 			scmd.WriteString("--write-thumbnail ")
-			scmd.WriteString("--write-sub --write-auto-sub --sub-lang 'en,en-US,zh-Hant' ")
+			// scmd.WriteString("--write-sub --write-auto-sub --sub-lang 'en,en-US,zh-Hant' ")
 			// scmd.WriteString("--mark-watched ")
 			// scmd.WriteString("--youtube-skip-dash-manifest ")
 			scmd.WriteString("--skip-unavailable-fragments ")

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"embed"
 	"fmt"
 	"io/ioutil"
@@ -10,7 +9,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -49,71 +47,71 @@ func (fis byModTime) Less(i, j int) bool {
 }
 
 // smi2Vtt smi转vtt
-func smi2Vtt(in, out string) error {
-	defer os.Remove(in)
-	bIn, err := ioutil.ReadFile(in)
-	if err != nil {
-		return err
-	}
-	ss := strings.Split(string(bIn), "\n")
-	// 分析语言
-	var language string
-	for _, v := range ss {
-		if strings.HasPrefix(v, "-->") {
-			break
-		}
-		if strings.HasPrefix(v, ".zh") {
-			language = v[1:strings.Index(v, " {")]
-			if strings.Contains(v, "自动翻译") || language != "zh-Hant" {
-				continue
-			}
-			break
-		}
-	}
-	// 分析主体
-	var bOut bytes.Buffer
-	// bOut.WriteString("WEBVTT\r\n\r\n")
-	var text string
-	var tStart, tEnd int64
-	for _, v := range ss {
-		v = strings.TrimSpace(v)
-		idxTime1 := strings.Index(v, "Start=")
-		idxClass := strings.Index(v, "class=")
-		if idxTime1 == -1 || idxClass == -1 || !strings.Contains(v, "class='"+language+"'") {
-			continue
-		}
-		idxTime2 := strings.Index(v, ">")
-		idxText := strings.LastIndex(v, ">")
-		if v[idxText+1:] == "" {
-			continue
-		}
-		if v[idxText+1:] == "&nbsp;" {
-			tEnd, _ = strconv.ParseInt(v[idxTime1+6:idxTime2], 10, 0)
-		} else {
-			tStart, _ = strconv.ParseInt(v[idxTime1+6:idxTime2], 10, 0)
-			text = v[idxText+1:]
-		}
-		if tStart >= 0 && tEnd > 0 && len(text) > 0 {
-			bOut.WriteString(fmt.Sprintf("%02d:%02d:%02d.%03d --> %02d:%02d:%02d.%03d\r\n",
-				tStart/1000/60/60,
-				tStart/1000/60%60,
-				tStart/1000%60,
-				tStart%1000,
-				tEnd/1000/60/60,
-				tEnd/1000/60%60,
-				tEnd/1000%60,
-				tEnd%1000))
-			bOut.WriteString(text + "\r\n")
-			tStart = -1
-			tEnd = 0
-			text = ""
-		}
-	}
-	if bOut.Len() == 0 {
-		return nil
-	}
-	return ioutil.WriteFile(out, []byte("WEBVTT\r\n\r\n"+bOut.String()), 0644)
-}
+// func smi2Vtt(in, out string) error {
+// 	defer os.Remove(in)
+// 	bIn, err := ioutil.ReadFile(in)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	ss := strings.Split(string(bIn), "\n")
+// 	// 分析语言
+// 	var language string
+// 	for _, v := range ss {
+// 		if strings.HasPrefix(v, "-->") {
+// 			break
+// 		}
+// 		if strings.HasPrefix(v, ".zh") {
+// 			language = v[1:strings.Index(v, " {")]
+// 			if strings.Contains(v, "自动翻译") || language != "zh-Hant" {
+// 				continue
+// 			}
+// 			break
+// 		}
+// 	}
+// 	// 分析主体
+// 	var bOut bytes.Buffer
+// 	// bOut.WriteString("WEBVTT\r\n\r\n")
+// 	var text string
+// 	var tStart, tEnd int64
+// 	for _, v := range ss {
+// 		v = strings.TrimSpace(v)
+// 		idxTime1 := strings.Index(v, "Start=")
+// 		idxClass := strings.Index(v, "class=")
+// 		if idxTime1 == -1 || idxClass == -1 || !strings.Contains(v, "class='"+language+"'") {
+// 			continue
+// 		}
+// 		idxTime2 := strings.Index(v, ">")
+// 		idxText := strings.LastIndex(v, ">")
+// 		if v[idxText+1:] == "" {
+// 			continue
+// 		}
+// 		if v[idxText+1:] == "&nbsp;" {
+// 			tEnd, _ = strconv.ParseInt(v[idxTime1+6:idxTime2], 10, 0)
+// 		} else {
+// 			tStart, _ = strconv.ParseInt(v[idxTime1+6:idxTime2], 10, 0)
+// 			text = v[idxText+1:]
+// 		}
+// 		if tStart >= 0 && tEnd > 0 && len(text) > 0 {
+// 			bOut.WriteString(fmt.Sprintf("%02d:%02d:%02d.%03d --> %02d:%02d:%02d.%03d\r\n",
+// 				tStart/1000/60/60,
+// 				tStart/1000/60%60,
+// 				tStart/1000%60,
+// 				tStart%1000,
+// 				tEnd/1000/60/60,
+// 				tEnd/1000/60%60,
+// 				tEnd/1000%60,
+// 				tEnd%1000))
+// 			bOut.WriteString(text + "\r\n")
+// 			tStart = -1
+// 			tEnd = 0
+// 			text = ""
+// 		}
+// 	}
+// 	if bOut.Len() == 0 {
+// 		return nil
+// 	}
+// 	return ioutil.WriteFile(out, []byte("WEBVTT\r\n\r\n"+bOut.String()), 0644)
+// }
 
 func runVideojs(url, urldst string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -133,7 +131,7 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 			sort.Sort(byModTime(flist))
 		}
 		// _, showdur := c.Params.Get("dur")
-		var fileext, filesrc, filethumb, fileSmi, fileVtt, filename, filebase string
+		var fileext, filethumb, fileVtt, filename, filebase, filesrc string //,fileSmi,
 		if subdir != "" {
 			srcdir += subdir + "/"
 		}
@@ -145,7 +143,7 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 			if f.Name() != filename {
 				os.Rename(filepath.Join(dst, f.Name()), filepath.Join(dst, filename))
 			}
-			fileext = strings.ToLower(filepath.Ext(filename))
+			fileext = filepath.Ext(filename)
 			filebase = strings.TrimSuffix(filename, fileext)
 			if strings.HasSuffix(filebase, "f133") ||
 				strings.HasSuffix(filebase, "f242") ||
@@ -163,8 +161,12 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 				playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
 			case ".mp4", ".mkv", ".webm": // 视频
 				filesrc = filepath.Join(dst, filename)
-				filethumb = filepath.Join(dst, "."+filename+".webp")
-				fileSmi = filepath.Join(dst, filebase+".smi")
+				filethumb = filepath.Join(dst, filebase+".webp")
+				if isExist(filethumb) {
+					os.Rename(filethumb, filepath.Join(dst, "."+filename+".webp"))
+				}
+				// filethumb = filepath.Join(dst, "."+filename+".webp")
+				// fileSmi = filepath.Join(dst, filebase+".smi")
 				fileVtt = filepath.Join(dst, "."+filename+".vtt")
 				playitem, _ = sjson.Set("", "name", filename)
 				playitem, _ = sjson.Set(playitem, "datetime", f.ModTime().Format("01月02日 15:04"))
@@ -177,25 +179,31 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 				}
 				// 缩略图
 				if runtime.GOARCH == "amd64" {
-					if !isExist(filethumb) || isExist(strings.TrimSuffix(filesrc, fileext)+".webp") {
+					if !isExist(filepath.Join(srcdir + "." + filename + ".webp")) {
 						thumblocker.Add(1)
 						go func(in, out, ext string) {
 							defer thumblocker.Done()
-							if isExist(strings.TrimSuffix(in, ext) + ".jpg") {
-								cmd := exec.Command("mogrify", "-resize", "168x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".jpg")
-								cmd.Run()
-								os.Remove(strings.TrimSuffix(in, ext) + ".jpg")
-							} else if isExist(strings.TrimSuffix(in, ext) + ".webp") {
-								cmd := exec.Command("mogrify", "-resize", "168x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".webp")
-								cmd.Run()
-								os.Remove(strings.TrimSuffix(in, ext) + ".webp")
-							} else {
-								cmd := exec.Command("ffmpeg", "-i", in, "-ss", "00:00:03", "-s", "168:94", "-vframes", "1", out)
-								cmd.Run()
-							}
+							// if isExist(strings.TrimSuffix(in, ext) + ".jpg") {
+							// 	cmd := exec.Command("mogrify", "-resize", "168x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".jpg")
+							// 	cmd.Run()
+							// 	os.Remove(strings.TrimSuffix(in, ext) + ".jpg")
+							// } else if isExist(strings.TrimSuffix(in, ext) + ".webp") {
+							// 	cmd := exec.Command("mogrify", "-resize", "168x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".webp")
+							// 	cmd.Run()
+							// 	os.Remove(strings.TrimSuffix(in, ext) + ".webp")
+							// } else {
+							cmd := exec.Command("ffmpeg", "-i", in, "-ss", "00:00:03", "-s", "168:94", "-vframes", "1", out)
+							cmd.Run()
+							// }
 						}(filesrc, filethumb, fileext)
 					}
 					playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"."+filename+".webp")
+				} else {
+					if isExist(filepath.Join(dst, "."+filename+".webp")) {
+						playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"."+filename+".webp")
+					} else {
+						playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"nil.webp")
+					}
 				}
 				// 字幕
 				var idx = 0
@@ -217,9 +225,9 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 					}
 				}
 				if idx == 0 {
-					if isExist(fileSmi) && !isExist(fileVtt) {
-						smi2Vtt(fileSmi, fileVtt)
-					}
+					// if isExist(fileSmi) && !isExist(fileVtt) {
+					// 	smi2Vtt(fileSmi, fileVtt)
+					// }
 					if isExist(fileVtt) {
 						playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+"."+filename+".vtt")
 						playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.label", idx), "中文")

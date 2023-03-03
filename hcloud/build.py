@@ -23,8 +23,8 @@ def build(outname, goos, goarch):
     # else:
     #     outpath = "dist_linux"
     # outname = outpath + "/"+outname
-    buildcmd = 'CGO_ENABLED=0 go build -ldflags="-s -w -X \'main.version={1}\' -X \'main.buildDate={2}\' -X \'main.goVersion={3}\' -X \'main.platform={4}\'" -o {0}'.format(
-        outname, mainver, time.ctime(time.time()), gover, pf)
+    buildcmd = 'CGO_ENABLED=0 GOOS={5} GOARCH={6} go build -ldflags="-s -w -X \'main.version={1}\' -X \'main.buildDate={2}\' -X \'main.goVersion={3}\' -X \'main.platform={4}\'" -o {0}'.format(
+        outname, mainver, time.ctime(time.time()), gover, pf, goos, goarch)
     # print(buildcmd)
     os.system(buildcmd)
     os.system("upx {0}".format(outname))
@@ -72,5 +72,7 @@ if __name__ == "__main__":
     # build("sampled.exe", "windows", "amd64")
     print("\n=== start build linux x64 ...")
     build("hcloud", "linux", "amd64")
+    print("\n=== start build linux x64 ...")
+    build("hcloud_arm64", "linux", "arm64")
 
     # os.system("cp -f distwin/ecms*.exe ../../python/mwsc/dist/bin/")
