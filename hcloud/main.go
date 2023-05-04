@@ -46,6 +46,7 @@ var (
 	help = flag.Bool("help", false, "print help message and exit")
 	dirs sliceFlag
 	wtv  sliceFlag
+	dav  sliceFlag
 )
 
 func unsafeString(b []byte) string {
@@ -65,6 +66,8 @@ func main() {
 	flag.Var(&dirs, "dir", "example: -dir=name:path -dir name2:path2")
 	// web gallery 目录
 	flag.Var(&wtv, "wtv", "example: -wtv=name:path -wtv name2:path2")
+	// webdav目录
+	flag.Var(&dav, "dav", "example: -dav=name:path -dav name2:path2")
 	flag.Parse()
 	if *help {
 		flag.PrintDefaults()

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -185,34 +186,76 @@ func certCloudflare(c *gin.Context) {
 	c.String(200, "\nDone, you can download cert files now.")
 }
 
+// zone: fb8a871c3737648dfd964bd625f9f685
+// da.xyzjdays.xyz: A 712df327b64333800c02511f404b3157
+// 6.xyzjdays.xyz: AAAA e9bf2e603c7c1ec17c3d0dc7dd18d391
 func updateCFRecord(c *gin.Context) {
 	if c.Param("who") != "ohana" {
 		c.String(403, " I don't know you")
 		return
 	}
-	proxied, _ := strconv.ParseBool(c.Param("proxied"))
-
-	if c.ClientIP() != ipCached {
-		url := "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
-		var js string
-		js, _ = sjson.Set(js, "type", "A")
-		js, _ = sjson.Set(js, "name", "da")
-		js, _ = sjson.Set(js, "content", c.ClientIP())
-		js, _ = sjson.Set(js, "ttl", 1)
-		js, _ = sjson.Set(js, "proxied", proxied)
-		req, _ := http.NewRequest("PUT", url, strings.NewReader(js))
-		req.Header.Add("X-Auth-Email", "minamoto.xu@outlook.com")
-		req.Header.Add("X-Auth-Key", "b6c9de4a9814d534ab16c12d99718f118fde2")
-		req.Header.Add("Content-Type", "application/json")
-		resp, err := httpClientPool.Do(req)
-		if err != nil {
-			c.String(resp.StatusCode, err.Error())
-			return
+	out := &bytes.Buffer{}
+	// 处理ip6
+	ip6 := c.Param("ip6")
+	proxied6, _ := strconv.ParseBool(c.Param("proxied6"))
+	if len(strings.Split(ip6, ":")) == 8 { // 合法ip6
+		if ip6 != ipCached6 {
+			url := "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/e9bf2e603c7c1ec17c3d0dc7dd18d391"
+			var js string
+			js, _ = sjson.Set(js, "type", "AAAA")
+			js, _ = sjson.Set(js, "name", "6")
+			js, _ = sjson.Set(js, "content", ip6)
+			js, _ = sjson.Set(js, "ttl", 1)
+			js, _ = sjson.Set(js, "proxied", proxied6)
+			req, _ := http.NewRequest("PUT", url, strings.NewReader(js))
+			req.Header.Add("X-Auth-Email", "minamoto.xu@outlook.com")
+			req.Header.Add("X-Auth-Key", "b6c9de4a9814d534ab16c12d99718f118fde2")
+			req.Header.Add("Content-Type", "application/json")
+			resp, err := httpClientPool.Do(req)
+			if err != nil {
+				c.String(resp.StatusCode, err.Error())
+				return
+			}
+			b, _ := ioutil.ReadAll(resp.Body)
+			out.Write(b)
+			out.WriteString("<br><br>")
+			// c.String(200, string(b))
+			ipCached6 = ip6
 		}
-		b, _ := ioutil.ReadAll(resp.Body)
-		c.String(200, string(b))
-		ipCached = c.ClientIP()
-		return
 	}
-	c.String(200, "ip not changed, nothing to do")
+	// 处理ip4
+	proxied, _ := strconv.ParseBool(c.Param("proxied"))
+	ip4 := c.Param("ip4")
+	if ip4 == "" {
+		ip4 = c.ClientIP()
+	}
+	if len(strings.Split(ip4, ".")) == 4 {
+		if ip4 != ipCached {
+			url := "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
+			var js string
+			js, _ = sjson.Set(js, "type", "A")
+			js, _ = sjson.Set(js, "name", "da")
+			js, _ = sjson.Set(js, "content", ip4)
+			js, _ = sjson.Set(js, "ttl", 1)
+			js, _ = sjson.Set(js, "proxied", proxied)
+			req, _ := http.NewRequest("PUT", url, strings.NewReader(js))
+			req.Header.Add("X-Auth-Email", "minamoto.xu@outlook.com")
+			req.Header.Add("X-Auth-Key", "b6c9de4a9814d534ab16c12d99718f118fde2")
+			req.Header.Add("Content-Type", "application/json")
+			resp, err := httpClientPool.Do(req)
+			if err != nil {
+				c.String(resp.StatusCode, err.Error())
+				return
+			}
+			b, _ := ioutil.ReadAll(resp.Body)
+			out.Write(b)
+			out.WriteString("<br><br>")
+			ipCached = ip4
+		}
+	}
+	if out.Len() == 0 {
+		c.String(200, "ip not changed, nothing to do")
+	} else {
+		c.String(200, out.String())
+	}
 }

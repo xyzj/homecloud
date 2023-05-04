@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -131,7 +130,7 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 			sort.Sort(byModTime(flist))
 		}
 		// _, showdur := c.Params.Get("dur")
-		var fileext, filethumb, fileVtt, filename, filebase, filesrc string //,fileSmi,
+		var fileext, filethumb, fileVtt, filename, filebase string //,fileSmi,
 		if subdir != "" {
 			srcdir += subdir + "/"
 		}
@@ -160,7 +159,7 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 				playitem, _ = sjson.Set(playitem, "sources.0.type", "audio/"+fileext[1:])
 				playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
 			case ".mp4", ".mkv", ".webm": // 视频
-				filesrc = filepath.Join(dst, filename)
+				// filesrc = filepath.Join(dst, filename)
 				filethumb = filepath.Join(dst, filebase+".webp")
 				if isExist(filethumb) {
 					os.Rename(filethumb, filepath.Join(dst, "."+filename+".webp"))
@@ -169,7 +168,7 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 				// fileSmi = filepath.Join(dst, filebase+".smi")
 				fileVtt = filepath.Join(dst, "."+filename+".vtt")
 				playitem, _ = sjson.Set("", "name", filename)
-				playitem, _ = sjson.Set(playitem, "datetime", f.ModTime().Format("01月02日 15:04"))
+				playitem, _ = sjson.Set(playitem, "datetime", f.ModTime().Add(time.Hour*8).Format("01月02日 15:04"))
 				playitem, _ = sjson.Set(playitem, "sources.0.src", srcdir+filename)
 				switch fileext {
 				case ".mkv":
@@ -178,33 +177,42 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 					playitem, _ = sjson.Set(playitem, "sources.0.type", "video/"+fileext[1:])
 				}
 				// 缩略图
-				if runtime.GOARCH == "amd64" {
-					if !isExist(filepath.Join(srcdir + "." + filename + ".webp")) {
-						thumblocker.Add(1)
-						go func(in, out, ext string) {
-							defer thumblocker.Done()
-							// if isExist(strings.TrimSuffix(in, ext) + ".jpg") {
-							// 	cmd := exec.Command("mogrify", "-resize", "168x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".jpg")
-							// 	cmd.Run()
-							// 	os.Remove(strings.TrimSuffix(in, ext) + ".jpg")
-							// } else if isExist(strings.TrimSuffix(in, ext) + ".webp") {
-							// 	cmd := exec.Command("mogrify", "-resize", "168x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".webp")
-							// 	cmd.Run()
-							// 	os.Remove(strings.TrimSuffix(in, ext) + ".webp")
-							// } else {
-							cmd := exec.Command("ffmpeg", "-i", in, "-ss", "00:00:03", "-s", "168:94", "-vframes", "1", out)
-							cmd.Run()
-							// }
-						}(filesrc, filethumb, fileext)
-					}
+				// if runtime.GOARCH == "amd64" {
+				// 	if !isExist(filepath.Join(dst + "." + filename + ".webp")) {
+				// 		thumblocker.Add(1)
+				// 		go func(in, out, ext string) {
+				// 			defer thumblocker.Done()
+				// 			dthumb := strings.TrimSuffix(in, ext) + ".webp"
+				// 			// if isExist(strings.TrimSuffix(in, ext) + ".jpg") {
+				// 			// 	cmd := exec.Command("mogrify", "-resize", "168x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".jpg")
+				// 			// 	cmd.Run()
+				// 			// 	os.Remove(strings.TrimSuffix(in, ext) + ".jpg")
+				// 			// } else if isExist(strings.TrimSuffix(in, ext) + ".webp") {
+				// 			// 	cmd := exec.Command("mogrify", "-resize", "168x", "-quality", "80%", "-write", out, strings.Trim(in, ext)+".webp")
+				// 			// 	cmd.Run()
+				// 			// 	os.Remove(strings.TrimSuffix(in, ext) + ".webp")
+				// 			// } else {
+				// 			if isExist(dthumb) {
+				// 				cmd := exec.Command("ffmpeg", "-i", dthumb, "-vf", "scale=160:-1", "-y", out)
+				// 				cmd.Run()
+				// 				os.Remove(dthumb)
+				// 			} else {
+				// 				cmd := exec.Command("ffmpeg", "-i", "\""+in+"\"", "-vcodec", "libwebp", "-ss", "00:00:03", "-s", "160:90", "-vframes", "1", "-y", out)
+				// 				// println("----------", cmd.String())
+				// 				// b, _ := cmd.CombinedOutput()
+				// 				// println("===========", cmd.String(), "========\n", string(b))
+				// 				cmd.Run()
+				// 			}
+				// 		}(filesrc, filepath.Join("\""+dst+"/."+filename+".webp\""), fileext)
+				// 	}
+				// 	playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"."+filename+".webp")
+				// } else {
+				if isExist(filepath.Join(dst, "."+filename+".webp")) {
 					playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"."+filename+".webp")
 				} else {
-					if isExist(filepath.Join(dst, "."+filename+".webp")) {
-						playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"."+filename+".webp")
-					} else {
-						playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"nil.webp")
-					}
+					playitem, _ = sjson.Set(playitem, "thumbnail.0.src", srcdir+"nil.webp")
 				}
+				// }
 				// 字幕
 				var idx = 0
 				for _, v := range subTypes {

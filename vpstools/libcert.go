@@ -199,59 +199,87 @@ func certCloudflare(c *gin.Context) {
 	c.String(200, "\nDone, you can download cert files now.")
 }
 
+// zone: fb8a871c3737648dfd964bd625f9f685
+// da.xyzjdays.xyz: A 712df327b64333800c02511f404b3157
+// 6.xyzjdays.xyz: AAAA e9bf2e603c7c1ec17c3d0dc7dd18d391
+// curl 4: 4.ipw.cn; checkip.amazonaws.com; whatismyip.akamai.com
+// curl 6: 6.ipw.cn; curlmyip.net; wgetip.com
+// https://www.cnblogs.com/mainos/p/15863048.html
 func updateCFRecord(c *gin.Context) {
 	if c.Param("who") != "ohana" {
 		c.String(403, " I don't know you")
 		return
 	}
-	var ip string
-	if ip = c.Request.Header.Get("CF-Connecting-IP"); ip == "" {
-		ip = c.ClientIP()
+	out := &bytes.Buffer{}
+	// 处理ip6
+	ip6 := c.Param("ip6")
+	proxied6, _ := strconv.ParseBool(c.Param("proxied6"))
+	if len(strings.Split(ip6, ":")) == 8 { // 合法ip6
+		if ip6 != ipCached6 {
+			url := "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/e9bf2e603c7c1ec17c3d0dc7dd18d391"
+			var js string
+			js, _ = sjson.Set(js, "type", "AAAA")
+			js, _ = sjson.Set(js, "name", "6")
+			js, _ = sjson.Set(js, "content", ip6)
+			js, _ = sjson.Set(js, "ttl", 1)
+			js, _ = sjson.Set(js, "proxied", proxied6)
+			req, _ := http.NewRequest("PUT", url, strings.NewReader(js))
+			req.Header.Add("X-Auth-Email", "minamoto.xu@outlook.com")
+			req.Header.Add("X-Auth-Key", "b6c9de4a9814d534ab16c12d99718f118fde2")
+			req.Header.Add("Content-Type", "application/json")
+			resp, err := httpClientPool.Do(req)
+			if err != nil {
+				c.String(resp.StatusCode, err.Error())
+				return
+			}
+			b, _ := ioutil.ReadAll(resp.Body)
+			out.Write(b)
+			// c.String(200, string(b))
+			ipCached6 = ip6
+		} else {
+			out.WriteString(fmt.Sprintf("ip6 %s not changed, nothing to do", ip6))
+		}
+		out.WriteString("\n\n")
 	}
+	// 处理ip4
 	proxied, _ := strconv.ParseBool(c.Param("proxied"))
-	domain := c.Param("domain")
-	var js, url string
-	switch domain {
-	case "xyzjdays":
-		if ip != ipCachedXyzjdays {
-			url = "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
-			ipCachedXyzjdays = ip
-		}
-	default:
-		domain = "xyzjx"
-		if ip != ipCachedXyzjx {
-			url = "https://api.cloudflare.com/client/v4/zones/599ee9a1156a799fd3ad7038828a7743/dns_records/7d5d79ba86df16771703181947c3635d"
-			ipCachedXyzjx = ip
+	ip4 := c.Param("ip4")
+	if ip4 == "" {
+		if ip := c.Request.Header.Get("CF-Connecting-IP"); ip == "" {
+			ip4 = c.ClientIP()
+		} else {
+			ip4 = ip
 		}
 	}
-
-	// if c.ClientIP() != ipCached {
-	// 	switch c.Param("domain") {
-	// 	case "xyzjdays":
-	// 		url = "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
-	// 	default:
-	// 		url = "https://api.cloudflare.com/client/v4/zones/599ee9a1156a799fd3ad7038828a7743/dns_records/7d5d79ba86df16771703181947c3635d"
-	// 	}
-	if url != "" {
-		js, _ = sjson.Set(js, "type", "A")
-		js, _ = sjson.Set(js, "name", "da")
-		js, _ = sjson.Set(js, "content", ip)
-		js, _ = sjson.Set(js, "ttl", 1)
-		js, _ = sjson.Set(js, "proxied", proxied)
-		req, _ := http.NewRequest("PUT", url, strings.NewReader(js))
-		req.Header.Add("X-Auth-Email", "minamoto.xu@outlook.com")
-		req.Header.Add("X-Auth-Key", "b6c9de4a9814d534ab16c12d99718f118fde2")
-		req.Header.Add("Content-Type", "application/json")
-		resp, err := httpClientPool.Do(req)
-		if err != nil {
-			c.String(resp.StatusCode, err.Error())
-			return
+	if len(strings.Split(ip4, ".")) == 4 {
+		if ip4 != ipCached {
+			url := "https://api.cloudflare.com/client/v4/zones/fb8a871c3737648dfd964bd625f9f685/dns_records/712df327b64333800c02511f404b3157"
+			var js string
+			js, _ = sjson.Set(js, "type", "A")
+			js, _ = sjson.Set(js, "name", "da")
+			js, _ = sjson.Set(js, "content", ip4)
+			js, _ = sjson.Set(js, "ttl", 1)
+			js, _ = sjson.Set(js, "proxied", proxied)
+			req, _ := http.NewRequest("PUT", url, strings.NewReader(js))
+			req.Header.Add("X-Auth-Email", "minamoto.xu@outlook.com")
+			req.Header.Add("X-Auth-Key", "b6c9de4a9814d534ab16c12d99718f118fde2")
+			req.Header.Add("Content-Type", "application/json")
+			resp, err := httpClientPool.Do(req)
+			if err != nil {
+				c.String(resp.StatusCode, err.Error())
+				return
+			}
+			b, _ := ioutil.ReadAll(resp.Body)
+			out.Write(b)
+			ipCached = ip4
+		} else {
+			out.WriteString(fmt.Sprintf("ip %s not changed, nothing to do", ip4))
 		}
-		b, _ := ioutil.ReadAll(resp.Body)
-		c.String(200, string(b))
-
-		// ipCached = c.ClientIP() + c.Param("domain")
-		return
+		out.WriteString("\n\n")
 	}
-	c.String(200, fmt.Sprintf("ip %s not changed, nothing to do", ip))
+	if out.Len() == 0 {
+		c.String(200, "ip not changed, nothing to do\n")
+	} else {
+		c.String(200, out.String())
+	}
 }
