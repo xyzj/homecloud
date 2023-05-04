@@ -16,6 +16,7 @@ var (
 	ipCachedXyzjx    string
 	ipCachedXyzjdays string
 	ipCached         string
+	ipCached6        string
 	httpClientPool   = &http.Client{
 		Timeout: time.Duration(time.Second * 15),
 		Transport: &http.Transport{

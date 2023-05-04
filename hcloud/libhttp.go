@@ -16,6 +16,7 @@ import (
 
 var (
 	ipCached       string
+	ipCached6      string
 	httpClientPool = &http.Client{
 		Timeout: time.Duration(time.Second * 15),
 		Transport: &http.Transport{
@@ -128,6 +129,5 @@ func routeEngine() *gin.Engine {
 			r.StaticFS("/v-"+strings.Split(v, ":")[0], http.Dir(strings.Split(v, ":")[1]))
 		}
 	}
-
 	return r
 }

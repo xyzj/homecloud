@@ -28,7 +28,7 @@ type videoinfo struct {
 
 var (
 	// chanHTTPDownloader    = make(chan *videoinfo, 100)
-	chanYoutubeDownloader = make(chan *videoinfo, 100)
+	chanYoutubeDownloader = make(chan videoinfo, 100)
 )
 
 func tdlb(c *gin.Context) {
@@ -55,9 +55,9 @@ func tdlb(c *gin.Context) {
 					vl = strings.ReplaceAll(vl, "&pp=sAQA", "")
 					if strings.Contains(vl, "&&") {
 						x := strings.Split(gopsu.TrimString(vl), "&&")
-						chanYoutubeDownloader <- &videoinfo{url: x[0], format: x[1]}
+						chanYoutubeDownloader <- videoinfo{url: x[0], format: x[1]}
 					} else {
-						chanYoutubeDownloader <- &videoinfo{url: vl, format: ""}
+						chanYoutubeDownloader <- videoinfo{url: vl, format: ""}
 					}
 				} else {
 					furl := vl
@@ -118,7 +118,7 @@ RUN:
 		var shellName string
 		var videoName = "%(title)s"
 		for vi := range chanYoutubeDownloader {
-			videoName = "%(title)s"
+			videoName = "%(title).150B"
 			if gopsu.TrimString(vi.url) == "" || vi.try >= 5 {
 				continue
 			}
@@ -157,16 +157,18 @@ RUN:
 
 			if runtime.GOARCH == "amd64" {
 				scmd.WriteString("#!/bin/bash\n\n")
-				scmd.WriteString("/home/xy/xbin/yt-dlp_linux ")
+				scmd.WriteString("/usr/local/bin/yt-dlp ")
 			} else {
 				scmd.WriteString("#!/bin/ash\n\n")
 				scmd.WriteString("/usr/bin/yt-dlp ") //python3 -m pip install -U yt-dlp
 			}
 			scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
 			scmd.WriteString("--continue ")
-			scmd.WriteString("--trim-filenames 70 ")
-			scmd.WriteString("--retries 2 ")
+			// scmd.WriteString("--downloader=aria2c ")
+			// scmd.WriteString("--no-get-comments ")
+			scmd.WriteString("--trim-filenames 55 ")
 			scmd.WriteString("--write-thumbnail ")
+			scmd.WriteString("--retries 10 ")
 			// scmd.WriteString("--write-sub --write-auto-sub --sub-lang 'en,en-US,zh-Hant' ")
 			// scmd.WriteString("--mark-watched ")
 			// scmd.WriteString("--youtube-skip-dash-manifest ")
@@ -177,7 +179,7 @@ RUN:
 			// scmd.WriteString("--recode-video mp4 ")
 			scmd.WriteString("-o '" + *ydir + videoName + ".%(ext)s' ")
 			if vi.format == "" {
-				vi.format = "133+140/242+250/242+251/133+250/133+251/18"
+				vi.format = "242+249/133+140/18"
 			}
 			scmd.WriteString("-f '" + vi.format + "' ")
 			if strings.HasPrefix(vi.url, "http") {
@@ -197,7 +199,10 @@ RUN:
 			}
 			time.Sleep(time.Second * time.Duration(rand.Int31n(5)+3))
 			if isExist(shellName) {
-				if !strings.Contains(strings.ToLower(string(b)), "error") {
+				out := strings.ToLower(string(b))
+				if strings.Contains(out, "error") ||
+					strings.Contains(out, "errno") ||
+					strings.Contains(out, "filename too long") {
 					vi.try++
 				}
 				chanYoutubeDownloader <- vi

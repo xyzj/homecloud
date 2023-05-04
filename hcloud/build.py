@@ -72,7 +72,7 @@ if __name__ == "__main__":
     # build("sampled.exe", "windows", "amd64")
     print("\n=== start build linux x64 ...")
     build("hcloud", "linux", "amd64")
-    print("\n=== start build linux x64 ...")
+    print("\n=== start build linux arm64 ...")
     build("hcloud_arm64", "linux", "arm64")
 
     # os.system("cp -f distwin/ecms*.exe ../../python/mwsc/dist/bin/")

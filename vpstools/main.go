@@ -10,6 +10,7 @@ import (
 
 	"github.com/xyzj/gopsu"
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
+	"github.com/xyzj/gopsu/godaemon"
 	"github.com/xyzj/gopsu/loopfunc"
 )
 
@@ -39,7 +40,7 @@ var (
 	cert  = flag.String("cert", "", "cert file path")
 	key   = flag.String("key", "", "key file path")
 	debug = flag.Bool("debug", false, "run in debug mode")
-	renew = flag.String("renew", "", "auto renew cert files for domain")
+	renew = flag.Bool("renew", true, "auto renew cert files for domain")
 	// 帮助信息
 	help = flag.Bool("help", false, "print help message and exit")
 )
@@ -62,12 +63,16 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(0)
 	}
-	go loopfunc.LoopFunc(func(params ...interface{}) {
-		for {
-			ioutil.WriteFile(gopsu.JoinPathFromHere("cfrenew.log"), []byte(certCloudflareTools("renew")), 0664)
-			time.Sleep(time.Hour * 216)
-		}
-	}, "cert renew", nil)
+	godaemon.Start(nil)
+
+	if *renew {
+		go loopfunc.LoopFunc(func(params ...interface{}) {
+			for {
+				ioutil.WriteFile(gopsu.JoinPathFromHere("cfrenew.log"), []byte(certCloudflareTools("renew")), 0664)
+				time.Sleep(time.Hour * 216)
+			}
+		}, "cert renew", nil)
+	}
 	shortconf, _ = gopsu.LoadConfig(gopsu.JoinPathFromHere("short.conf"))
 	opt := &ginmiddleware.ServiceOption{
 		HTTPPort:   *port,
