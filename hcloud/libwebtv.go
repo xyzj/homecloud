@@ -9,7 +9,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -168,7 +167,7 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 				// fileSmi = filepath.Join(dst, filebase+".smi")
 				fileVtt = filepath.Join(dst, "."+filename+".vtt")
 				playitem, _ = sjson.Set("", "name", filename)
-				playitem, _ = sjson.Set(playitem, "datetime", f.ModTime().Add(time.Hour*8).Format("01月02日 15:04"))
+				playitem, _ = sjson.Set(playitem, "datetime", f.ModTime().Format("01月02日 15:04"))
 				playitem, _ = sjson.Set(playitem, "sources.0.src", srcdir+filename)
 				switch fileext {
 				case ".mkv":

@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/sjson"
 	"github.com/xyzj/gopsu"
+	"github.com/xyzj/gopsu/pathtool"
 )
 
 func certView(c *gin.Context) {
@@ -54,7 +55,7 @@ func certNamesilo(c *gin.Context) {
 	cmd.Env = append(cmd.Env, "NAMESILO_PROPAGATION_TIMEOUT=1800")
 	cmd.Env = append(cmd.Env, "NAMESILO_TTL=7207")
 	cmd.Env = append(cmd.Env, "NAMESILO_POLLING_INTERVAL=30")
-	cmd.Dir = gopsu.GetExecDir()
+	cmd.Dir = pathtool.GetExecDir()
 	os.Mkdir(gopsu.JoinPathFromHere("ca"), 0775)
 
 	switch c.Param("do") {
@@ -109,7 +110,7 @@ func certDNSPod(c *gin.Context) {
 	cmd.Env = append(cmd.Env, "DNSPOD_POLLING_INTERVAL=30")
 	cmd.Env = append(cmd.Env, "DNSPOD_PROPAGATION_TIMEOUT=1500")
 	cmd.Env = append(cmd.Env, "DNSPOD_TTL=3600")
-	cmd.Dir = gopsu.GetExecDir()
+	cmd.Dir = pathtool.GetExecDir()
 	var err error
 	var out []byte
 	switch c.Param("do") {
@@ -149,7 +150,7 @@ func certDNSPod(c *gin.Context) {
 func certCloudflare(c *gin.Context) {
 	cmd := exec.Command(gopsu.JoinPathFromHere("lego"))
 	cmd.Env = append(cmd.Env, "CLOUDFLARE_DNS_API_TOKEN=XbWUwbGAxQgC_BgATXVehBh6lwl9dDVt8cI2zvSC")
-	cmd.Dir = gopsu.GetExecDir()
+	cmd.Dir = pathtool.GetExecDir()
 	var err error
 	var out []byte
 	switch c.Param("do") {
