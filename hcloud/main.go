@@ -7,7 +7,8 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/xyzj/gopsu/godaemon"
+	"github.com/xyzj/gopsu"
+	"github.com/xyzj/gopsu/gocmd"
 
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
 )
@@ -44,9 +45,9 @@ var (
 	aria2 = flag.String("aria2", "", "set aria2 json rpc url")
 	// 帮助信息
 	help = flag.Bool("help", false, "print help message and exit")
-	dirs sliceFlag
-	wtv  sliceFlag
-	dav  sliceFlag
+	dirs gopsu.SliceFlag
+	wtv  gopsu.SliceFlag
+	dav  gopsu.SliceFlag
 )
 
 func unsafeString(b []byte) string {
@@ -68,12 +69,13 @@ func main() {
 	flag.Var(&wtv, "wtv", "example: -wtv=name:path -wtv name2:path2")
 	// webdav目录
 	flag.Var(&dav, "dav", "example: -dav=name:path -dav name2:path2")
-	flag.Parse()
-	if *help {
-		flag.PrintDefaults()
-		os.Exit(0)
-	}
-	godaemon.Start(nil)
+	gocmd.DefaultProgram(&gocmd.Info{Title: "home cloud", Ver: "0.1.0"}).ExecuteDefault("run")
+	// flag.Parse()
+	// if *help {
+	// 	flag.PrintDefaults()
+	// 	os.Exit(0)
+	// }
+	// godaemon.Start(nil)
 	// 参数处理
 	if *aria2 == "" {
 		*aria2 = "http://127.0.0.1:2052"
