@@ -188,16 +188,16 @@ RUN:
 				scmd.WriteString("-- " + vi.url)
 			}
 			scmd.WriteString(" && \\\nrm $0\n")
-			ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
+			os.WriteFile(shellName, scmd.Bytes(), 0755)
 			// DOWN:
 			time.Sleep(time.Second * time.Duration(rand.Int31n(5)+10))
 			cmd = exec.Command(shellName)
 			b, err := cmd.CombinedOutput()
 			if err != nil {
 				b = append(b, []byte("\n"+err.Error()+"\n")...)
-				ioutil.WriteFile(shellName+".log", b, 0664)
+				os.WriteFile(shellName+".log", b, 0664)
 			}
-			time.Sleep(time.Second * time.Duration(rand.Int31n(5)+3))
+			time.Sleep(time.Second * 40)
 			if isExist(shellName) {
 				out := strings.ToLower(string(b))
 				if strings.Contains(out, "error") ||
