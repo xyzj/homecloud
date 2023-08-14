@@ -87,7 +87,7 @@ func main() {
 		*ydir += "/"
 	}
 	// 启动youtube下载控制
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 2; i++ {
 		go youtubeControl()
 	}
 
