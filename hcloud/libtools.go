@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -41,7 +42,7 @@ func vps4info(c *gin.Context) {
 	req, _ := http.NewRequest("GET", fmt.Sprintf(bwhStatusURL, bwhVeid, gopsu.DecodeString(bwhAPIKey)), strings.NewReader(""))
 	resp, ex := httpClientPool.Do(req)
 	if ex == nil {
-		if d, ex := ioutil.ReadAll(resp.Body); ex == nil {
+		if d, ex := io.ReadAll(resp.Body); ex == nil {
 			a := gjson.ParseBytes(d)
 			c.Set("plan", a.Get("plan").String())
 			c.Set("vmtype", a.Get("vm_type").String())
@@ -66,7 +67,7 @@ func remoteIP(c *gin.Context) {
 	case "GET":
 		c.String(200, c.ClientIP())
 	case "POST":
-		ioutil.WriteFile(".ipcache", []byte(c.ClientIP()), 0644)
+		os.WriteFile(".ipcache", []byte(c.ClientIP()), 0644)
 		c.String(200, "success")
 	}
 }

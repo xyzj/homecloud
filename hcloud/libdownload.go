@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -86,11 +86,11 @@ func rpcToAria2(vl string) {
 	resp, err := httpClientPool.Do(req)
 	shellName := "/tmp/" + gopsu.CalcCRC32String([]byte(vl)) + ".aria2.log"
 	if err != nil {
-		ioutil.WriteFile(shellName, []byte(vl+"\n\n"+err.Error()), 0664)
+		os.WriteFile(shellName, []byte(vl+"\n\n"+err.Error()), 0664)
 	} else {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		if strings.Contains(string(body), "error") {
-			ioutil.WriteFile(shellName, []byte(vl+"\n\n"+string(body)), 0664)
+			os.WriteFile(shellName, []byte(vl+"\n\n"+string(body)), 0664)
 		}
 	}
 }
@@ -132,7 +132,7 @@ RUN:
 			// scmd.WriteString("-o '%(title)s' ")
 			// scmd.WriteString("'" + vi.url + "'")
 			// scmd.WriteString(" && \\\nrm $0\n")
-			// ioutil.WriteFile(shellName, scmd.Bytes(), 0755)
+			// os.WriteFile(shellName, scmd.Bytes(), 0755)
 			// cmd = exec.Command(shellName)
 			// if b, err := cmd.CombinedOutput(); err == nil {
 			// 	// s := gopsu.String(b)
@@ -165,7 +165,7 @@ RUN:
 			scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
 			scmd.WriteString("--continue ")
 			// scmd.WriteString("--downloader=aria2c ")
-			// scmd.WriteString("--no-get-comments ")
+			scmd.WriteString("--no-get-comments ")
 			scmd.WriteString("--trim-filenames 55 ")
 			scmd.WriteString("--write-thumbnail ")
 			scmd.WriteString("--retries 10 ")
