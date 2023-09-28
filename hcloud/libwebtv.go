@@ -3,7 +3,7 @@ package main
 import (
 	"embed"
 	"fmt"
-	"io/ioutil"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -30,7 +30,7 @@ var (
 	subTypes     = []string{".zh-Hant", ".zh-Hans", ".en", ".en-US"}
 )
 
-type byModTime []os.FileInfo
+type byModTime []fs.FileInfo
 
 func (fis byModTime) Len() int {
 	return len(fis)
@@ -108,7 +108,7 @@ func (fis byModTime) Less(i, j int) bool {
 // 	if bOut.Len() == 0 {
 // 		return nil
 // 	}
-// 	return ioutil.WriteFile(out, []byte("WEBVTT\r\n\r\n"+bOut.String()), 0644)
+// 	return os.WriteFile(out, []byte("WEBVTT\r\n\r\n"+bOut.String()), 0644)
 // }
 
 func runVideojs(url, urldst string) gin.HandlerFunc {
@@ -117,7 +117,7 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 		subdir := c.Param("sub")
 		name := strings.ToLower(c.Param("name"))
 		dst := filepath.Join(urldst, subdir)
-		flist, err := ioutil.ReadDir(dst)
+		dlist, err := os.ReadDir(dst)
 		if err != nil {
 			println(dst, err.Error())
 			c.String(200, "wrong way")
@@ -125,11 +125,18 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 		}
 		var playlist, playitem string
 		var thumblocker sync.WaitGroup
+		var flist = make([]fs.FileInfo, 0)
+		for _, v := range dlist {
+			fs, err := v.Info()
+			if err == nil {
+				flist = append(flist, fs)
+			}
+		}
 		if c.Param("order") != "name" {
 			sort.Sort(byModTime(flist))
 		}
 		// _, showdur := c.Params.Get("dur")
-		var fileext, filethumb, fileVtt, filename, filebase string //,fileSmi,
+		var fileext, filethumb, filename, filebase string //,fileSmi,
 		if subdir != "" {
 			srcdir += subdir + "/"
 		}
@@ -165,7 +172,7 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 				}
 				// filethumb = filepath.Join(dst, "."+filename+".webp")
 				// fileSmi = filepath.Join(dst, filebase+".smi")
-				fileVtt = filepath.Join(dst, "."+filename+".vtt")
+				// fileVtt = filepath.Join(dst, filename+".vtt")
 				playitem, _ = sjson.Set("", "name", filename)
 				playitem, _ = sjson.Set(playitem, "datetime", f.ModTime().Format("01月02日 15:04"))
 				playitem, _ = sjson.Set(playitem, "sources.0.src", srcdir+filename)
@@ -214,15 +221,17 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 				// }
 				// 字幕
 				var idx = 0
+				// println("filevtt ", fileVtt, isExist(fileVtt))
 				for _, v := range subTypes {
 					subraw := filepath.Join(dst, filebase+v+".vtt")
-					subdst := filepath.Join(dst, "."+filename+v+".vtt")
-					subsrc := srcdir + "." + filename + v + ".vtt"
+					// println("subraw ", subraw, isExist(subraw))
+					// subdst := filepath.Join(dst, "."+filename+v+".vtt")
+					// subsrc := srcdir + "." + filename + v + ".vtt"
+					// if isExist(subraw) {
+					// 	os.Rename(subraw, subdst)
+					// }
 					if isExist(subraw) {
-						os.Rename(subraw, subdst)
-					}
-					if isExist(subdst) {
-						playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), subsrc)
+						playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), subraw)
 						playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.label", idx), v[1:])
 						playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.srclang", idx), v[1:])
 						if idx == 0 {
@@ -231,23 +240,38 @@ func runVideojs(url, urldst string) gin.HandlerFunc {
 						idx++
 					}
 				}
-				if idx == 0 {
-					// if isExist(fileSmi) && !isExist(fileVtt) {
-					// 	smi2Vtt(fileSmi, fileVtt)
-					// }
-					if isExist(fileVtt) {
-						playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+"."+filename+".vtt")
-						playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.label", idx), "中文")
-						playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.srclang", idx), "zh")
-						playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.default", idx), "false")
-					}
+				if isExist(filepath.Join(dst, filename+".vtt")) {
+					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+filename+".vtt")
+					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.label", idx), "中文")
+					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.srclang", idx), "zh")
+					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.default", idx), "false")
+					idx++
+				}
+				if isExist(filepath.Join(dst, filebase+".vtt")) {
+					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.src", idx), srcdir+filebase+".vtt")
+					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.label", idx), "中文")
+					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.srclang", idx), "zh")
+					playitem, _ = sjson.Set(playitem, fmt.Sprintf("textTracks.%d.default", idx), "false")
+					idx++
 				}
 				playlist, _ = sjson.Set(playlist, "pl.-1", gjson.Parse(playitem).Value())
-			case ".dur", ".png", ".jpg", ".vtt", ".webp":
+			case ".dur", ".png", ".jpg", ".webp":
 				if strings.HasPrefix(filename, ".") {
 					if !isExist(filepath.Join(dst, extreplacer.Replace(filename[1:]))) {
 						os.Remove(filepath.Join(dst, filename))
 					}
+				}
+			case ".vtt":
+				name := filepath.Join(dst, extreplacer.Replace(filename))
+				found := false
+				for _, v := range []string{"", ".mp4", ".webm", ".mkv"} {
+					if isExist(name + v) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					os.Remove(filepath.Join(dst, filename))
 				}
 			case ".jpg~":
 				os.Remove(filepath.Join(dst, filename))

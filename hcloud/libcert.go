@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -65,10 +65,10 @@ func certNamesilo(c *gin.Context) {
 		go func() {
 			out, err := cmd.CombinedOutput()
 			if err != nil {
-				ioutil.WriteFile("legoerr.log", []byte(err.Error()), 0664)
+				os.WriteFile("legoerr.log", []byte(err.Error()), 0664)
 				return
 			}
-			ioutil.WriteFile("namesilo_renew.log", out, 0664)
+			os.WriteFile("namesilo_renew.log", out, 0664)
 
 			cmd = exec.Command(gopsu.JoinPathFromHere("sslcopy.sh"))
 			err = cmd.Run()
@@ -83,10 +83,10 @@ func certNamesilo(c *gin.Context) {
 		go func() {
 			out, err := cmd.CombinedOutput()
 			if err != nil {
-				ioutil.WriteFile("legoerr.log", []byte(err.Error()), 0664)
+				os.WriteFile("legoerr.log", []byte(err.Error()), 0664)
 				return
 			}
-			ioutil.WriteFile("namesilo_renew.log", out, 0664)
+			os.WriteFile("namesilo_renew.log", out, 0664)
 			if strings.Contains(string(out), "no renew") {
 				return
 			}
@@ -217,7 +217,7 @@ func updateCFRecord(c *gin.Context) {
 				c.String(resp.StatusCode, err.Error())
 				return
 			}
-			b, _ := ioutil.ReadAll(resp.Body)
+			b, _ := io.ReadAll(resp.Body)
 			out.Write(b)
 			out.WriteString("<br><br>")
 			// c.String(200, string(b))
@@ -248,7 +248,7 @@ func updateCFRecord(c *gin.Context) {
 				c.String(resp.StatusCode, err.Error())
 				return
 			}
-			b, _ := ioutil.ReadAll(resp.Body)
+			b, _ := io.ReadAll(resp.Body)
 			out.Write(b)
 			out.WriteString("<br><br>")
 			ipCached = ip4
