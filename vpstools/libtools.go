@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"math/rand"
+	"io"
 	"net/http"
+	"os"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -19,40 +18,35 @@ const (
 	bwhVeid      = "979913"
 )
 
-var (
-	shortconf *gopsu.ConfData
-	skey      = "0987654321qwertyuiopQWERTYUIOPasdfghjklASDFGHJKLzxcvbnmZXCVBNM"
-)
+// var (
+// 	skey = "0987654321qwertyuiopQWERTYUIOPasdfghjklASDFGHJKLzxcvbnmZXCVBNM"
+// )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
+// func codeString(c *gin.Context) {
+// 	if c.Request.Method == "POST" {
+// 		c.String(200, gopsu.CodeString(c.Param("rawstr")))
+// 		return
+// 	}
+// 	// web页面
+// 	c.Header("Content-Type", "text/html")
+// 	c.String(200, tplCodeStr)
+// }
 
-func codeString(c *gin.Context) {
-	if c.Request.Method == "POST" {
-		c.String(200, gopsu.CodeString(c.Param("rawstr")))
-		return
-	}
-	// web页面
-	c.Header("Content-Type", "text/html")
-	c.String(200, tplCodeStr)
-}
-
-func md5String(c *gin.Context) {
-	if c.Request.Method == "POST" {
-		c.String(200, gopsu.GetMD5(c.Param("rawstr")))
-		return
-	}
-	// web页面
-	c.Header("Content-Type", "text/html")
-	c.String(200, tplMD5Str)
-}
+// func md5String(c *gin.Context) {
+// 	if c.Request.Method == "POST" {
+// 		c.String(200, gopsu.GetMD5(c.Param("rawstr")))
+// 		return
+// 	}
+// 	// web页面
+// 	c.Header("Content-Type", "text/html")
+// 	c.String(200, tplMD5Str)
+// }
 
 func vps4info(c *gin.Context) {
 	req, _ := http.NewRequest("GET", fmt.Sprintf(bwhStatusURL, bwhVeid, gopsu.DecodeString(bwhAPIKey)), strings.NewReader(""))
 	resp, ex := httpClientPool.Do(req)
 	if ex == nil {
-		if d, ex := ioutil.ReadAll(resp.Body); ex == nil {
+		if d, ex := io.ReadAll(resp.Body); ex == nil {
 			a := gjson.ParseBytes(d)
 			c.Set("plan", a.Get("plan").String())
 			c.Set("vmtype", a.Get("vm_type").String())
@@ -84,43 +78,10 @@ func remoteIP(c *gin.Context) {
 		}
 	case "POST":
 		if ip := c.Request.Header.Get("CF-Connecting-IP"); ip != "" {
-			ioutil.WriteFile(".ipcache", []byte(ip), 0644)
+			os.WriteFile(".ipcache", []byte(ip), 0644)
 		} else {
-			ioutil.WriteFile(".ipcache", []byte(c.ClientIP()), 0644)
+			os.WriteFile(".ipcache", []byte(c.ClientIP()), 0644)
 		}
 		c.String(200, "success")
-	}
-}
-
-func shortURL(c *gin.Context) {
-	do := c.Param("do")
-	surl := c.Param("v")
-	switch do {
-	case "add":
-		_, err := http.Get(surl)
-		if err != nil {
-			c.String(400, "this url can not be get "+err.Error())
-			return
-		}
-		b := []byte(surl)
-		v := fmt.Sprintf("%04x", gopsu.CountCrc16VB(&b))
-		if _, err := shortconf.GetItem(v); err == nil {
-			v += string(skey[int(rand.Int31n(int32(len(skey))))])
-		}
-		shortconf.SetItem(v, surl, "short url")
-		shortconf.Save()
-		c.String(200, "https://xyzjdays.xyz/%s", v)
-	case "del":
-		shortconf.DelItem(surl)
-		shortconf.Save()
-	case "show":
-		c.PureJSON(200, gjson.Parse(shortconf.GetAll()).Value())
-	default: // redir
-		url, err := shortconf.GetItem(do)
-		if err != nil {
-			c.String(400, err.Error())
-			return
-		}
-		c.Redirect(http.StatusTemporaryRedirect, url)
 	}
 }

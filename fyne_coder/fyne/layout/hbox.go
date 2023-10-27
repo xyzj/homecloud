@@ -36,9 +36,6 @@ func (hb *HBoxLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
 		if addPadding {
 			minSize.Width += padding
 		}
-		if addPadding {
-			minSize.Width += padding
-		}
 		addPadding = true
 	}
 	return minSize

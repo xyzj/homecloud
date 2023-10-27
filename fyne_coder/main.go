@@ -9,7 +9,6 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -82,11 +81,16 @@ func main() {
 			}
 		},
 	}
-	layout.NewVBoxLayout()
 	tree.OpenAllBranches()
-	hs := container.NewHSplit(tree, card)
-	hs.SetOffset(0.2)
-	a.ShowAndRun(hs)
+	var cont fyne.CanvasObject
+	if fyne.CurrentDevice().IsMobile() {
+		cont = container.NewStack(tree)
+	} else {
+		dcont := container.NewHSplit(tree, card)
+		dcont.SetOffset(0.2)
+		cont = dcont
+	}
+	a.ShowAndRun(cont)
 }
 func unsupportedTutorial(t *lib.NavItem) bool {
 	return !t.SupportWeb && fyne.CurrentDevice().IsBrowser()

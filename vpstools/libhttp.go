@@ -8,16 +8,14 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
-	"github.com/xyzj/gopsu"
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
+	"github.com/xyzj/gopsu/pathtool"
 )
 
 var (
-	ipCachedXyzjx    string
-	ipCachedXyzjdays string
-	ipCached         string
-	ipCached6        string
-	httpClientPool   = &http.Client{
+	ipCached       string
+	ipCached6      string
+	httpClientPool = &http.Client{
 		Timeout: time.Duration(time.Second * 15),
 		Transport: &http.Transport{
 			IdleConnTimeout:     time.Second * 15,
@@ -62,16 +60,8 @@ func routeEngine() *gin.Engine {
 	r.GET("/", ginmiddleware.PageAbort)
 	r.GET("/whoami", remoteIP)
 	// 工具路由
-	// 短地址编码
-	r.GET("/short/:do", ginmiddleware.ReadParams(), shortURL)
 	// vps信息
 	r.GET("/tools/vpsinfo", vps4info)
-	// md5编码
-	r.GET("/tools/md5", md5String)
-	r.POST("/tools/md5", ginmiddleware.ReadParams(), md5String)
-	// 自定义编码
-	r.GET("/tools/coder", codeString)
-	r.POST("/tools/coder", ginmiddleware.ReadParams(), codeString)
 	// 查看缓存ip
 	r.GET("/tools/cachedip", func(c *gin.Context) { c.String(200, ipCached) })
 	// 向cf更新home的最新ip
@@ -81,9 +71,10 @@ func routeEngine() *gin.Engine {
 	gcert := r.Group("/cert", ginmiddleware.ReadParams())
 	gcert.GET("/view/:name", certView)
 	gcert.GET("/download/:name", certDownload)
-	gcert.Static("/cadir", gopsu.JoinPathFromHere("ca"))
+	gcert.Static("/cadir", pathtool.JoinPathFromHere("ca"))
 	gcert.GET("/namesilo/:do", certNamesilo)
 	gcert.GET("/cloudflare/:do", certCloudflare)
+	gcert.Static("cfdir", pathtool.JoinPathFromHere("caddy_data", "certificates", "acme-v02.api.letsencrypt.org-directory", "xyzjdays.xyz"))
 
 	return r
 }

@@ -231,6 +231,14 @@ func CardHMACSHA1(_ fyne.Window) fyne.CanvasObject {
 		}
 		txtOut.SetText(w.Hash([]byte(txtIn.Text)))
 	})
+	if fyne.CurrentDevice().IsMobile() {
+		return widget.NewForm(
+			widget.NewFormItem("设置Key：", txtKey),
+			widget.NewFormItem("明文：", txtIn),
+			widget.NewFormItem("", btn1),
+			widget.NewFormItem("密文", txtOut),
+		)
+	}
 	return container.NewBorder(container.New(&layoutx.HBoxLayout{}, widgetx.RightAlignLabel("设置Key："), txtKey, layout.NewSpacer(), btn1),
 		nil,
 		nil,
@@ -250,6 +258,14 @@ func CardHMACSHA256(_ fyne.Window) fyne.CanvasObject {
 		}
 		txtOut.SetText(w.Hash([]byte(txtIn.Text)))
 	})
+	if fyne.CurrentDevice().IsMobile() {
+		return widget.NewForm(
+			widget.NewFormItem("设置Key：", txtKey),
+			widget.NewFormItem("明文：", txtIn),
+			widget.NewFormItem("", btn1),
+			widget.NewFormItem("密文", txtOut),
+		)
+	}
 	return container.NewBorder(container.New(&layoutx.HBoxLayout{}, widgetx.RightAlignLabel("设置Key："), txtKey, layout.NewSpacer(), btn1),
 		nil,
 		nil,
@@ -262,6 +278,7 @@ func CardAES128CBC(_ fyne.Window) fyne.CanvasObject {
 	cw = GetNewCryptoWorker(CryptoAES128CBC)
 	keyLen = 16
 	return cardAES
+	// return cardCrypt()
 }
 
 // CardAES192CBC CardAES192CBC
@@ -269,6 +286,7 @@ func CardAES192CBC(_ fyne.Window) fyne.CanvasObject {
 	cw = GetNewCryptoWorker(CryptoAES192CBC)
 	keyLen = 24
 	return cardAES
+	// return cardCrypt()
 }
 
 // CardAES256CBC CardAES256CBC
@@ -276,6 +294,7 @@ func CardAES256CBC(_ fyne.Window) fyne.CanvasObject {
 	cw = GetNewCryptoWorker(CryptoAES256CBC)
 	keyLen = 32
 	return cardAES
+	// return cardCrypt()
 }
 
 // CardAES128CFB CardAES128CFB
@@ -283,6 +302,7 @@ func CardAES128CFB(_ fyne.Window) fyne.CanvasObject {
 	cw = GetNewCryptoWorker(CryptoAES128CFB)
 	keyLen = 16
 	return cardAES
+	// return cardCrypt()
 }
 
 // CardAES192CFB CardAES192CFB
@@ -290,6 +310,7 @@ func CardAES192CFB(_ fyne.Window) fyne.CanvasObject {
 	cw = GetNewCryptoWorker(CryptoAES192CFB)
 	keyLen = 24
 	return cardAES
+	// return cardCrypt()
 }
 
 // CardAES256CFB CardAES256CFB
@@ -297,9 +318,19 @@ func CardAES256CFB(_ fyne.Window) fyne.CanvasObject {
 	cw = GetNewCryptoWorker(CryptoAES256CFB)
 	keyLen = 32
 	return cardAES
+	// return cardCrypt()
 }
 
 func cardCrypt() fyne.CanvasObject {
+	if fyne.CurrentDevice().IsMobile() {
+		return widget.NewForm(
+			widget.NewFormItem("设置Key：", txtKey),
+			widget.NewFormItem("设置IV：", txtIV),
+			widget.NewFormItem("明文：", txtIn),
+			widget.NewFormItem("", container.NewHBox(btnEn, btnDe)),
+			widget.NewFormItem("密文", txtOut),
+		)
+	}
 	return container.NewBorder(container.New(&layoutx.HBoxLayout{},
 		widgetx.RightAlignLabel("设置Key："), txtKey,
 		widgetx.RightAlignLabel("设置IV："), txtIV,

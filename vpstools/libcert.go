@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/sjson"
 	"github.com/xyzj/gopsu"
+	"github.com/xyzj/gopsu/pathtool"
 )
 
 func certView(c *gin.Context) {
@@ -32,9 +33,18 @@ func certView(c *gin.Context) {
 
 func certDownload(c *gin.Context) {
 	name := c.Param("name")
-	crtdst := gopsu.JoinPathFromHere("ca", name+".crt")
-	keydst := gopsu.JoinPathFromHere("ca", name+".key")
-
+	if name == "" {
+		name = "xyzjdays.xyz"
+	}
+	crtdst := ""
+	keydst := ""
+	if name == "xyzjdays.xyz" && pathtool.IsExist(pathtool.JoinPathFromHere("caddy_data", "certificates", "acme-v02.api.letsencrypt.org-directory", "xyzjdays.xyz", "xyzjdays.xyz.crt")) {
+		crtdst = pathtool.JoinPathFromHere("caddy_data", "certificates", "acme-v02.api.letsencrypt.org-directory", "xyzjdays.xyz", "xyzjdays.xyz.crt")
+		keydst = pathtool.JoinPathFromHere("caddy_data", "certificates", "acme-v02.api.letsencrypt.org-directory", "xyzjdays.xyz", "xyzjdays.xyz.key")
+	} else {
+		crtdst = pathtool.JoinPathFromHere("ca", name+".crt")
+		keydst = pathtool.JoinPathFromHere("ca", name+".key")
+	}
 	if isExist(crtdst) && isExist(keydst) {
 		os.Mkdir("ca", 0775)
 		err := gopsu.ZIPFiles(name+".zip", []string{crtdst, keydst}, "")
@@ -55,7 +65,7 @@ func certNamesilo(c *gin.Context) {
 	cmd.Env = append(cmd.Env, "NAMESILO_PROPAGATION_TIMEOUT=1800")
 	cmd.Env = append(cmd.Env, "NAMESILO_TTL=7207")
 	cmd.Env = append(cmd.Env, "NAMESILO_POLLING_INTERVAL=30")
-	cmd.Dir = gopsu.GetExecDir()
+	cmd.Dir = pathtool.GetExecDir()
 	os.Mkdir(gopsu.JoinPathFromHere("ca"), 0775)
 
 	switch c.Param("do") {
@@ -65,10 +75,10 @@ func certNamesilo(c *gin.Context) {
 		go func() {
 			out, err := cmd.CombinedOutput()
 			if err != nil {
-				ioutil.WriteFile("legoerr.log", []byte(err.Error()), 0664)
+				os.WriteFile("legoerr.log", []byte(err.Error()), 0664)
 				return
 			}
-			ioutil.WriteFile("namesilo_renew.log", out, 0664)
+			os.WriteFile("namesilo_renew.log", out, 0664)
 
 			cmd = exec.Command(gopsu.JoinPathFromHere("sslcopy.sh"))
 			err = cmd.Run()
@@ -83,10 +93,10 @@ func certNamesilo(c *gin.Context) {
 		go func() {
 			out, err := cmd.CombinedOutput()
 			if err != nil {
-				ioutil.WriteFile("legoerr.log", []byte(err.Error()), 0664)
+				os.WriteFile("legoerr.log", []byte(err.Error()), 0664)
 				return
 			}
-			ioutil.WriteFile("namesilo_renew.log", out, 0664)
+			os.WriteFile("namesilo_renew.log", out, 0664)
 			if strings.Contains(string(out), "no renew") {
 				return
 			}
@@ -158,7 +168,7 @@ func certCloudflareTools(do string) string {
 	cmd.Env = append(cmd.Env, "CF_API_KEY=8cb93b12199336e7de160eeac0f304dd")
 	cmd.Env = append(cmd.Env, "CLOUDFLARE_DNS_API_TOKEN=JIhbdkh3eBZz0ml2b2KS3mlCX-KLiQCnzOabDQ8U")
 	// cmd.Env = append(cmd.Env, "CLOUDFLARE_DNS_API_TOKEN=XbWUwbGAxQgC_BgATXVehBh6lwl9dDVt8cI2zvSC")
-	cmd.Dir = gopsu.GetExecDir()
+	cmd.Dir = pathtool.GetExecDir()
 	var err error
 	var out []byte
 	switch do {
@@ -232,7 +242,7 @@ func updateCFRecord(c *gin.Context) {
 				c.String(resp.StatusCode, err.Error())
 				return
 			}
-			b, _ := ioutil.ReadAll(resp.Body)
+			b, _ := io.ReadAll(resp.Body)
 			out.Write(b)
 			// c.String(200, string(b))
 			ipCached6 = ip6
@@ -269,7 +279,7 @@ func updateCFRecord(c *gin.Context) {
 				c.String(resp.StatusCode, err.Error())
 				return
 			}
-			b, _ := ioutil.ReadAll(resp.Body)
+			b, _ := io.ReadAll(resp.Body)
 			out.Write(b)
 			ipCached = ip4
 		} else {
