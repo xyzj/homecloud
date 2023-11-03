@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	lib "homecloud/lib"
 
 	"github.com/xyzj/gopsu/gocmd"
@@ -40,8 +41,8 @@ func main() {
 	}
 
 	opt := &ginmiddleware.ServiceOption{
-		HTTPPort:   *port,
-		HTTPSPort:  *ports,
+		HTTPPort:   fmt.Sprintf(":%d", *port),
+		HTTPSPort:  fmt.Sprintf(":%d", *ports),
 		CertFile:   *cert,
 		KeyFile:    *key,
 		Debug:      *debug,
