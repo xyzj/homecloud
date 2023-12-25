@@ -37,8 +37,8 @@ cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohl
 cloud.google.com/go/storage v1.8.0/go.mod h1:Wv1Oy7z6Yz3DshWRJFhqM/UCfaWIRTdp0RXyy7KQOVs=
 cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9ullr3+Kg0=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
-fyne.io/fyne/v2 v2.4.0 h1:LlyOyHmvkSo9IBm3aY+NVWSBIw+GMnssmyyIMK8F7zM=
-fyne.io/fyne/v2 v2.4.0/go.mod h1:AWM1iPM2YfliduZ4u/kQzP9E6ARIWm0gg+57GpYzWro=
+fyne.io/fyne/v2 v2.4.1 h1:Es100N6HIhJGg8H2ZAS2j5H/YibfxecXHs2V4A4hbq8=
+fyne.io/fyne/v2 v2.4.1/go.mod h1:AWM1iPM2YfliduZ4u/kQzP9E6ARIWm0gg+57GpYzWro=
 fyne.io/systray v1.10.1-0.20230722100817-88df1e0ffa9a h1:6Xf9fP3/mt72NrqlQhJWhQGcNf6GoG9X96NTaXr+K6A=
 fyne.io/systray v1.10.1-0.20230722100817-88df1e0ffa9a/go.mod h1:oM2AQqGJ1AMo4nNqZFYU8xYygSBZkW2hmdJ7n4yjedE=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
@@ -90,8 +90,8 @@ github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20191125211704-12ad95a8df72/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200222043503-6f7a984d4dc4/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20211213063430-748e38ca8aec/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
-github.com/go-gl/glfw/v3.3/glfw v0.0.0-20221017161538-93cebf72946b h1:GgabKamyOYguHqHjSkDACcgoPIz3w0Dis/zJ1wyHHHU=
-github.com/go-gl/glfw/v3.3/glfw v0.0.0-20221017161538-93cebf72946b/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
+github.com/go-gl/glfw/v3.3/glfw v0.0.0-20231102141658-eca20e8abded h1:W0pE6Cn9okp21yrBqVzPDf2NLK6J+i/f6XlqxQJ9iOw=
+github.com/go-gl/glfw/v3.3/glfw v0.0.0-20231102141658-eca20e8abded/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-text/render v0.0.0-20230619120952-35bccb6164b8 h1:VkKnvzbvHqgEfm351rfr8Uclu5fnwq8HP2ximUzJsBM=
 github.com/go-text/render v0.0.0-20230619120952-35bccb6164b8/go.mod h1:h29xCucjNsDcYb7+0rJokxVwYAq+9kQ19WiFuBKkYtc=
 github.com/go-text/typesetting v0.0.0-20230616162802-9c17dd34aa4a h1:VjN8ttdfklC0dnAdKbZqGNESdERUxtE3l8a/4Grgarc=

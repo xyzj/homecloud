@@ -7,7 +7,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -237,7 +236,7 @@ func fetchUrl(url string) []byte {
 		return nil
 	}
 	defer res.Body.Close()
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -433,7 +432,7 @@ func main() {
 		if info, err := os.Stat(path); err != nil {
 			log.Fatalf("Path %s does not exist.", info)
 		} else if info.IsDir() {
-			filelist, err := ioutil.ReadDir(path)
+			filelist, err := os.ReadDir(path)
 			if err != nil {
 				log.Fatalf("Error while reading %s: %s", path, err.Error())
 			}
@@ -448,9 +447,9 @@ func main() {
 	for _, filename := range files {
 		if filepath.Ext(filename) == ".ncm" {
 			processFile(filename)
-		} else {
-			log.Printf("Skipping %s: not ncm file\n", filename)
-		}
+		} // else {
+		// log.Printf("Skipping %s: not ncm file\n", filename)
+		// }
 	}
 
 }
