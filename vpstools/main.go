@@ -3,13 +3,10 @@ package main
 import (
 	"flag"
 	"os"
-	"time"
 	"unsafe"
 
-	"github.com/xyzj/gopsu"
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
 	"github.com/xyzj/gopsu/gocmd"
-	"github.com/xyzj/gopsu/loopfunc"
 )
 
 var (
@@ -27,7 +24,7 @@ var (
 	cert  = flag.String("cert", "", "cert file path")
 	key   = flag.String("key", "", "key file path")
 	debug = flag.Bool("debug", false, "run in debug mode")
-	renew = flag.Bool("renew", false, "auto renew cert files for domain")
+	// renew = flag.Bool("renew", false, "auto renew cert files for domain")
 )
 
 func unsafeString(b []byte) string {
@@ -45,14 +42,14 @@ func isExist(p string) bool {
 func main() {
 	gocmd.DefaultProgram(&gocmd.Info{Ver: "1.0.0"}).ExecuteDefault("start")
 
-	if *renew {
-		go loopfunc.LoopFunc(func(params ...interface{}) {
-			for {
-				os.WriteFile(gopsu.JoinPathFromHere("cfrenew.log"), []byte(certCloudflareTools("renew")), 0664)
-				time.Sleep(time.Hour * 216)
-			}
-		}, "cert renew", nil)
-	}
+	// if *renew {
+	// 	go loopfunc.LoopFunc(func(params ...interface{}) {
+	// 		for {
+	// 			os.WriteFile(gopsu.JoinPathFromHere("cfrenew.log"), []byte(certCloudflareTools("renew")), 0664)
+	// 			time.Sleep(time.Hour * 216)
+	// 		}
+	// 	}, "cert renew", nil)
+	// }
 	opt := &ginmiddleware.ServiceOption{
 		HTTPPort:   *port,
 		HTTPSPort:  *ports,

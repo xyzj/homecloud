@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
+	"flag"
 	"io"
 	"log"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"github.com/go-flac/flacpicture"
 	"github.com/go-flac/flacvorbis"
 	"github.com/go-flac/go-flac"
+	"github.com/xyzj/gopsu/pathtool"
 )
 
 var (
@@ -94,25 +96,34 @@ func decryptAes128Ecb(key, data []byte) ([]byte, error) {
 
 func readUint32(rBuf []byte, fp *os.File) uint32 {
 	_, err := fp.Read(rBuf)
-	checkError(err)
+	if err != nil {
+		return 0
+	}
 	return binary.LittleEndian.Uint32(rBuf)
 }
 
 func checkError(err error) {
 	if err != nil {
-		log.Panic(err)
+		log.Println(err)
+		// log.Panic(err)
 	}
 }
 
-func processFile(name string) {
-	fp, err := os.Open(name)
+func processFile(inname, outpath string) {
+	defer func() {
+		recover()
+	}()
+	if filepath.Ext(inname) != ".ncm" {
+		return
+	}
+	fp, err := os.Open(inname)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 	defer fp.Close()
 
-	var rBuf = make([]byte, 4)
+	rBuf := make([]byte, 4)
 	uLen := readUint32(rBuf, fp)
 
 	if uLen != 0x4e455443 {
@@ -129,41 +140,58 @@ func processFile(name string) {
 	fp.Seek(2, 1)
 	uLen = readUint32(rBuf, fp)
 
-	var keyData = make([]byte, uLen)
+	keyData := make([]byte, uLen)
 	_, err = fp.Read(keyData)
-	checkError(err)
+	if err != nil {
+		println(err.Error())
+		return
+	}
 
 	for i := range keyData {
 		keyData[i] ^= 0x64
 	}
 
 	deKeyData, err := decryptAes128Ecb(aesCoreKey, fixBlockSize(keyData))
-	checkError(err)
+	if err != nil {
+		println(err.Error())
+		return
+	}
 
 	// 17 = len("neteasecloudmusic")
 	deKeyData = deKeyData[17:]
 
 	uLen = readUint32(rBuf, fp)
-	var modifyData = make([]byte, uLen)
+	modifyData := make([]byte, uLen)
 	_, err = fp.Read(modifyData)
-	checkError(err)
+	if err != nil {
+		println(err.Error())
+		return
+	}
 
 	for i := range modifyData {
 		modifyData[i] ^= 0x63
 	}
 	deModifyData := make([]byte, base64.StdEncoding.DecodedLen(len(modifyData)-22))
 	_, err = base64.StdEncoding.Decode(deModifyData, modifyData[22:])
-	checkError(err)
+	if err != nil {
+		println(err.Error())
+		return
+	}
 
 	deData, err := decryptAes128Ecb(aesModifyKey, fixBlockSize(deModifyData))
-	checkError(err)
+	if err != nil {
+		println(err.Error())
+		return
+	}
 
 	// 6 = len("music:")
 	deData = deData[6:]
 
-	var meta MetaInfo
+	meta := MetaInfo{}
 	err = json.Unmarshal(deData, &meta)
-	checkError(err)
+	if err != nil {
+		meta = MetaInfo{}
+	}
 
 	// crc32 check
 	fp.Seek(4, 1)
@@ -175,7 +203,9 @@ func processFile(name string) {
 		if imgLen > 0 {
 			data := make([]byte, imgLen)
 			_, err = fp.Read(data)
-			checkError(err)
+			if err != nil {
+				return nil
+			}
 			return data
 		}
 		return nil
@@ -184,12 +214,19 @@ func processFile(name string) {
 	box := buildKeyBox(deKeyData)
 	n := 0x8000
 
-	outputName := strings.Replace(name, ".ncm", "."+meta.Format, -1)
+	outputName := filepath.Join(outpath, strings.TrimSuffix(filepath.Base(inname), ".ncm")+"."+meta.Format) // strings.Replace(name, ".ncm", "."+meta.Format, -1)
+	// println(outputName)
+	if pathtool.IsExist(outputName) {
+		return
+	}
 
 	fpOut, err := os.OpenFile(outputName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
-	checkError(err)
+	if err != nil {
+		println(err.Error())
+		return
+	}
 
-	var tb = make([]byte, n)
+	tb := make([]byte, n)
 	for {
 		_, err := fp.Read(tb)
 		if err == io.EOF { // read EOF
@@ -419,37 +456,44 @@ func addMP3Tag(fileName string, imgData []byte, meta *MetaInfo) {
 	}
 }
 
-func main() {
-	argc := len(os.Args)
-	if argc <= 1 {
-		log.Println("please input file path!")
-		return
-	}
-	files := make([]string, 0)
+var (
+	out = flag.String("out", "", "output path")
+	in  pathtool.SliceFlag
+)
 
-	for i := 0; i < argc-1; i++ {
-		path := os.Args[i+1]
+func main() {
+	flag.Var(&in, "in", "example: -in=path1 -in path2")
+	flag.Parse()
+	// if len(os.Args) <= 1 {
+	// 	os.Args = append(os.Args, pathtool.GetExecDir())
+	// 	// log.Println("please input file path!")
+	// 	// return
+	// }
+	if len(in) == 0 {
+		in = []string{pathtool.GetExecDir()}
+	}
+	for _, path := range in {
+		outp := *out
+		if outp == "" {
+			outp = path
+		}
 		if info, err := os.Stat(path); err != nil {
-			log.Fatalf("Path %s does not exist.", info)
+			continue
 		} else if info.IsDir() {
 			filelist, err := os.ReadDir(path)
 			if err != nil {
-				log.Fatalf("Error while reading %s: %s", path, err.Error())
+				continue
 			}
 			for _, f := range filelist {
-				files = append(files, filepath.Join(path, "./", f.Name()))
+				processFile(filepath.Join(path, f.Name()), outp)
+				// inname, err := filepath.Abs(filepath.Join(path, f.Name()))
+				// if err != nil {
+				// } else {
+				// 	processFile(inname, outp)
+				// }
 			}
 		} else {
-			files = append(files, path)
+			processFile(path, outp)
 		}
 	}
-
-	for _, filename := range files {
-		if filepath.Ext(filename) == ".ncm" {
-			processFile(filename)
-		} // else {
-		// log.Printf("Skipping %s: not ncm file\n", filename)
-		// }
-	}
-
 }
