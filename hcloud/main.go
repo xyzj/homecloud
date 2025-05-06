@@ -5,9 +5,9 @@ import (
 	"fmt"
 	lib "homecloud/lib"
 
-	"github.com/xyzj/gopsu/gocmd"
+	"github.com/xyzj/toolbox/gocmd"
 
-	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
+	ginmiddleware "github.com/xyzj/toolbox/ginmiddle"
 )
 
 var (
