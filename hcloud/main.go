@@ -4,9 +4,10 @@ import (
 	"flag"
 	"fmt"
 	lib "homecloud/lib"
+	"time"
 
-	"github.com/xyzj/toolbox/gocmd"
-
+	gocmd "github.com/xyzj/go-cmd"
+	"github.com/xyzj/toolbox/crypto"
 	ginmiddleware "github.com/xyzj/toolbox/ginmiddle"
 )
 
@@ -28,7 +29,17 @@ var (
 )
 
 func main() {
-	gocmd.DefaultProgram(&gocmd.Info{Title: "home cloud", Ver: "0.1.0"}).ExecuteRun()
+	gocmd.DefaultProgram(&gocmd.Info{
+		Title: "home cloud",
+		Ver:   "0.1.0",
+		Descript: gocmd.PrintVersion(&gocmd.VersionInfo{
+			Version:   version,
+			GoVersion: goVersion,
+			BuildDate: buildDate,
+			BuildOS:   platform,
+			CodeBy:    author,
+			Name:      programName,
+		})}).ExecuteRun()
 	// flag.Parse()
 	// if *help {
 	// 	flag.PrintDefaults()
@@ -36,17 +47,28 @@ func main() {
 	// }
 	// godaemon.Start(nil)
 	// 启动youtube下载控制
-	for i := 0; i < 2; i++ {
-		go lib.YoutubeControl()
+	go lib.YoutubeControl()
+	go func() {
+		t := time.NewTicker(time.Minute * 30)
+		for {
+			<-t.C
+			lib.CheckAria2cActive()
+		}
+	}()
+	var hport, hsport string
+	if *port > 0 {
+		hport = fmt.Sprintf(":%d", *port)
 	}
-
-	opt := &ginmiddleware.ServiceOption{
-		HTTPPort:   fmt.Sprintf(":%d", *port),
-		HTTPSPort:  fmt.Sprintf(":%d", *ports),
-		CertFile:   *cert,
-		KeyFile:    *key,
-		Debug:      *debug,
-		EngineFunc: lib.RouteEngine,
+	if *ports > 0 {
+		hsport = fmt.Sprintf(":%d", *ports)
 	}
-	ginmiddleware.ListenAndServeWithOption(opt)
+	tlsc, err := crypto.TLSConfigFromFile(*cert, *key, "")
+	if err != nil {
+		fmt.Println("load tls config error:", err.Error())
+	}
+	ginmiddleware.ListenAndServeWithOption(ginmiddleware.OptHTTP(hport),
+		ginmiddleware.OptHTTPS(hsport, tlsc),
+		ginmiddleware.OptDebug(*debug),
+		ginmiddleware.OptEngine(lib.RouteEngine()),
+	)
 }
