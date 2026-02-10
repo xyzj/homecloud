@@ -201,6 +201,8 @@ github.com/xyzj/deepcopy v0.0.0-20250124011539-76155efb897b h1:x59qvr1IJVTbANd0l
 github.com/xyzj/deepcopy v0.0.0-20250124011539-76155efb897b/go.mod h1:TNGZXviljt+V3Jml641X2lSNKCS0ve9gv56+E5sVSnY=
 github.com/xyzj/go-cmd v0.0.0-20250826023623-5b7039d1aeed h1:4yOwywcJgcscHF1MENM79iN6oomRg9ENERa0bCOXy5g=
 github.com/xyzj/go-cmd v0.0.0-20250826023623-5b7039d1aeed/go.mod h1:S6aPysHA5j1EsPNfEJBkjbPOJeQvnHE4e7yE1GlXZ6k=
+github.com/xyzj/go-pinyin v0.20.0 h1:YJrDZQgjr7BMTGDBABIotcxOkouH7acHzC3t9ZKW85c=
+github.com/xyzj/go-pinyin v0.20.0/go.mod h1:hUziDCAw/S5UoGtz9xKo1elAgIw7uC0QNTi67XujSFc=
 github.com/xyzj/go-pool v0.0.0-20251112005302-e1ce0fd94675 h1:TmHVermvp28DobiCYFzF105vQkGS/Jozy6PNYShcofo=
 github.com/xyzj/go-pool v0.0.0-20251112005302-e1ce0fd94675/go.mod h1:zXyjhmoo/L2OIo0OnZtnqmauOMwpKRbw5WBaW2s3+E4=
 github.com/xyzj/toolbox v0.0.0-20260206021954-b4111d8ba74d h1:dzpvN+PIWkQM7kfaXvAmfz8wP6gjLT4M4229LYUtfd4=

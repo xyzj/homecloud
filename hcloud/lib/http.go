@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/xyzj/go-pinyin"
 	ginmiddleware "github.com/xyzj/toolbox/ginmiddle"
 )
 
@@ -117,6 +118,7 @@ func RouteEngine(srcDirs ...string) *gin.Engine {
 func collectMedia(root, staticPrefix, orderby, like string) ([]mediaItem, error) {
 	items := make([]mediaItem, 0)
 	like = strings.ToLower(strings.TrimSpace(like))
+	// like = "final"
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -124,7 +126,9 @@ func collectMedia(root, staticPrefix, orderby, like string) ([]mediaItem, error)
 		if d.IsDir() {
 			return nil
 		}
-		if like != "" && !strings.Contains(strings.ToLower(d.Name()), like) {
+		name := strings.ToLower(d.Name())
+		name += " " + pinyin.XPinyin(name, pinyin.ReturnAll)
+		if like != "" && !strings.Contains(name, like) {
 			return nil
 		}
 		ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(d.Name())), ".")

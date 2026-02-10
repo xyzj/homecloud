@@ -7,6 +7,7 @@ require (
 	github.com/tidwall/gjson v1.18.0
 	github.com/tidwall/sjson v1.2.5
 	github.com/xyzj/go-cmd v0.0.0-20250826023623-5b7039d1aeed
+	github.com/xyzj/go-pinyin v0.20.0
 	github.com/xyzj/toolbox v0.0.0-20260206021954-b4111d8ba74d
 )
 

@@ -19,13 +19,17 @@ LDFLAGS="-s -w -X 'main.goVersion=${GO_VER}' -X 'main.buildDate=${BUILD_DATE}' -
 
 # 编译linux 64位版本
 linux: modtidy
-	@echo "building linux amd64 version..."
+	@echo "building hcloud linux amd64 version..."
 	@GOARCH=amd64 GOOS=linux CGO_ENABLED=0 CC=musl-gcc go build -o ${DIST_LINUX} -ldflags=${LDFLAGS} main.go
-	@GOARCH=amd64 GOOS=linux CGO_ENABLED=0 CC=musl-gcc go build -o _dist/sender -ldflags=${LDFLAGS} sender/main.go
 	@upx ${DIST_LINUX}
-	@upx _dist/sender
 	@echo "done.\n"
 
+sender: modtidy
+	@echo "building sender linux amd64 version..."
+	@GOARCH=amd64 GOOS=linux CGO_ENABLED=0 CC=musl-gcc go build -o _dist/sender -ldflags=${LDFLAGS} sender/main.go
+	@upx _dist/sender
+	@echo "done.\n"
+	
 # 编译windows 64位版本
 windows: modtidy
 	@echo "building windows amd64 version..."

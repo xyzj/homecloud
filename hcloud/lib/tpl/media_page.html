@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>媒体库</title>
+    <title>{{ .Name }} - 媒体库</title>
     <style>
         :root {
             --bg-color: #1a1a1a;
@@ -16,47 +15,38 @@
             --input-bg: #121212;
         }
 
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
+        body, html {
+            margin: 0; padding: 0; height: 100%;
             background: var(--bg-color);
             color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             overflow: hidden;
         }
 
-        .container {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-        }
+        .container { display: flex; height: 100vh; width: 100vw; }
 
+        /* 左侧播放区域 */
         #player-container {
             flex: 0 0 80%;
             display: flex;
             background: #000;
             min-width: 200px;
+            position: relative;
         }
 
-        video,
-        audio {
-            width: 100%;
-            height: 100%;
-            outline: none;
-        }
+        video, audio { width: 100%; height: 100%; outline: none; }
+
+        video::-internal-media-controls-download-button { display:none; }
+        video::-webkit-media-controls-enclosure { overflow:hidden; }
 
         #resizer {
             width: 6px;
             cursor: col-resize;
             background: var(--border-color);
         }
+        #resizer:hover { background: var(--accent-color); }
 
-        #resizer:hover {
-            background: var(--accent-color);
-        }
-
+        /* 右侧侧边栏 */
         #sidebar {
             flex: 1;
             min-width: 250px;
@@ -66,65 +56,32 @@
             overflow: hidden;
         }
 
-        /* 顶部搜索和排序栏 */
         .sidebar-controls {
             padding: 12px;
             display: flex;
             gap: 8px;
             border-bottom: 1px solid var(--border-color);
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0,0,0,0.2);
         }
 
-        .search-input {
-            flex: 1;
-            background: var(--input-bg);
-            border: 1px solid var(--border-color);
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 4px;
-            outline: none;
-            font-size: 0.9rem;
-        }
-
-        .search-input:focus {
-            border-color: var(--accent-color);
-        }
-
-        /* 搜索框容器，用于定位清除按钮 */
-        .search-wrapper {
-            position: relative;
-            flex: 1;
-            display: flex;
-            align-items: center;
-        }
+        .search-wrapper { position: relative; flex: 1; display: flex; align-items: center; }
 
         .search-input {
             width: 100%;
-            /* 充满容器 */
             background: var(--input-bg);
             border: 1px solid var(--border-color);
             color: #fff;
             padding: 6px 30px 6px 12px;
-            /* 右侧留出空间给 X 按钮 */
             border-radius: 4px;
             outline: none;
-            font-size: 0.9rem;
         }
 
-        /* 清除按钮样式 */
         .clear-btn {
             position: absolute;
             right: 8px;
             cursor: pointer;
             color: #666;
-            font-size: 18px;
-            user-select: none;
             display: none;
-            /* 默认隐藏，有文字时才显示 */
-        }
-
-        .clear-btn:hover {
-            color: var(--text-color);
         }
 
         .sort-btn {
@@ -135,229 +92,245 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.85rem;
-            white-space: nowrap;
-            transition: all 0.2s;
         }
+        .sort-btn.active { color: var(--accent-color); border-color: var(--accent-color); }
 
-        .sort-btn:hover {
-            background: var(--border-color);
-        }
+        #media-list { flex: 1; overflow-y: auto; padding: 10px; }
 
-        .sort-btn.active {
-            color: var(--accent-color);
-            border-color: var(--accent-color);
-        }
-
-        #media-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
+        /* 列表项 - 容器 */
         .media-item {
-            display: flex;
-            align-items: flex-start;
-            padding: 10px;
-            margin-bottom: 8px;
-            background: var(--item-bg);
-            border-radius: 6px;
+            position: relative;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            overflow: hidden;
             cursor: pointer;
-            transition: background 0.2s;
             border: 1px solid transparent;
-        }
-
-        .media-item:hover {
-            background: #444;
-        }
-
-        .media-item.active {
-            border-color: var(--accent-color);
-            background: #3d3d3d;
-        }
-
-        .media-item img {
-            width: 90px;
-            min-width: 90px;
-            height: 54px;
-            object-fit: cover;
-            margin-right: 12px;
-            border-radius: 4px;
+            transition: transform 0.2s, border-color 0.2s;
+            min-height: 100px;
             background: #000;
         }
 
+        /* 列表项 - 背景层 (用于缩放效果) */
+        .item-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #555;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: top;
+            transition: transform 0.4s ease;
+            z-index: 0;
+        }
+
+        /* 蒙版层 - 保证文字清晰 */
+        .item-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom,  rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.4) 100%);
+            z-index: 1;
+        }
+
+        /* 内容层 */
         .media-info {
-            flex: 1;
-            min-width: 0;
+            position: relative;
+            z-index: 2;
+            padding: 12px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* 内容沉底 */
+            box-sizing: border-box;
+            min-height: 100px;
         }
 
         .media-name {
-            font-size: 0.9rem;
-            line-height: 1.4;
+            font-size: 0.95rem;
             color: #fff;
-            word-wrap: break-word;
-            word-break: break-word;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            word-break: break-all;
+            line-height: 1.2;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
         }
 
+        /* 修正换行问题的关键：设置 flex 布局方向 */
         .media-meta {
-            font-size: 0.75rem;
-            color: #888;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* 强制元数据换行排列 */
+            gap: 4px;
+            font-size: 0.8rem;
+            color: #ccc;
         }
 
-        ::-webkit-scrollbar {
-            width: 6px;
+        .meta-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap; /* 空间不足时自动换行 */
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #555;
-            border-radius: 3px;
+        .dir-tag {
+            background: #1d1d1d;
+            color: #aaa;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            flex-wrap: wrap; /* 空间不足时自动换行 */
         }
+
+        /* 交互动效 */
+        .media-item:hover .item-bg { transform: scale(1.1); }
+        .media-item:hover { border-color: #555; }
+        .media-item.active { border-color: var(--accent-color); box-shadow: 0 0 8px rgba(0,123,255,0.5); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
     </style>
 </head>
-
 <body>
 
-    <div class="container" id="main-container">
-        <div id="player-container">
-            <video id="main-video" controls playsinline></video>
-        </div>
-        <div id="resizer"></div>
-        <div id="sidebar">
-            <div class="sidebar-controls">
-                <div class="search-wrapper">
-                    <input type="text" id="search-bar" class="search-input" placeholder="搜索文件名...">
-                    <span id="clear-search" class="clear-btn">&times;</span>
-                </div>
-                <button id="sort-toggle" class="sort-btn">按时间 ↓</button>
-            </div>
-            <div id="media-list"></div>
-        </div>
+<div class="container" id="main-container">
+    <div id="player-container">
+        <video id="main-video" controls controlsList="nodownload" oncontextmenu="return false" playsinline></video>
     </div>
+    <div id="resizer"></div>
+    <div id="sidebar">
+        <div class="sidebar-controls">
+            <div class="search-wrapper">
+                <input type="text" id="search-bar" class="search-input" placeholder="搜索文件名...">
+                <span id="clear-search" class="clear-btn">&times;</span>
+            </div>
+            <button id="sort-toggle" class="sort-btn">按时间 ↓</button>
+        </div>
+        <div id="media-list"></div>
+    </div>
+</div>
 
-    <script>
-        const apiPath = "{{.APIPath}}";
-        const videoPlayer = document.getElementById('main-video');
-        const mediaList = document.getElementById('media-list');
-        const searchBar = document.getElementById('search-bar');
-        const sortBtn = document.getElementById('sort-toggle');
-        const clearSearch = document.getElementById('clear-search');
+<script>
+    const apiPath = "{{ .APIPath }}";
+    const videoPlayer = document.getElementById('main-video');
+    const mediaList = document.getElementById('media-list');
+    const searchBar = document.getElementById('search-bar');
+    const clearBtn = document.getElementById('clear-search');
+    const sortBtn = document.getElementById('sort-toggle');
 
-        let currentOrder = "time"; // 默认为空（名称排序）
-        let searchTerm = "";
-        let debounceTimer;
+    let currentOrder = "time"; 
+    let searchTerm = "";
+    let debounceTimer;
 
-        // 时间转换
-        function formatDate(unixTime) {
-            if (!unixTime) return "未知时间";
-            const date = new Date(unixTime * 1000);
-            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    function formatDate(unixTime) {
+        if (!unixTime) return "未知时间";
+        const date = new Date(unixTime * 1000);
+        return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}-${date.getDate().toString().padStart(2,'0')} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+    }
+
+    function playMedia(item, element) {
+        document.querySelectorAll('.media-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+        videoPlayer.src = item.url;
+        videoPlayer.play().catch(e => console.log("播放被拦截"));
+        element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    videoPlayer.addEventListener('ended', () => {
+        const current = document.querySelector('.media-item.active');
+        if (current && current.nextElementSibling) {
+            current.nextElementSibling.click();
         }
+    });
 
-        // 核心加载函数
-        async function loadMedia() {
-            try {
-                const formData = new FormData();
-                if (currentOrder) formData.append('ord', currentOrder);
-                if (searchTerm) formData.append('like', searchTerm);
-
-                // 如果你的 API 接受 JSON 而非 FormData，请根据后端逻辑调整
-                // 这里假设后端使用 c.PostForm 或 c.ShouldBind 获取参数
-                const response = await fetch(apiPath, {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                renderList(data.media || []);
-            } catch (err) {
-                mediaList.innerHTML = '<div style="padding:10px; color:#ff4444;">请求出错</div>';
-            }
+    async function loadMedia() {
+        try {
+            const formData = new FormData();
+            if (currentOrder) formData.append('ord', currentOrder);
+            if (searchTerm) formData.append('like', searchTerm);
+            const response = await fetch(apiPath, { method: 'POST', body: formData });
+            const data = await response.json();
+            renderList(data.media || []);
+        } catch (err) {
+            mediaList.innerHTML = '加载失败';
         }
+    }
 
-        function renderList(items) {
-            mediaList.innerHTML = '';
-            if (items.length === 0) {
-                mediaList.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">未找到匹配文件</div>';
-                return;
-            }
-            items.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'media-item';
-                div.onclick = () => {
-                    videoPlayer.src = item.url;
-                    videoPlayer.play();
-                    document.querySelectorAll('.media-item').forEach(el => el.classList.remove('active'));
-                    div.classList.add('active');
-                };
+    function renderList(items) {
+        mediaList.innerHTML = '';
+        if (items.length === 0) {
+            mediaList.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">无结果</div>';
+            return;
+        }
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'media-item';
+            div.onclick = () => playMedia(item, div);
 
-                const sizeMB = (item.size / (1024 * 1024)).toFixed(1);
-                div.innerHTML = `
-                <img src="${item.cover || ''}" onerror="this.style.visibility='hidden'">
+            const sizeMB = (item.size / (1024 * 1024)).toFixed(1);
+            const dirHtml = item.dir ? `<span class="meta-line">${item.dir}</span>` : '';
+            const bgUrl = item.cover ? item.cover : '';
+
+            // 结构分为：背景层、蒙版层、内容层
+            div.innerHTML = `
+                <div class="item-bg" style="background-image: url('${bgUrl}')"></div>
+                <div class="item-overlay"></div>
                 <div class="media-info">
                     <div class="media-name">${item.name}</div>
                     <div class="media-meta">
-                        ${item.dir ? `<span>${item.dir}</span>` : ''}
-                        <span>${item.type.toUpperCase()} · ${sizeMB} MB</span>
-                        <span style="color:#666; margin-top:2px;">${formatDate(item.modified)}</span>
+                        <div class="meta-line">
+                            <span style="color:#eee; font-weight:bold;">${item.type.toUpperCase()}</span>
+                            <span>${sizeMB} MB</span>
+                        </div>
+                        <div class="meta-line" style="color:#ccc;">
+                            ${formatDate(item.modified)}
+                        </div>
+                        <div>
+                            ${dirHtml}
+                        </div>
                     </div>
                 </div>
             `;
-                mediaList.appendChild(div);
-            });
-        }
-
-        // 监听输入，控制 X 按钮的显示/隐藏
-        searchBar.addEventListener('input', (e) => {
-            searchTerm = e.target.value;
-
-            // 动态显示/隐藏清除按钮
-            clearSearch.style.display = searchTerm ? 'block' : 'none';
-
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                loadMedia();
-            }, 400);
+            mediaList.appendChild(div);
         });
+    }
 
-        // 点击 X 按钮逻辑
-        clearSearch.addEventListener('click', () => {
-            searchBar.value = '';        // 清空输入框
-            searchTerm = '';             // 清空变量
-            clearSearch.style.display = 'none'; // 隐藏自己
-            searchBar.focus();           // 重新聚焦输入框
-            loadMedia();                 // 立即触发重新加载
-        });
+    // 搜索与排序逻辑保持不变...
+    searchBar.addEventListener('input', (e) => {
+        searchTerm = e.target.value;
+        clearBtn.style.display = searchTerm ? 'block' : 'none';
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(loadMedia, 400);
+    });
 
-        // 排序逻辑切换
-        sortBtn.addEventListener('click', () => {
-            if (currentOrder === "") {
-                currentOrder = "time";
-                sortBtn.innerText = "按时间 ↓";
-                sortBtn.classList.add('active');
-            } else {
-                currentOrder = "";
-                sortBtn.innerText = "按名称 ↑";
-                sortBtn.classList.remove('active');
-            }
-            loadMedia();
-        });
-
-        // 拖拽逻辑 (保持 % 转义)
-        let isResizing = false;
-        const resizer = document.getElementById('resizer');
-        const playerContainer = document.getElementById('player-container');
-        resizer.addEventListener('mousedown', () => isResizing = true);
-        document.addEventListener('mousemove', (e) => {
-            if (!isResizing) return;
-            let p = (e.clientX / window.innerWidth) * 100;
-            if (p > 10 && p < 90) playerContainer.style.flex = `0 0 ${p}%`;
-        });
-        document.addEventListener('mouseup', () => isResizing = false);
-
-        // 初始加载
+    clearBtn.addEventListener('click', () => {
+        searchBar.value = '';
+        searchTerm = '';
+        clearBtn.style.display = 'none';
         loadMedia();
-    </script>
-</body>
+    });
 
+    sortBtn.addEventListener('click', () => {
+        if (currentOrder === "") {
+            currentOrder = "time";
+            sortBtn.innerText = "按时间 ↓";
+            sortBtn.classList.add('active');
+        } else {
+            currentOrder = "";
+            sortBtn.innerText = "按名称 ↑";
+            sortBtn.classList.remove('active');
+        }
+        loadMedia();
+    });
+
+    // 拖拽逻辑
+    let isResizing = false;
+    const resizer = document.getElementById('resizer');
+    const playerContainer = document.getElementById('player-container');
+    resizer.addEventListener('mousedown', () => isResizing = true);
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        let p = (e.clientX / window.innerWidth) * 100;
+        if (p > 10 && p < 90) playerContainer.style.flex = `0 0 ${p}%`;
+    });
+    document.addEventListener('mouseup', () => isResizing = false);
+
+    loadMedia();
+</script>
+</body>
 </html>
