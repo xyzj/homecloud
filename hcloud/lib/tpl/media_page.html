@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>媒体库</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --sidebar-bg: #252525;
+            --accent-color: #007bff;
+            --text-color: #e0e0e0;
+            --border-color: #333;
+            --item-bg: #333;
+            --input-bg: #121212;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #player-container {
+            flex: 0 0 80%;
+            display: flex;
+            background: #000;
+            min-width: 200px;
+        }
+
+        video,
+        audio {
+            width: 100%;
+            height: 100%;
+            outline: none;
+        }
+
+        #resizer {
+            width: 6px;
+            cursor: col-resize;
+            background: var(--border-color);
+        }
+
+        #resizer:hover {
+            background: var(--accent-color);
+        }
+
+        #sidebar {
+            flex: 1;
+            min-width: 250px;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 顶部搜索和排序栏 */
+        .sidebar-controls {
+            padding: 12px;
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .search-input {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* 搜索框容器，用于定位清除按钮 */
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            /* 充满容器 */
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 6px 30px 6px 12px;
+            /* 右侧留出空间给 X 按钮 */
+            border-radius: 4px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        /* 清除按钮样式 */
+        .clear-btn {
+            position: absolute;
+            right: 8px;
+            cursor: pointer;
+            color: #666;
+            font-size: 18px;
+            user-select: none;
+            display: none;
+            /* 默认隐藏，有文字时才显示 */
+        }
+
+        .clear-btn:hover {
+            color: var(--text-color);
+        }
+
+        .sort-btn {
+            background: var(--item-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .sort-btn:hover {
+            background: var(--border-color);
+        }
+
+        .sort-btn.active {
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        #media-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .media-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: var(--item-bg);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .media-item:hover {
+            background: #444;
+        }
+
+        .media-item.active {
+            border-color: var(--accent-color);
+            background: #3d3d3d;
+        }
+
+        .media-item img {
+            width: 90px;
+            min-width: 90px;
+            height: 54px;
+            object-fit: cover;
+            margin-right: 12px;
+            border-radius: 4px;
+            background: #000;
+        }
+
+        .media-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .media-name {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #fff;
+            word-wrap: break-word;
+            word-break: break-word;
+            margin-bottom: 4px;
+        }
+
+        .media-meta {
+            font-size: 0.75rem;
+            color: #888;
+            display: flex;
+            flex-direction: column;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" id="main-container">
+        <div id="player-container">
+            <video id="main-video" controls playsinline></video>
+        </div>
+        <div id="resizer"></div>
+        <div id="sidebar">
+            <div class="sidebar-controls">
+                <div class="search-wrapper">
+                    <input type="text" id="search-bar" class="search-input" placeholder="搜索文件名...">
+                    <span id="clear-search" class="clear-btn">&times;</span>
+                </div>
+                <button id="sort-toggle" class="sort-btn">按时间 ↓</button>
+            </div>
+            <div id="media-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const apiPath = "{{.APIPath}}";
+        const videoPlayer = document.getElementById('main-video');
+        const mediaList = document.getElementById('media-list');
+        const searchBar = document.getElementById('search-bar');
+        const sortBtn = document.getElementById('sort-toggle');
+        const clearSearch = document.getElementById('clear-search');
+
+        let currentOrder = "time"; // 默认为空（名称排序）
+        let searchTerm = "";
+        let debounceTimer;
+
+        // 时间转换
+        function formatDate(unixTime) {
+            if (!unixTime) return "未知时间";
+            const date = new Date(unixTime * 1000);
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        // 核心加载函数
+        async function loadMedia() {
+            try {
+                const formData = new FormData();
+                if (currentOrder) formData.append('ord', currentOrder);
+                if (searchTerm) formData.append('like', searchTerm);
+
+                // 如果你的 API 接受 JSON 而非 FormData，请根据后端逻辑调整
+                // 这里假设后端使用 c.PostForm 或 c.ShouldBind 获取参数
+                const response = await fetch(apiPath, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                renderList(data.media || []);
+            } catch (err) {
+                mediaList.innerHTML = '<div style="padding:10px; color:#ff4444;">请求出错</div>';
+            }
+        }
+
+        function renderList(items) {
+            mediaList.innerHTML = '';
+            if (items.length === 0) {
+                mediaList.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">未找到匹配文件</div>';
+                return;
+            }
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'media-item';
+                div.onclick = () => {
+                    videoPlayer.src = item.url;
+                    videoPlayer.play();
+                    document.querySelectorAll('.media-item').forEach(el => el.classList.remove('active'));
+                    div.classList.add('active');
+                };
+
+                const sizeMB = (item.size / (1024 * 1024)).toFixed(1);
+                div.innerHTML = `
+                <img src="${item.cover || ''}" onerror="this.style.visibility='hidden'">
+                <div class="media-info">
+                    <div class="media-name">${item.name}</div>
+                    <div class="media-meta">
+                        ${item.dir ? `<span>${item.dir}</span>` : ''}
+                        <span>${item.type.toUpperCase()} · ${sizeMB} MB</span>
+                        <span style="color:#666; margin-top:2px;">${formatDate(item.modified)}</span>
+                    </div>
+                </div>
+            `;
+                mediaList.appendChild(div);
+            });
+        }
+
+        // 监听输入，控制 X 按钮的显示/隐藏
+        searchBar.addEventListener('input', (e) => {
+            searchTerm = e.target.value;
+
+            // 动态显示/隐藏清除按钮
+            clearSearch.style.display = searchTerm ? 'block' : 'none';
+
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                loadMedia();
+            }, 400);
+        });
+
+        // 点击 X 按钮逻辑
+        clearSearch.addEventListener('click', () => {
+            searchBar.value = '';        // 清空输入框
+            searchTerm = '';             // 清空变量
+            clearSearch.style.display = 'none'; // 隐藏自己
+            searchBar.focus();           // 重新聚焦输入框
+            loadMedia();                 // 立即触发重新加载
+        });
+
+        // 排序逻辑切换
+        sortBtn.addEventListener('click', () => {
+            if (currentOrder === "") {
+                currentOrder = "time";
+                sortBtn.innerText = "按时间 ↓";
+                sortBtn.classList.add('active');
+            } else {
+                currentOrder = "";
+                sortBtn.innerText = "按名称 ↑";
+                sortBtn.classList.remove('active');
+            }
+            loadMedia();
+        });
+
+        // 拖拽逻辑 (保持 % 转义)
+        let isResizing = false;
+        const resizer = document.getElementById('resizer');
+        const playerContainer = document.getElementById('player-container');
+        resizer.addEventListener('mousedown', () => isResizing = true);
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            let p = (e.clientX / window.innerWidth) * 100;
+            if (p > 10 && p < 90) playerContainer.style.flex = `0 0 ${p}%`;
+        });
+        document.addEventListener('mouseup', () => isResizing = false);
+
+        // 初始加载
+        loadMedia();
+    </script>
+</body>
+
+</html>
