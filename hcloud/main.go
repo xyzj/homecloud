@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"time"
 
 	lib "homecloud/lib"
 
@@ -42,13 +41,9 @@ func main() {
 			Name:      programName,
 		})}).ExecuteRun()
 	lib.SetAria2cUrl(*aria2)
-	go func() {
-		t := time.NewTicker(time.Minute * 30)
-		for {
-			<-t.C
-			lib.CheckAria2cActive()
-		}
-	}()
+	lib.SetYtdir(*ydir)
+	go lib.YoutubeControl()
+	go lib.CheckAria2cActive()
 	var hport string
 	if *port > 0 {
 		hport = fmt.Sprintf(":%d", *port)

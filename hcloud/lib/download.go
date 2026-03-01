@@ -34,6 +34,7 @@ type videoinfo struct {
 }
 
 var chanYoutubeDownloader = make(chan videoinfo, 100)
+var chanYoutubeDownloaderShell = make(chan string, 100)
 
 // queryProcess only for linux
 func queryProcess(name string) []*processInfo {
@@ -91,9 +92,9 @@ func tdlb(c *gin.Context) {
 					vl = strings.ReplaceAll(vl, "&pp=sAQA", "")
 					if strings.Contains(vl, "&&") {
 						x := strings.Split(strings.TrimSpace(vl), "&&")
-						chanYoutubeDownloader <- videoinfo{url: x[0], format: x[1]}
+						buildYoutubeShell(&videoinfo{url: x[0], format: x[1]})
 					} else {
-						chanYoutubeDownloader <- videoinfo{url: vl, format: ""}
+						buildYoutubeShell(&videoinfo{url: vl, format: ""})
 					}
 				} else {
 					furl := vl
@@ -135,7 +136,80 @@ func rpcToAria2(vl string) {
 	}
 }
 
-func YoutubeControl(ytdir string) {
+func buildYoutubeShell(vi *videoinfo) {
+	var scmd bytes.Buffer
+	var shellName string
+	videoName := "%(title)s"
+	videoName = "%(title).150B"
+	if strings.TrimSpace(vi.url) == "" { // || vi.try >= 5 {
+		return
+	}
+	fname := crypto.Crc32IEEE([]byte(vi.url))
+	shellName = "/tmp/" + fname + ".sh"
+	// if pathtool.IsExist(shellName) && vi.format == "" {
+	// 	goto DOWN
+	// }
+	scmd.Reset()
+
+	if runtime.GOARCH == "amd64" {
+		scmd.WriteString("#!/bin/bash\n\n")
+		scmd.WriteString("export PATH=$PATH:$HOME/.deno/bin\n\n")
+		scmd.WriteString("/usr/local/bin/yt-dlp ")
+	} else {
+		scmd.WriteString("#!/bin/ash\n\n")
+		scmd.WriteString("/usr/bin/yt-dlp ") // python3 -m pip install -U yt-dlp
+	}
+	scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
+	scmd.WriteString("--continue ")
+	if vi.format == "" {
+		vi.format = "242+249/133+140/134+139/93/18"
+	}
+	scmd.WriteString("-f '" + vi.format + "' ")
+	// scmd.WriteString("--downloader=aria2c ")
+	scmd.WriteString("--no-get-comments ")
+	scmd.WriteString("--trim-filenames 55 ")
+	scmd.WriteString("--write-thumbnail ")
+	scmd.WriteString("--cookies ")
+	scmd.WriteString("'/opt/bin/www.youtube.com_cookies.txt' ")
+	// scmd.WriteString("--retries 10 ")
+	// scmd.WriteString("--write-subs --write-auto-subs --sub-langs 'en,en-US,zh-Hant,zh-Hans' ")
+	// scmd.WriteString("--mark-watched ")
+	// scmd.WriteString("--youtube-skip-dash-manifest ")
+	scmd.WriteString("--skip-unavailable-fragments ")
+	// scmd.WriteString("--abort-on-unavailable-fragment ")
+	scmd.WriteString("--no-mtime ")
+	scmd.WriteString("--buffer-size 512k ")
+	scmd.WriteString("--sleep-requests 1 ")
+	scmd.WriteString("--sleep-interval 5 ")
+	// scmd.WriteString("--recode-video mp4 ")
+	scmd.WriteString("-o '" + ytdir + videoName + ".%(ext)s' ")
+	if strings.HasPrefix(vi.url, "http") {
+		scmd.WriteString("'" + vi.url + "'")
+	} else {
+		scmd.WriteString("-- " + vi.url)
+	}
+	scmd.WriteString(" && \\\nrm $0\n")
+	os.WriteFile(shellName, scmd.Bytes(), 0o755)
+	chanYoutubeDownloaderShell <- shellName
+}
+
+func YoutubeControl() {
+	t := time.NewTimer(time.Second * time.Duration(rand.Intn(5)+10))
+	var cmd *exec.Cmd
+	for range t.C {
+		sh := <-chanYoutubeDownloaderShell
+		cmd = exec.Command(sh)
+		// cmd.Env = os.Environ()
+		b, err := cmd.CombinedOutput()
+		if err != nil {
+			b = append(b, []byte("\n"+err.Error()+"\n")...)
+			os.WriteFile(sh+".log", b, 0o664)
+		}
+		t.Reset(time.Second * time.Duration(rand.Intn(5)+10))
+	}
+}
+
+func YoutubeControlOld() {
 	// videoNameReplacer := strings.NewReplacer(
 	// 	"WARNING:", "",
 	// 	"Failedtodownloadm3u8information:", "",
@@ -163,32 +237,6 @@ RUN:
 				continue
 			}
 			fname := crypto.Crc32IEEE([]byte(vi.url))
-			// shellName = "/tmp/" + fname + "-name.sh"
-			// scmd.Reset()
-			// scmd.WriteString("#!/bin/bash\n\n")
-			// scmd.WriteString("/home/xy/xbin/yt-dlp_linux ")
-			// scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
-			// scmd.WriteString("--get-filename ")
-			// scmd.WriteString("-o '%(title)s' ")
-			// scmd.WriteString("'" + vi.url + "'")
-			// scmd.WriteString(" && \\\nrm $0\n")
-			// os.WriteFile(shellName, scmd.Bytes(), 0755)
-			// cmd = exec.Command(shellName)
-			// if b, err := cmd.CombinedOutput(); err == nil {
-			// 	// s := toolbox.String(b)
-			// 	x := videoNameReplacer.Replace(toolbox.String(b))
-			// 	if len(x) > 230 {
-			// 		for k := range x {
-			// 			if k >= 230 {
-			// 				x = x[:k]
-			// 				break
-			// 			}
-			// 		}
-			// 	}
-			// 	if len(x) > 0 {
-			// 		videoName = x
-			// 	}
-			// }
 			shellName = "/tmp/" + fname + ".sh"
 			// if pathtool.IsExist(shellName) && vi.format == "" {
 			// 	goto DOWN
@@ -223,6 +271,8 @@ RUN:
 			// scmd.WriteString("--abort-on-unavailable-fragment ")
 			scmd.WriteString("--no-mtime ")
 			scmd.WriteString("--buffer-size 512k ")
+			scmd.WriteString("--sleep-requests 1 ")
+			scmd.WriteString("--sleep-interval 5 ")
 			// scmd.WriteString("--recode-video mp4 ")
 			scmd.WriteString("-o '" + ytdir + videoName + ".%(ext)s' ")
 			if strings.HasPrefix(vi.url, "http") {

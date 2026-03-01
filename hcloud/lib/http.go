@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"html/template"
 	"io/fs"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -152,7 +153,7 @@ func collectMedia(root, staticPrefix, orderby, like string) ([]mediaItem, error)
 		cover := findCover(path, root, staticPrefix)
 		items = append(items, mediaItem{
 			Name:     d.Name(),
-			URL:      staticPrefix + "/" + rel,
+			URL:      staticPrefix + "/" + url.PathEscape(rel),
 			Cover:    cover,
 			Type:     info.kind,
 			Mime:     info.mime,
@@ -196,7 +197,7 @@ func findCover(path, root, staticPrefix string) string {
 	if _, err := os.Stat(coverPath); err == nil {
 		rel, err := filepath.Rel(root, coverPath)
 		if err == nil {
-			return staticPrefix + "/" + filepath.ToSlash(rel)
+			return staticPrefix + "/" + url.PathEscape(filepath.ToSlash(rel))
 		}
 	}
 	return ""
