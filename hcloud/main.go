@@ -6,6 +6,7 @@ import (
 
 	lib "homecloud/lib"
 
+	"github.com/gin-gonic/gin"
 	gocmd "github.com/xyzj/go-cmd"
 	ginmiddleware "github.com/xyzj/toolbox/ginmiddle"
 	"github.com/xyzj/toolbox/pathtool"
@@ -28,6 +29,7 @@ var (
 )
 
 func main() {
+	gin.SetMode("release")
 	flag.Var(&wtv, "wtv", "example: -wtv=name:path -wtv name2:path2")
 	gocmd.DefaultProgram(&gocmd.Info{
 		Title: "home cloud",

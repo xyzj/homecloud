@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	gocmd "github.com/xyzj/go-cmd"
 	"github.com/xyzj/gopsu"
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
-	"github.com/xyzj/gopsu/gocmd"
 	"github.com/xyzj/gopsu/pathtool"
 )
 

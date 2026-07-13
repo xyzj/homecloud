@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/xyzj/go-pinyin"
 	ginmiddleware "github.com/xyzj/toolbox/ginmiddle"
+	"github.com/xyzj/toolbox/logger"
 )
 
 //go:embed tpl/media_page.html
@@ -27,6 +29,7 @@ type mediaItem struct {
 	Cover    string `json:"cover,omitempty"`
 	Type     string `json:"type"`
 	Mime     string `json:"mime"`
+	Vtt      string `json:"vtt,omitempty"`
 	Dir      string `json:"dir,omitempty"`
 	Size     int64  `json:"size"`
 	Modified int64  `json:"modified"`
@@ -53,7 +56,7 @@ var mediaExt = map[string]struct {
 }
 
 func RouteEngine(srcDirs ...string) *gin.Engine {
-	r := ginmiddleware.LiteEngine(os.Stdout)
+	r := ginmiddleware.LiteEngine(logger.NewConsoleWriter())
 	r.GET("/", func(c *gin.Context) {})
 	r.GET("/whoami", func(c *gin.Context) {
 		c.String(200, ginmiddleware.GetClientIP(c))
@@ -151,10 +154,12 @@ func collectMedia(root, staticPrefix, orderby, like string) ([]mediaItem, error)
 			dir = ""
 		}
 		cover := findCover(path, root, staticPrefix)
+		vtt := findVtt(path, root, staticPrefix)
 		items = append(items, mediaItem{
 			Name:     d.Name(),
 			URL:      staticPrefix + "/" + url.PathEscape(rel),
 			Cover:    cover,
+			Vtt:      vtt,
 			Type:     info.kind,
 			Mime:     info.mime,
 			Size:     fi.Size(),
@@ -191,14 +196,43 @@ func collectMedia(root, staticPrefix, orderby, like string) ([]mediaItem, error)
 	return items, nil
 }
 
-func findCover(path, root, staticPrefix string) string {
+func findVtt(path, root, staticPrefix string) string {
 	base := strings.TrimSuffix(path, filepath.Ext(path))
-	coverPath := base + ".webp"
-	if _, err := os.Stat(coverPath); err == nil {
-		rel, err := filepath.Rel(root, coverPath)
+	vttPath := base + ".vtt"
+	if _, err := os.Stat(vttPath); err == nil {
+		rel, err := filepath.Rel(root, vttPath)
 		if err == nil {
 			return staticPrefix + "/" + url.PathEscape(filepath.ToSlash(rel))
 		}
+	}
+	return ""
+}
+func findCover(path, root, staticPrefix string) string {
+	base := strings.TrimSuffix(path, filepath.Ext(path))
+	coverPath := base + ".cover.webp"
+	if _, err := os.Stat(coverPath); err != nil {
+		sourcePath := base + ".webp"
+		if _, err := os.Stat(sourcePath); err == nil {
+			// ffmpeg 修改大小
+			realPath, _ := filepath.Abs(sourcePath)
+			cmd := exec.Command("ffmpeg",
+				"-i",
+				realPath,
+				"-vf",
+				"scale=250:-1",
+				"-y",
+				filepath.Join(filepath.Dir(realPath), filepath.Base(coverPath)))
+			err := cmd.Run()
+			if err == nil {
+				os.Remove(realPath)
+			} else {
+				coverPath = sourcePath
+			}
+		}
+	}
+	rel, err := filepath.Rel(root, coverPath)
+	if err == nil {
+		return staticPrefix + "/" + url.PathEscape(filepath.ToSlash(rel))
 	}
 	return ""
 }

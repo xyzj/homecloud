@@ -5,8 +5,8 @@ import (
 	"os"
 	"unsafe"
 
+	gocmd "github.com/xyzj/go-cmd"
 	ginmiddleware "github.com/xyzj/gopsu/gin-middleware"
-	"github.com/xyzj/gopsu/gocmd"
 )
 
 var (

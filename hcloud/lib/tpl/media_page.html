@@ -106,7 +106,7 @@
             cursor: pointer;
             border: 1px solid transparent;
             transition: transform 0.2s, border-color 0.2s;
-            min-height: 100px;
+            min-height: 150px;
             background: #000;
         }
 
@@ -226,7 +226,22 @@
     function playMedia(item, element) {
         document.querySelectorAll('.media-item').forEach(el => el.classList.remove('active'));
         element.classList.add('active');
+        // 1. 清理旧的字幕轨道
+        while (videoPlayer.firstChild) {
+            videoPlayer.removeChild(videoPlayer.firstChild);
+        }
+        // 2. 设置视频源
         videoPlayer.src = item.url;
+        // 3. 如果存在 vtt 字段，则添加字幕轨道
+        if (item.vtt) {
+            const track = document.createElement('track');
+            track.kind = 'subtitles';
+            track.label = '中文'; // 或者根据逻辑设为 item.name
+            track.srclang = 'zh';
+            track.src = item.vtt;
+            track.default = true; // 默认开启字幕
+            videoPlayer.appendChild(track);
+        }
         videoPlayer.play().catch(e => console.log("播放被拦截"));
         element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }

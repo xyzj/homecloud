@@ -169,8 +169,9 @@ func buildYoutubeShell(vi *videoinfo) {
 	scmd.WriteString("--no-get-comments ")
 	scmd.WriteString("--trim-filenames 55 ")
 	scmd.WriteString("--write-thumbnail ")
-	scmd.WriteString("--cookies ")
-	scmd.WriteString("'/opt/bin/www.youtube.com_cookies.txt' ")
+	if pathtool.IsExist("/opt/bin/www.youtube.com_cookies.txt") {
+		scmd.WriteString("--cookies '/opt/bin/www.youtube.com_cookies.txt' ")
+	}
 	// scmd.WriteString("--retries 10 ")
 	// scmd.WriteString("--write-subs --write-auto-subs --sub-langs 'en,en-US,zh-Hant,zh-Hans' ")
 	// scmd.WriteString("--mark-watched ")

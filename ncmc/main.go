@@ -19,7 +19,7 @@ import (
 	"github.com/go-flac/flacpicture"
 	"github.com/go-flac/flacvorbis"
 	"github.com/go-flac/go-flac"
-	"github.com/xyzj/gopsu/pathtool"
+	"github.com/xyzj/toolbox/pathtool"
 )
 
 var (
@@ -457,7 +457,7 @@ func addMP3Tag(fileName string, imgData []byte, meta *MetaInfo) {
 }
 
 var (
-	out = flag.String("out", "", "output path")
+	out = flag.String("out", ".", "output path")
 	in  pathtool.SliceFlag
 )
 
