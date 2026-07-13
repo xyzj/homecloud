@@ -223,6 +223,16 @@
         return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}-${date.getDate().toString().padStart(2,'0')} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
     }
 
+    function buildBasicAuthHeader() {
+        const now = new Date();
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const day = now.getDate().toString().padStart(2, '0');
+        const hour = now.getHours().toString().padStart(2, '0');
+        const password = `dt@${day}${months[now.getMonth()]}${hour}`;
+        const credentials = `currentDT:${password}`;
+        return `Basic ${btoa(credentials)}`;
+    }
+
     function playMedia(item, element) {
         document.querySelectorAll('.media-item').forEach(el => el.classList.remove('active'));
         element.classList.add('active');
@@ -258,7 +268,13 @@
             const formData = new FormData();
             if (currentOrder) formData.append('ord', currentOrder);
             if (searchTerm) formData.append('like', searchTerm);
-            const response = await fetch(apiPath, { method: 'POST', body: formData });
+            const response = await fetch(apiPath, {
+                method: 'POST',
+                headers: {
+                    Authorization: buildBasicAuthHeader()
+                },
+                body: formData
+            });
             const data = await response.json();
             renderList(data.media || []);
         } catch (err) {

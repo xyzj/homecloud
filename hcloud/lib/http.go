@@ -101,7 +101,7 @@ func RouteEngine(srcDirs ...string) *gin.Engine {
 		dirCopy := dir
 		r.StaticFS(staticPrefix, gin.Dir(dirCopy, false))
 
-		r.POST(apiPath, ginmiddleware.ReadParams(), func(c *gin.Context) {
+		r.POST(apiPath, ginmiddleware.BasicAuth(), ginmiddleware.ReadParams(), func(c *gin.Context) {
 			items, err := collectMedia(dirCopy, staticPrefix, c.Param("ord"), c.Param("like"))
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
@@ -111,7 +111,7 @@ func RouteEngine(srcDirs ...string) *gin.Engine {
 		})
 
 		html := mediaPageHTML(alias, apiPath)
-		r.GET(htmlPath, func(c *gin.Context) {
+		r.GET(htmlPath, ginmiddleware.BasicAuth(), func(c *gin.Context) {
 			c.Header("Content-Type", "text/html; charset=utf-8")
 			c.String(200, html)
 		})
