@@ -49,7 +49,7 @@ func vps4info(c *gin.Context) {
 		c.Set("data_counter", fmt.Sprintf("%.03f", a.Get("data_counter").Float()/1024.0/1024.0/1024.0))
 		c.Set("ivp6", a.Get("location_ipv6_ready").String())
 		c.Set("error", a.Get("error").String())
-		c.Set("ipv4", a.Get("ip_addresses").Array()[0].String()+":26937")
+		c.Set("ipv4", a.Get("ip_addresses").String()+":26937")
 	} else {
 		c.Set("err", ex.Error())
 	}
