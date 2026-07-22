@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -17,7 +18,7 @@ import (
 
 const (
 	bwhStatusURL = "https://api.64clouds.com/v1/getServiceInfo?veid=%s&api_key=%s"
-	bwhAPIKey    = "yfCUSxAg5fs9DMzQntChzNkPneEsvMm5bMo+iuDt9Zr0itwcP3vSrMDOfeCovNA0igyKy2z1bKy8CxsQTYCNexa"
+	bwhAPIKey    = "private_3togcVA1FRA9xdwhupifGEzo"
 	bwhVeid      = "979913"
 )
 
@@ -26,8 +27,15 @@ var (
 	ipCached6 string
 )
 
+// multiRender 预置模板
+func multiRender() multitemplate.Renderer {
+	r := multitemplate.NewRenderer()
+	r.AddFromString("vpsinfo", tplVpsinfo)
+	return r
+}
+
 func vps4info(c *gin.Context) {
-	req, _ := http.NewRequest("GET", fmt.Sprintf(bwhStatusURL, bwhVeid, crypto.DeobfuscationString(bwhAPIKey)), strings.NewReader(""))
+	req, _ := http.NewRequest("GET", fmt.Sprintf(bwhStatusURL, bwhVeid, bwhAPIKey), strings.NewReader(""))
 	_, d, _, ex := httpclient.DoRequestWithTimeout(req, time.Second*5)
 	if ex == nil {
 		a := gjson.ParseBytes(d)
@@ -42,7 +50,11 @@ func vps4info(c *gin.Context) {
 		c.Set("ivp6", a.Get("location_ipv6_ready").String())
 		c.Set("error", a.Get("error").String())
 		c.Set("ipv4", a.Get("ip_addresses").Array()[0].String()+":26937")
+	} else {
+		c.Set("err", ex.Error())
 	}
+	// c.Header("Content-Type", "text/html")
+	// c.String(200, tplVpsinfo, c.Keys)
 	c.HTML(200, "vpsinfo", c.Keys)
 }
 

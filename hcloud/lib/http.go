@@ -57,6 +57,10 @@ var mediaExt = map[string]struct {
 
 func RouteEngine(srcDirs ...string) *gin.Engine {
 	r := ginmiddleware.LiteEngine(logger.NewConsoleWriter())
+	// 渲染模板
+	r.HTMLRender = multiRender()
+
+	r.Use(ginmiddleware.CFConnectingIP())
 	r.GET("/", func(c *gin.Context) {})
 	r.GET("/whoami", func(c *gin.Context) {
 		c.String(200, ginmiddleware.GetClientIP(c))
