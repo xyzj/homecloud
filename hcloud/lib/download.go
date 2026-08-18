@@ -159,12 +159,13 @@ func buildYoutubeShell(vi *videoinfo) {
 		scmd.WriteString("#!/bin/ash\n\n")
 		scmd.WriteString("/usr/bin/yt-dlp ") // python3 -m pip install -U yt-dlp
 	}
+	scmd.WriteString("--extractor-args 'youtube:player_client=web_embedded' ")
 	// scmd.WriteString("--proxy='http://127.0.0.1:8119' ")
-	scmd.WriteString("--continue ")
 	if vi.format == "" {
-		vi.format = "242+249/133+140/134+139/93/18"
+		vi.format = "(242+249)/(133+140)/(134+139)/92/18"
 	}
 	scmd.WriteString("-f '" + vi.format + "' ")
+	scmd.WriteString("--continue ")
 	// scmd.WriteString("--downloader=aria2c ")
 	scmd.WriteString("--no-get-comments ")
 	scmd.WriteString("--trim-filenames 55 ")
